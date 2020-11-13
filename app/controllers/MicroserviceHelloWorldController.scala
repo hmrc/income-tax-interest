@@ -1,9 +1,9 @@
-package uk.gov.hmrc.incometaxinterest.controllers
+package controllers
 
+import config.AppConfig
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
-import uk.gov.hmrc.incometaxinterest.config.AppConfig
 
 import scala.concurrent.Future
 

@@ -1,4 +1,4 @@
-package uk.gov.hmrc.incometaxinterest.config
+package config
 
 import javax.inject.{Inject, Singleton}
 import play.api.Configuration
