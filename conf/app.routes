@@ -1,3 +1,4 @@
 # microservice specific routes
 
-GET        /hello-world             controllers.MicroserviceHelloWorldController.hello
+GET        /income-tax/nino/{nino}/sources   controllers.GetInterestsController.getIncomeSource(nino: String, taxYear: String, mtditid: String)
+
