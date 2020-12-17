@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package config
+package models
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.json.{Json, Writes}
 
-@Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+case class NamedInterestDetailsModel(accountName: String, incomeSourceId: String, taxedUkInterest: Option[BigDecimal], untaxedUkInterest: Option[BigDecimal])
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+object NamedInterestDetailsModel {
 
-  val desBaseUrl: String = servicesConfig.baseUrl("des")
+  implicit val writes: Writes[NamedInterestDetailsModel] = Json.writes[NamedInterestDetailsModel]
 
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
 }

@@ -14,19 +14,29 @@
  * limitations under the License.
  */
 
-package config
+package models
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import play.api.libs.json.{JsObject, Json}
+import testUtils.TestSuite
 
-@Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+class InterestDetailsModelSpec extends TestSuite {
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+  val model: InterestDetailsModel = new InterestDetailsModel("incomeSourceId", Some(74.09), Some(27.39))
+  val jsonModel: JsObject = Json.obj(
+    "incomeSourceId" -> "incomeSourceId",
+            "taxedUkInterest" -> 74.09,
+            "untaxedUkInterest" -> 27.39
+  )
 
-  val desBaseUrl: String = servicesConfig.baseUrl("des")
+  "submitted interest" should {
+    "parse to json" in {
+      Json.toJson(model) mustBe jsonModel
+    }
 
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
+    "parse from json" in {
+      jsonModel.as[InterestDetailsModel]
+    }
+  }
+
+
 }
