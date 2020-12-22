@@ -23,11 +23,13 @@ import testUtils.TestSuite
 class IncomeSourceModelSpec extends TestSuite{
   SharedMetricRegistries.clear()
 
-  val model: IncomeSourceModel = new IncomeSourceModel("nino", "incomeSourceId",
-    "interest-from-uk-banks", "incomeSourceName")
+  val model: IncomeSourceModel = new IncomeSourceModel(
+    "incomeSourceId",
+    "interest-from-uk-banks",
+    "incomeSourceName"
+  )
 
   val jsonModel: JsObject = Json.obj(
-    "nino" -> "nino",
     "incomeSourceId" -> "incomeSourceId",
     "incomeSourceType" -> "interest-from-uk-banks",
     "incomeSourceName" -> "incomeSourceName"

@@ -28,14 +28,14 @@ import scala.concurrent.Future
 
 class GetInterestsServiceSpec extends TestSuite {
 
-  val listConnector = mock[GetIncomeSourceListConnector]
-  val detailsConnector = mock[GetIncomeSourceDetailsConnector]
+  val listConnector: GetIncomeSourceListConnector = mock[GetIncomeSourceListConnector]
+  val detailsConnector: GetIncomeSourceDetailsConnector = mock[GetIncomeSourceDetailsConnector]
   val service = new GetInterestsService(listConnector, detailsConnector)
 
   ".getInterests" should {
 
     "return the correct response when all calls succeed" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("nino", "incomeSourceId", "incomeSourceType", "incomeSourceName")))
+      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
       val expectedDetails = Right(InterestDetailsModel("incomeSourceId", Some(29.89), Some(67.77)))
       val expectedResult = Right(Json.toJson(List(NamedInterestDetailsModel("incomeSourceName", "incomeSourceId", Some(29.89), Some(67.77)))))
 
@@ -132,7 +132,7 @@ class GetInterestsServiceSpec extends TestSuite {
     }
 
     "return the correct response when the second call fails due to InterestDetailsInvalidJson" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("nino", "incomeSourceId", "incomeSourceType", "incomeSourceName")))
+      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
       val expectedDetails = Left(IncomeSourcesDetailsParser.InterestDetailsInvalidJson)
       val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
 
@@ -150,7 +150,7 @@ class GetInterestsServiceSpec extends TestSuite {
     }
 
     "return the correct response when the second call fails due to InvalidSubmission" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("nino", "incomeSourceId", "incomeSourceType", "incomeSourceName")))
+      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
       val expectedDetails = Left(IncomeSourcesDetailsParser.InvalidSubmission)
       val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
 
@@ -168,7 +168,7 @@ class GetInterestsServiceSpec extends TestSuite {
     }
 
     "return the correct response when the second call fails due to NotFoundException" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("nino", "incomeSourceId", "incomeSourceType", "incomeSourceName")))
+      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
       val expectedDetails = Left(IncomeSourcesDetailsParser.NotFoundException)
       val expectedResult =  Right(Json.toJson(List.empty[NamedInterestDetailsModel]))
 
@@ -186,7 +186,7 @@ class GetInterestsServiceSpec extends TestSuite {
     }
 
     "return the correct response when the second call fails due to InternalServerErrorUpstream" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("nino", "incomeSourceId", "incomeSourceType", "incomeSourceName")))
+      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
       val expectedDetails = Left(IncomeSourcesDetailsParser.InternalServerErrorUpstream)
       val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
 
@@ -204,7 +204,7 @@ class GetInterestsServiceSpec extends TestSuite {
     }
 
     "return the correct response when the second call fails due to ServiceUnavailable" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("nino", "incomeSourceId", "incomeSourceType", "incomeSourceName")))
+      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
       val expectedDetails = Left(IncomeSourcesDetailsParser.ServiceUnavailable)
       val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
 
@@ -222,7 +222,7 @@ class GetInterestsServiceSpec extends TestSuite {
     }
 
     "return the correct response when the second call fails due to UnexpectedStatus" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("nino", "incomeSourceId", "incomeSourceType", "incomeSourceName")))
+      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
       val expectedDetails = Left(IncomeSourcesDetailsParser.UnexpectedStatus)
       val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
 

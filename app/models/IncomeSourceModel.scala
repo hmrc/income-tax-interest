@@ -18,19 +18,18 @@ package models
 
 import play.api.libs.json.{Reads, _}
 
-case class IncomeSourceModel (nino: String, incomeSourceId: String, incomeSourceType: String, incomeSourceName: String)
+case class IncomeSourceModel (incomeSourceId: String, incomeSourceType: String, incomeSourceName: String)
 
 object IncomeSourceModel {
 
   implicit val reads: Reads[IncomeSourceModel] = (json: JsValue) => {
-    (for {
-      nino <- (json \ "nino").validate[String]
+    for {
       incomeSourceId <- (json \ "incomeSourceId").validate[String]
       incomeSourceType <- (json \ "incomeSourceType").validate[String]
       incomeSourceName <- (json \ "incomeSourceName").validate[String]
     } yield {
-      IncomeSourceModel(nino, incomeSourceId, incomeSourceType, incomeSourceName)
-    })
+      IncomeSourceModel(incomeSourceId, incomeSourceType, incomeSourceName)
+    }
   }
 
   implicit val writes: Writes[IncomeSourceModel] = Json.writes[IncomeSourceModel]

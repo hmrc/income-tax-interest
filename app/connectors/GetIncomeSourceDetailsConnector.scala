@@ -21,13 +21,13 @@ import connectors.httpParsers.IncomeSourcesDetailsParser.IncomeSourcesDetailsRes
 import javax.inject.Inject
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class GetIncomeSourceDetailsConnector @Inject()(http: HttpClient, appConfig: AppConfig)(implicit ec: ExecutionContext){
 
-  def getIncomeSourceDetails(nino: String, taxYear: String, incomeSourceId: String)(implicit hc: HeaderCarrier) = {
+  def getIncomeSourceDetails(nino: String, taxYear: String, incomeSourceId: String)(implicit hc: HeaderCarrier): Future[IncomeSourcesDetailsResponse] = {
     val incomeSourcesUrl = appConfig.desBaseUrl +
-      s"/income-tax/income-sources/nino/${nino}?incomeSourceType=savings&taxYear=${taxYear}&incomeSourceId=${incomeSourceId}"
+      s"/income-tax/income-sources/nino/$nino?incomeSourceType=savings&taxYear=$taxYear&incomeSourceId=$incomeSourceId"
     http.GET[IncomeSourcesDetailsResponse](incomeSourcesUrl)
   }
 
