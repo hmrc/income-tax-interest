@@ -16,20 +16,20 @@
 
 package models
 
-import play.api.libs.json.{JsValue, Json, Reads, Writes}
+import play.api.libs.json._
 
 case class InterestDetailsModel (incomeSourceId: String, taxedUkInterest: Option[BigDecimal], untaxedUkInterest: Option[BigDecimal])
 
 object InterestDetailsModel {
 
-  implicit val reads: Reads[InterestDetailsModel] = (json: JsValue) => {
-    (for {
-      incomeSourceId <- (json \ "incomeSourceId").validate[String]
-      taxedUkInterest <- (json \ "taxedUkInterest").validateOpt[BigDecimal]
-      untaxedUkInterest <- (json \ "untaxedUkInterest").validateOpt[BigDecimal]
+  implicit val reads: Reads[InterestDetailsModel] = {
+    for {
+      incomeSourceId <- (__ \ "incomeSourceId").read[String]
+      taxedUkInterest <- (__ \ "taxedUkInterest").readNullable[BigDecimal]
+      untaxedUkInterest <- (__ \ "untaxedUkInterest").readNullable[BigDecimal]
     } yield {
       InterestDetailsModel(incomeSourceId, taxedUkInterest, untaxedUkInterest)
-    })
+    }
   }
 
   implicit val writes: Writes[InterestDetailsModel] = Json.writes[InterestDetailsModel]

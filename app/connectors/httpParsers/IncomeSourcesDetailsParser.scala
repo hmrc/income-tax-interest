@@ -24,27 +24,34 @@ object IncomeSourcesDetailsParser {
   type IncomeSourcesDetailsResponse = Either[InterestDetailsException, InterestDetailsModel]
 
   implicit object IncomeSourceDetailsHttpReads extends HttpReads[IncomeSourcesDetailsResponse] {
-    override def read(method: String, url: String, response: HttpResponse): IncomeSourcesDetailsResponse = response.status match {
-      case OK => response.json.validate[InterestDetailsModel].fold[IncomeSourcesDetailsResponse](
-        jsErrors => Left(InterestDetailsInvalidJson),
-        parsedModel => Right(parsedModel)
-      )
-      case BAD_REQUEST => Left(InvalidSubmission)
-      case NOT_FOUND => Left(NotFoundException)
-      case INTERNAL_SERVER_ERROR => Left(InternalServerErrorUpstream)
-      case SERVICE_UNAVAILABLE => Left(ServiceUnavailable)
-      case _ => Left(UnexpectedStatus)
+    override def read(method: String, url: String, response: HttpResponse): IncomeSourcesDetailsResponse = {
+      response.status match {
+        case OK => (response.json \ "savingsInterestAnnualIncome").validate[List[InterestDetailsModel]].fold[IncomeSourcesDetailsResponse](
+          jsErrors => Left(InterestDetailsInvalidJson),
+          parsedModel => if(parsedModel.nonEmpty) Right(parsedModel.head) else Left(InvalidSubmission)
+        )
+        case BAD_REQUEST => Left(InvalidSubmission)
+        case NOT_FOUND => Left(NotFoundException)
+        case INTERNAL_SERVER_ERROR => Left(InternalServerErrorUpstream)
+        case SERVICE_UNAVAILABLE => Left(ServiceUnavailable)
+        case _ => Left(UnexpectedStatus)
 
+      }
     }
   }
 
   sealed trait InterestDetailsException
 
   object InterestDetailsInvalidJson extends InterestDetailsException
+
   object InvalidSubmission extends InterestDetailsException
+
   object NotFoundException extends InterestDetailsException
+
   object InternalServerErrorUpstream extends InterestDetailsException
+
   object ServiceUnavailable extends InterestDetailsException
+
   object UnexpectedStatus extends InterestDetailsException
 
 }

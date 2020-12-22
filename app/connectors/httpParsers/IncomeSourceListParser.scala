@@ -24,7 +24,7 @@ object IncomeSourceListParser {
   type IncomeSourceListResponse = Either[IncomeSourceListException, List[IncomeSourceModel]]
 
   implicit object IncomeSourceHttpReads extends HttpReads[IncomeSourceListResponse] {
-    override def read(method: String, url: String, response: HttpResponse) = response.status match {
+    override def read(method: String, url: String, response: HttpResponse): IncomeSourceListResponse = response.status match {
       case OK => response.json.validate[List[IncomeSourceModel]].fold[IncomeSourceListResponse](
         jsonErrors => Left(IncomeSourcesInvalidJson),
         parsedModel => Right(parsedModel)

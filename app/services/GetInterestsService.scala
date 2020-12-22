@@ -29,20 +29,23 @@ import scala.concurrent.{Await, ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 
 class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourceListConnector,
-                                           getIncomeSourceDetailsConnector: GetIncomeSourceDetailsConnector) {
+                                    getIncomeSourceDetailsConnector: GetIncomeSourceDetailsConnector) {
 
   def getInterestsList(nino: String, taxYear: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[IncomeSourceListException, JsValue]] = {
-      getIncomeSourceListConnector.getIncomeSourceList(nino, taxYear).flatMap{
-      case Right(incomeSourcesModel) => Future.sequence(incomeSourcesModel.map(incomeSource =>
-          getIncomeSourceDetails(nino, taxYear, incomeSource.incomeSourceId).map{
-            case Right(interestDetailsModel) => NamedInterestDetailsModel(incomeSource.incomeSourceName, interestDetailsModel.incomeSourceId,
+    getIncomeSourceListConnector.getIncomeSourceList(nino, taxYear).flatMap {
+      case Right(incomeSourcesModel) => Future.sequence(incomeSourcesModel.map(incomeSource => {
+        getIncomeSourceDetails(nino, taxYear, incomeSource.incomeSourceId).map {
+          case Right(interestDetailsModel) =>
+            NamedInterestDetailsModel(incomeSource.incomeSourceName, interestDetailsModel.incomeSourceId,
               interestDetailsModel.taxedUkInterest, interestDetailsModel.untaxedUkInterest)
-            case Left(exception) => handleDetailsFetchException(exception)
-          })).map(interestList => Right(Json.toJson(interestList.filter(_.incomeSourceId != "NotFound"))))
+          case Left(exception) =>
+            handleDetailsFetchException(exception)
+        }
+      })).map(interestList => Right(Json.toJson(interestList.filter(_.incomeSourceId != "NotFound"))))
       case Left(exception) => Future.successful(Left(exception))
     }.recover {
-        case _ => Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
-      }
+      case _ => Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
+    }
   }
 
   def getIncomeSourceDetails(nino: String, taxYear: String, incomeSourceId: String)(implicit hc: HeaderCarrier): Future[IncomeSourcesDetailsResponse] = {
@@ -50,11 +53,11 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
   }
 
   private def handleDetailsFetchException(exception: InterestDetailsException) = exception match {
-      case IncomeSourcesDetailsParser.InvalidSubmission => throw new Exception
-      case IncomeSourcesDetailsParser.NotFoundException => NamedInterestDetailsModel("NotFound", "NotFound", None, None)
-      case IncomeSourcesDetailsParser.InternalServerErrorUpstream => throw new Exception
-      case IncomeSourcesDetailsParser.ServiceUnavailable => throw new Exception
-      case IncomeSourcesDetailsParser.UnexpectedStatus => throw new Exception
+    case IncomeSourcesDetailsParser.InvalidSubmission => throw new Exception
+    case IncomeSourcesDetailsParser.NotFoundException => NamedInterestDetailsModel("NotFound", "NotFound", None, None)
+    case IncomeSourcesDetailsParser.InternalServerErrorUpstream => throw new Exception
+    case IncomeSourcesDetailsParser.ServiceUnavailable => throw new Exception
+    case IncomeSourcesDetailsParser.UnexpectedStatus => throw new Exception
   }
 
 }
