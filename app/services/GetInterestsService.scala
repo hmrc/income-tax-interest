@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,15 @@
 package services
 
 import connectors.httpParsers.IncomeSourceListParser.IncomeSourceListException
-import connectors.httpParsers.{IncomeSourceListParser, IncomeSourcesDetailsParser}
 import connectors.httpParsers.IncomeSourcesDetailsParser.{IncomeSourcesDetailsResponse, InterestDetailsException}
+import connectors.httpParsers.{IncomeSourceListParser, IncomeSourcesDetailsParser}
 import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector}
 import javax.inject.Inject
 import models.NamedInterestDetailsModel
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.HeaderCarrier
 
-import scala.concurrent.{Await, ExecutionContext, Future}
-import scala.concurrent.duration.Duration
+import scala.concurrent.{ExecutionContext, Future}
 
 class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourceListConnector,
                                     getIncomeSourceDetailsConnector: GetIncomeSourceDetailsConnector) {

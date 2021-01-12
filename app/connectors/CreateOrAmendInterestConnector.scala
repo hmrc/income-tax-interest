@@ -17,18 +17,21 @@
 package connectors
 
 import config.AppConfig
-import connectors.httpParsers.IncomeSourcesDetailsParser.IncomeSourcesDetailsResponse
+import connectors.httpParsers.CreateOrAmendInterestHttpParser._
 import javax.inject.Inject
+import models.InterestDetailsModel
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetIncomeSourceDetailsConnector @Inject()(http: HttpClient, appConfig: AppConfig)(implicit ec: ExecutionContext){
+class CreateOrAmendInterestConnector @Inject()(http: HttpClient, config: AppConfig)(implicit ec: ExecutionContext) {
 
-  def getIncomeSourceDetails(nino: String, taxYear: String, incomeSourceId: String)(implicit hc: HeaderCarrier): Future[IncomeSourcesDetailsResponse] = {
-    val incomeSourcesUrl = appConfig.desBaseUrl +
-      s"/income-tax/income-sources/nino/$nino?incomeSourceType=savings&taxYear=$taxYear&incomeSourceId=$incomeSourceId"
-    http.GET[IncomeSourcesDetailsResponse](incomeSourcesUrl)
+  def createOrAmendInterest(
+                             nino: String, taxYear: Int, interestModel: InterestDetailsModel
+                           )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
+    val createOrAmendInterestUrl: String = config.desBaseUrl + s"/income-tax/nino/$nino/income-source/savings/" +
+      s"annual/$taxYear"
+    http.POST[InterestDetailsModel, CreateOrAmendInterestResponse](createOrAmendInterestUrl, interestModel)
   }
 
 }

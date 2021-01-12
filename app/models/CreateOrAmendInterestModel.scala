@@ -16,27 +16,15 @@
 
 package models
 
-import play.api.libs.json.{JsObject, Json}
-import testUtils.TestSuite
+import play.api.libs.json.{Json, OFormat}
 
-class InterestDetailsModelSpec extends TestSuite {
-
-  val model: InterestDetailsModel = new InterestDetailsModel("incomeSourceId", Some(74.09), Some(27.39))
-  val jsonModel: JsObject = Json.obj(
-    "incomeSourceId" -> "incomeSourceId",
-            "taxedUkInterest" -> 74.09,
-            "untaxedUkInterest" -> 27.39
-  )
-
-  "submitted interest" should {
-    "parse to json" in {
-      Json.toJson(model) mustBe jsonModel
-    }
-
-    "parse from json" in {
-      jsonModel.as[InterestDetailsModel]
-    }
-  }
+case class CreateOrAmendInterestModel(id: Option[String],
+                                      accountName: String,
+                                      taxedUkInterest: Option[BigDecimal],
+                                      untaxedUkInterest: Option[BigDecimal])
 
 
+object CreateOrAmendInterestModel{
+  implicit val formats: OFormat[CreateOrAmendInterestModel] = Json.format[CreateOrAmendInterestModel]
 }
+

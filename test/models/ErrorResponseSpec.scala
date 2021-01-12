@@ -19,24 +19,24 @@ package models
 import play.api.libs.json.{JsObject, Json}
 import testUtils.TestSuite
 
-class InterestDetailsModelSpec extends TestSuite {
+class ErrorResponseSpec extends TestSuite{
 
-  val model: InterestDetailsModel = new InterestDetailsModel("incomeSourceId", Some(74.09), Some(27.39))
-  val jsonModel: JsObject = Json.obj(
-    "incomeSourceId" -> "incomeSourceId",
-            "taxedUkInterest" -> 74.09,
-            "untaxedUkInterest" -> 27.39
+  val model: ErrorResponse = new ErrorResponse(
+    500,
+    "INTERNAL_SERVER_ERROR",
+    "an error has occurred"
   )
 
-  "submitted interest" should {
+  val jsonModel: JsObject = Json.obj(
+    "code" -> "INTERNAL_SERVER_ERROR",
+    "message" -> "an error has occurred"
+  )
+
+  "ErrorResponse" should {
+
     "parse to json" in {
       Json.toJson(model) mustBe jsonModel
     }
-
-    "parse from json" in {
-      jsonModel.as[InterestDetailsModel]
-    }
   }
-
 
 }
