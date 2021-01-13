@@ -1,3 +1,5 @@
+
+
 package helpers
 
 import com.github.tomakehurst.wiremock.client.WireMock._
@@ -25,6 +27,14 @@ trait WiremockStubHelpers {
       .willReturn(
         aResponse()
           .withStatus(status)
+          .withHeader("Content-Type", "application/json; charset=utf-8")))
+
+  def stubPostWithResponseBody(url: String, status: Int, requestBody: String, response: String): StubMapping =
+    stubFor(post(urlEqualTo(url)).withRequestBody(equalToJson(requestBody))
+      .willReturn(
+        aResponse()
+          .withStatus(status)
+          .withBody(response)
           .withHeader("Content-Type", "application/json; charset=utf-8")))
 
   def stubPutWithoutResponseBody(url: String, requestBody: String, status: Int): StubMapping =

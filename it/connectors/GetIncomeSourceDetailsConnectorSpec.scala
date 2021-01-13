@@ -37,6 +37,9 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
   val desReturned: JsObject = Json.obj(
     "savingsInterestAnnualIncome" -> Json.arr(model)
   )
+  val desReturnedEmpty: JsObject = Json.obj(
+    "savingsInterestAnnualIncome" -> Json.arr()
+  )
 
   ".getIncomeSourceDetails" should {
 
@@ -51,6 +54,13 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
       }
     }
     "return a failure result" when {
+
+      "DES returns Empty Json" in {
+        stubGetWithResponseBody(url, OK, desReturnedEmpty.toString())
+        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
+
+        result mustBe Left(InvalidSubmission)
+      }
 
       "DES returns wrong Json" in {
         stubGetWithResponseBody(url, OK, Json.obj("nino" -> nino).toString())

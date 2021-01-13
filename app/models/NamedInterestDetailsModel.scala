@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,10 @@ package models
 
 import play.api.libs.json.{Json, Writes}
 
-case class NamedInterestDetailsModel(accountName: String, incomeSourceId: String, taxedUkInterest: Option[BigDecimal], untaxedUkInterest: Option[BigDecimal])
+case class NamedInterestDetailsModel(accountName: String,
+                                     incomeSourceId: String,
+                                     taxedUkInterest: Option[BigDecimal],
+                                     untaxedUkInterest: Option[BigDecimal])
 
 object NamedInterestDetailsModel {
 

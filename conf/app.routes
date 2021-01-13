@@ -1,4 +1,5 @@
 # microservice specific routes
 
 GET        /income-tax/nino/:nino/sources   controllers.GetInterestsController.getIncomeSource(nino: String, taxYear: String, mtditid: String)
+POST       /income-tax/nino/:nino/sources   controllers.CreateOrAmendInterestController.createOrAmendInterest(nino: String, taxYear: Int, mtditid: String)
 

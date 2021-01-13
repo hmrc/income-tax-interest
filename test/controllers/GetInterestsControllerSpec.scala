@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 HM Revenue & Customs
+ * Copyright 2021 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package controllers
 
-import connectors.httpParsers.{IncomeSourceListParser, IncomeSourcesDetailsParser}
-import models.{IncomeSourceModel, InterestDetailsModel, NamedInterestDetailsModel}
+import connectors.httpParsers.IncomeSourceListParser
+import models.NamedInterestDetailsModel
 import play.api.http.Status._
 import play.api.libs.json.Json
 import services.GetInterestsService
