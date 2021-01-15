@@ -35,7 +35,7 @@ class CreateOrAmendInterestController @Inject()(createOrAmendInterestService: Cr
   def createOrAmendInterest(nino: String, taxYear: Int, mtditid: String): Action[AnyContent] = authorisedAction.async(mtditid) { implicit user =>
     user.request.body.asJson.map(_.validate[Seq[CreateOrAmendInterestModel]]) match {
       case Some(JsSuccess(model, _)) =>
-        Future.sequence(createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model)).flatMap(response =>
+        createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model).flatMap(response =>
           if (response.exists(_.isLeft)) {
             Future.successful(InternalServerError)
           } else {
