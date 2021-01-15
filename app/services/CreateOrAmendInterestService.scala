@@ -72,16 +72,16 @@ class CreateOrAmendInterestService @Inject()(
   }
 
   def createOrAmendAllInterest(nino: String, taxYear: Int, submittedModel: Seq[CreateOrAmendInterestModel]
-                              )(implicit hc: HeaderCarrier): Seq[Future[CreateOrAmendInterestResponse]] = {
+                              )(implicit hc: HeaderCarrier): Future[Seq[CreateOrAmendInterestResponse]] = {
 
-    submittedModel.map { model =>
+    Future.sequence(submittedModel.map { model =>
       getIncomeSourceId(nino, model).flatMap {
         case Right(value) =>
           createOrAmendInterest(nino, taxYear, value)
         case Left(errorResponse) =>
           Future.successful(Left(errorResponse))
       }
-    }
+    })
   }
 
 }

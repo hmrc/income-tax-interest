@@ -127,19 +127,19 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
       "both connectors return successful responses" in {
 
-        val expectedResult = Right(true)
+        val expectedResult = Seq(Right(true))
 
         createIncomeSourceConnectorMockSuccess
 
         createOrAmendInterestMockSuccess
 
-        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)).head)
+        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)))
 
         result mustBe expectedResult
       }
       "the first connector fails twice before success" in {
 
-        val expectedResult = Right(true)
+        val expectedResult = Seq(Right(true))
 
         createIncomeSourceConnectorMockFailure.repeat(2)
 
@@ -147,13 +147,13 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
         createOrAmendInterestMockSuccess
 
-        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)).head)
+        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)))
 
         result mustBe expectedResult
       }
       "the second connector fails twice before success" in {
 
-        val expectedResult = Right(true)
+        val expectedResult = Seq(Right(true))
 
         createIncomeSourceConnectorMockSuccess
 
@@ -161,13 +161,13 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
         createOrAmendInterestMockSuccess
 
-        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)).head)
+        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)))
 
         result mustBe expectedResult
       }
       "both connectors fail twice before success" in {
 
-        val expectedResult = Right(true)
+        val expectedResult = Seq(Right(true))
 
         createIncomeSourceConnectorMockFailure.repeat(2)
 
@@ -177,7 +177,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
         createOrAmendInterestMockSuccess
 
-        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)).head)
+        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)))
 
         result mustBe expectedResult
       }
@@ -185,23 +185,23 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
     "return a Left(Error)" when {
 
       "CreateIncomeSourceConnector fails and CreateOrAmendConnector passes" in {
-        val expectedResult = Left(NotFoundError)
+        val expectedResult = Seq(Left(NotFoundError))
 
         createIncomeSourceConnectorMockFailure.repeat(3)
 
-        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)).head)
+        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)))
 
         result mustBe expectedResult
       }
 
       "CreateIncomeSourceConnector passes and CreateOrAmendConnector fails" in {
-        val expectedResult = Left(NotFoundError)
+        val expectedResult = Seq(Left(NotFoundError))
 
         createIncomeSourceConnectorMockSuccess
 
         createOrAmendInterestMockFailure.repeat(3)
 
-        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)).head)
+        val result = await(service.createOrAmendAllInterest(nino, taxYear, Seq(submittedModelWithoutId)))
 
         result mustBe expectedResult
       }

@@ -41,18 +41,18 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
   val interestSubmittedModel: Seq[CreateOrAmendInterestModel] = Seq(CreateOrAmendInterestModel(Some(incomeSourceId), incomeSourceName, None, Some(100.00)))
   val interestSubmittedModelInvalid: CreateOrAmendInterestModel = CreateOrAmendInterestModel(Some(incomeSourceId), incomeSourceName, None, Some(100.00))
 
-  val interestSuccessResponse: Seq[Future[CreateOrAmendInterestResponse]] =
-    Seq(Future.successful(Right(true)), Future.successful(Right(true)), Future.successful(Right(true)))
+  val interestSuccessResponse: Future[Seq[CreateOrAmendInterestResponse]] =
+    Future.successful(Seq(Right(true), Right(true), Right(true)))
 
-  val interestFailResponse: Seq[Future[CreateOrAmendInterestResponse]] =
-    Seq(Future.successful(Right(true)), Future.successful(Left(NotFoundError)), Future.successful(Right(true)))
+  val interestFailResponse: Future[Seq[CreateOrAmendInterestResponse]] =
+    Future.successful(Seq(Right(true), Left(NotFoundError), Right(true)))
 
-  def mockServiceSuccessCall: CallHandler4[String, Int, Seq[CreateOrAmendInterestModel], HeaderCarrier, Seq[Future[CreateOrAmendInterestResponse]]] =
+  def mockServiceSuccessCall: CallHandler4[String, Int, Seq[CreateOrAmendInterestModel], HeaderCarrier, Future[Seq[CreateOrAmendInterestResponse]]] =
     (serviceMock.createOrAmendAllInterest(_: String, _: Int, _: Seq[CreateOrAmendInterestModel])(_: HeaderCarrier))
       .expects(nino, taxYear, interestSubmittedModel, *)
       .returning(interestSuccessResponse)
 
-  def mockServiceFailCall: CallHandler4[String, Int, Seq[CreateOrAmendInterestModel], HeaderCarrier, Seq[Future[CreateOrAmendInterestResponse]]] =
+  def mockServiceFailCall: CallHandler4[String, Int, Seq[CreateOrAmendInterestModel], HeaderCarrier, Future[Seq[CreateOrAmendInterestResponse]]] =
     (serviceMock.createOrAmendAllInterest(_: String, _: Int, _: Seq[CreateOrAmendInterestModel])(_: HeaderCarrier))
       .expects(nino, taxYear, interestSubmittedModel, *)
       .returning(interestFailResponse)
