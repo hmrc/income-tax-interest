@@ -47,7 +47,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec{
       "DES Returns a Not Found" in {
         val expectedResult = NotFoundError
 
-        stubPostWithoutResponseBody(url, NOT_FOUND, Json.toJson(model).toString())
+        stubPostWithoutResponseBody(url, OK, Json.toJson(model).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.createIncomeSource(nino, model)(hc))
