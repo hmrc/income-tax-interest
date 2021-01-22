@@ -19,10 +19,11 @@ package services
 import connectors.httpParsers.{IncomeSourceListParser, IncomeSourcesDetailsParser}
 import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector}
 import connectors.httpParsers.IncomeSourceListParser.IncomeSourceListResponse
-import models.{IncomeSourceModel, InterestDetailsModel, NamedInterestDetailsModel}
+import models.{DesErrorBodyModel, DesErrorModel, IncomeSourceModel, InterestDetailsModel, NamedInterestDetailsModel}
 import play.api.libs.json.Json
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
+import play.api.http.Status._
 
 import scala.concurrent.Future
 
@@ -37,13 +38,13 @@ class GetInterestsServiceSpec extends TestSuite {
     "return the correct response when all calls succeed" in {
       val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
       val expectedDetails = Right(InterestDetailsModel("incomeSourceId", Some(29.89), Some(67.77)))
-      val expectedResult = Right(Json.toJson(List(NamedInterestDetailsModel("incomeSourceName", "incomeSourceId", Some(29.89), Some(67.77)))))
+      val expectedResult = Right(List(NamedInterestDetailsModel("incomeSourceName", "incomeSourceId", Some(29.89), Some(67.77))))
 
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
+      (listConnector.getIncomeSourceList(_: String, _: String)(_: HeaderCarrier))
         .expects("nino", "2020", *)
         .returning(Future.successful(expectedList))
 
-      (detailsConnector.getIncomeSourceDetails(_: String, _: String, _:String)(_: HeaderCarrier))
+      (detailsConnector.getIncomeSourceDetails(_: String, _: String, _: String)(_: HeaderCarrier))
         .expects("nino", "2020", "incomeSourceId", *)
         .returning(Future.successful(expectedDetails))
 
@@ -53,191 +54,44 @@ class GetInterestsServiceSpec extends TestSuite {
       result mustBe expectedResult
     }
 
-    "return the correct response when the first call fails due to IncomeSourcesInvalidJson" in {
-      val expectedList: IncomeSourceListResponse = Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
-      val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
+    "return an error response when the call fails" in {
 
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
-        .expects("nino", "2020", *)
-        .returning(Future.successful(expectedList))
-
-      val result = await(service.getInterestsList("nino", "2020"))
-
-      result mustBe expectedResult
-    }
-
-    "return the correct response when the first call fails due to InvalidSubmission" in {
-      val expectedList: IncomeSourceListResponse = Left(IncomeSourceListParser.InvalidSubmission)
-      val expectedResult =  Left(IncomeSourceListParser.InvalidSubmission)
-
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
-        .expects("nino", "2020", *)
-        .returning(Future.successful(expectedList))
-
-      val result = await(service.getInterestsList("nino", "2020"))
-
-      result mustBe expectedResult
-    }
-
-    "return the correct response when the first call fails due to NotFoundException" in {
-      val expectedList: IncomeSourceListResponse = Left(IncomeSourceListParser.NotFoundException)
-      val expectedResult =  Left(IncomeSourceListParser.NotFoundException)
-
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
-        .expects("nino", "2020", *)
-        .returning(Future.successful(expectedList))
-
-      val result = await(service.getInterestsList("nino", "2020"))
-
-      result mustBe expectedResult
-    }
-
-    "return the correct response when the first call fails due to InternalServerErrorUpstream" in {
-      val expectedList: IncomeSourceListResponse = Left(IncomeSourceListParser.InternalServerErrorUpstream)
-      val expectedResult =  Left(IncomeSourceListParser.InternalServerErrorUpstream)
-
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
-        .expects("nino", "2020", *)
-        .returning(Future.successful(expectedList))
-
-      val result = await(service.getInterestsList("nino", "2020"))
-
-      result mustBe expectedResult
-    }
-
-    "return the correct response when the first call fails due to UpstreamServiceUnavailable" in {
-      val expectedList: IncomeSourceListResponse = Left(IncomeSourceListParser.UpstreamServiceUnavailable)
-      val expectedResult =  Left(IncomeSourceListParser.UpstreamServiceUnavailable)
-
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
-        .expects("nino", "2020", *)
-        .returning(Future.successful(expectedList))
-
-      val result = await(service.getInterestsList("nino", "2020"))
-
-      result mustBe expectedResult
-    }
-
-    "return the correct response when the first call fails due to UnexpectedStatus" in {
-      val expectedList: IncomeSourceListResponse = Left(IncomeSourceListParser.UnexpectedStatus)
-      val expectedResult =  Left(IncomeSourceListParser.UnexpectedStatus)
-
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
-        .expects("nino", "2020", *)
-        .returning(Future.successful(expectedList))
-
-      val result = await(service.getInterestsList("nino", "2020"))
-
-      result mustBe expectedResult
-    }
-
-    "return the correct response when the second call fails due to InterestDetailsInvalidJson" in {
       val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
-      val expectedDetails = Left(IncomeSourcesDetailsParser.InterestDetailsInvalidJson)
-      val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
+      val expectedDetails = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("InternalServerError", "Server Error")))
+      val expectedResult: IncomeSourceListResponse = Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("InternalServerError", "Server Error")))
 
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
+      (listConnector.getIncomeSourceList(_: String, _: String)(_: HeaderCarrier))
         .expects("nino", "2020", *)
         .returning(Future.successful(expectedList))
 
-      (detailsConnector.getIncomeSourceDetails(_: String, _: String, _:String)(_: HeaderCarrier))
+      (detailsConnector.getIncomeSourceDetails(_: String, _: String, _: String)(_: HeaderCarrier))
         .expects("nino", "2020", "incomeSourceId", *)
         .returning(Future.successful(expectedDetails))
 
       val result = await(service.getInterestsList("nino", "2020"))
 
       result mustBe expectedResult
+
     }
 
-    "return the correct response when the second call fails due to InvalidSubmission" in {
+    "return an error response when there is an incomeSourceId but the call has failed downstream" in {
+
       val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
-      val expectedDetails = Left(IncomeSourcesDetailsParser.InvalidSubmission)
-      val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
+      val expectedDetails = Left(DesErrorModel(NOT_FOUND, DesErrorBodyModel("NotFound", "Unable to find source")))
+      val expectedResult = Right(List())
 
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
+      (listConnector.getIncomeSourceList(_: String, _: String)(_: HeaderCarrier))
         .expects("nino", "2020", *)
         .returning(Future.successful(expectedList))
 
-      (detailsConnector.getIncomeSourceDetails(_: String, _: String, _:String)(_: HeaderCarrier))
+      (detailsConnector.getIncomeSourceDetails(_: String, _: String, _: String)(_: HeaderCarrier))
         .expects("nino", "2020", "incomeSourceId", *)
         .returning(Future.successful(expectedDetails))
 
       val result = await(service.getInterestsList("nino", "2020"))
 
       result mustBe expectedResult
+
     }
-
-    "return the correct response when the second call fails due to NotFoundException" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
-      val expectedDetails = Left(IncomeSourcesDetailsParser.NotFoundException)
-      val expectedResult =  Right(Json.toJson(List.empty[NamedInterestDetailsModel]))
-
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
-        .expects("nino", "2020", *)
-        .returning(Future.successful(expectedList))
-
-      (detailsConnector.getIncomeSourceDetails(_: String, _: String, _:String)(_: HeaderCarrier))
-        .expects("nino", "2020", "incomeSourceId", *)
-        .returning(Future.successful(expectedDetails))
-
-      val result = await(service.getInterestsList("nino", "2020"))
-
-      result mustBe expectedResult
-    }
-
-    "return the correct response when the second call fails due to InternalServerErrorUpstream" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
-      val expectedDetails = Left(IncomeSourcesDetailsParser.InternalServerErrorUpstream)
-      val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
-
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
-        .expects("nino", "2020", *)
-        .returning(Future.successful(expectedList))
-
-      (detailsConnector.getIncomeSourceDetails(_: String, _: String, _:String)(_: HeaderCarrier))
-        .expects("nino", "2020", "incomeSourceId", *)
-        .returning(Future.successful(expectedDetails))
-
-      val result = await(service.getInterestsList("nino", "2020"))
-
-      result mustBe expectedResult
-    }
-
-    "return the correct response when the second call fails due to ServiceUnavailable" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
-      val expectedDetails = Left(IncomeSourcesDetailsParser.ServiceUnavailable)
-      val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
-
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
-        .expects("nino", "2020", *)
-        .returning(Future.successful(expectedList))
-
-      (detailsConnector.getIncomeSourceDetails(_: String, _: String, _:String)(_: HeaderCarrier))
-        .expects("nino", "2020", "incomeSourceId", *)
-        .returning(Future.successful(expectedDetails))
-
-      val result = await(service.getInterestsList("nino", "2020"))
-
-      result mustBe expectedResult
-    }
-
-    "return the correct response when the second call fails due to UnexpectedStatus" in {
-      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
-      val expectedDetails = Left(IncomeSourcesDetailsParser.UnexpectedStatus)
-      val expectedResult =  Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
-
-      (listConnector.getIncomeSourceList(_: String, _ :String)(_: HeaderCarrier))
-        .expects("nino", "2020", *)
-        .returning(Future.successful(expectedList))
-
-      (detailsConnector.getIncomeSourceDetails(_: String, _: String, _:String)(_: HeaderCarrier))
-        .expects("nino", "2020", "incomeSourceId", *)
-        .returning(Future.successful(expectedDetails))
-
-      val result = await(service.getInterestsList("nino", "2020"))
-
-      result mustBe expectedResult
-    }
-
   }
 }

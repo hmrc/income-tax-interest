@@ -16,9 +16,8 @@
 
 package connectors
 
-import connectors.httpParsers.IncomeSourcesDetailsParser._
 import helpers.WiremockSpec
-import models.InterestDetailsModel
+import models.{DesErrorBodyModel, DesErrorModel, InterestDetailsModel}
 import org.scalatestplus.play.PlaySpec
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, Json}
@@ -27,7 +26,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
   lazy val connector: GetIncomeSourceDetailsConnector = app.injector.instanceOf[GetIncomeSourceDetailsConnector]
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino = "nino"
   val taxYear = "2020"
   val incomeSourceId = "someId"
@@ -53,57 +52,107 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
       }
     }
-    "return a failure result" when {
 
-      "DES returns Empty Json" in {
-        stubGetWithResponseBody(url, OK, desReturnedEmpty.toString())
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
+    "return a InternalServerError parsing error when incorrectly parsed" in {
 
-        result mustBe Left(InvalidSubmission)
-      }
+      val invalidJson = Json.obj(
+        "savingsInterestAnnualIncome" -> "test"
+      )
 
-      "DES returns wrong Json" in {
-        stubGetWithResponseBody(url, OK, Json.obj("nino" -> nino).toString())
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+      stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, invalidJson.toString())
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
 
-        result mustBe Left(InterestDetailsInvalidJson)
-      }
-
-      "DES returns BAD_REQUEST" in {
-        stubGetWithoutResponseBody(url, BAD_REQUEST)
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
-
-        result mustBe Left(InvalidSubmission)
-      }
-
-      "DES returns NOT_FOUND" in {
-        stubGetWithoutResponseBody(url, NOT_FOUND)
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
-
-        result mustBe Left(NotFoundException)
-      }
-
-      "DES returns INTERNAL_SERVER_ERROR" in {
-        stubGetWithoutResponseBody(url, INTERNAL_SERVER_ERROR)
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
-
-        result mustBe Left(InternalServerErrorUpstream)
-      }
-
-      "DES returns SERVICE_UNAVAILABLE" in {
-        stubGetWithoutResponseBody(url, SERVICE_UNAVAILABLE)
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
-
-        result mustBe Left(ServiceUnavailable)
-      }
-
-      "DES returns an UNEXPECTED_STATUS" in {
-        stubGetWithoutResponseBody(url, NO_CONTENT)
-
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
-        result mustBe Left(UnexpectedStatus)
-      }
+      result mustBe Left(expectedResult)
     }
-  }
 
-}
+    "return a parsing error InternalServerError when it is a bad success response" in {
+
+      val invalidJson = Json.obj(
+        "savingsInterestAnnualIncome" -> Json.arr(
+          ""
+        )
+      )
+
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+      stubGetWithResponseBody(url, OK, invalidJson.toString())
+
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return a NoContent response" in {
+
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+      stubGetWithResponseBody(url, NO_CONTENT, "{}")
+
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return a BadRequest response" in {
+
+      val responseBody = Json.obj(
+        "code" -> "INVALID_NINO",
+        "description" -> "NINO is invalid"
+      )
+      val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_NINO","NINO is invalid"))
+      stubGetWithResponseBody(url, BAD_REQUEST, responseBody.toString())
+
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return a NotFound response" in {
+
+      val responseBody = Json.obj(
+        "code" -> "NOT_FOUND_INCOME_SOURCE",
+        "description" -> "Can't find the income source"
+      )
+      val expectedResult = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find the income source"))
+      stubGetWithResponseBody(url, NOT_FOUND, responseBody.toString())
+
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return an InternalServerError response" in {
+
+      val responseBody = Json.obj(
+        "code" -> "SERVER_ERROR",
+        "description" -> "Internal Server Error"
+      )
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
+      stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, responseBody.toString())
+
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+    "return a ServiceUnavailable response" in {
+
+      val responseBody = Json.obj(
+        "code" -> "SERVICE_UNAVAILABLE",
+        "description" -> "The service is currently unavailable"
+      )
+      val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
+      stubGetWithResponseBody(url, SERVICE_UNAVAILABLE, responseBody.toString())
+
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+}}
