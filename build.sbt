@@ -52,4 +52,6 @@ lazy val microservice = Project(appName, file("."))
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(coverageSettings: _*)
+  .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
+  .disablePlugins(JUnitXmlReportPlugin)
 
