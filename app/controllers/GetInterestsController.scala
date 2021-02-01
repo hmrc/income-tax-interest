@@ -16,14 +16,13 @@
 
 package controllers
 
-import connectors.httpParsers.IncomeSourceListParser
-import connectors.httpParsers.IncomeSourceListParser.IncomeSourceListException
 import controllers.predicates.AuthorisedAction
-import javax.inject.Inject
-import play.api.mvc.{Action, AnyContent, ControllerComponents, Result}
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.GetInterestsService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class GetInterestsController @Inject()(cc: ControllerComponents,
@@ -33,19 +32,9 @@ class GetInterestsController @Inject()(cc: ControllerComponents,
 
   def getIncomeSource(nino: String, taxYear: String, mtditid: String): Action[AnyContent] = authorisedAction.async(mtditid) { implicit user =>
     getInterestsService.getInterestsList(nino, taxYear).map{
-        case Right(interestList) => Ok(interestList)
-        case Left(exception) => handleListFetchExceptions(exception)
+        case Right(interestList) => Ok(Json.toJson(interestList))
+        case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.body))
       }
-  }
-  //move logic into singular service.
-
-  private def handleListFetchExceptions(exception: IncomeSourceListException): Result = exception match {
-    case IncomeSourceListParser.IncomeSourcesInvalidJson => InternalServerError("")
-    case IncomeSourceListParser.InvalidSubmission => BadRequest("")
-    case IncomeSourceListParser.NotFoundException => NotFound("")
-    case IncomeSourceListParser.InternalServerErrorUpstream => InternalServerError("")
-    case IncomeSourceListParser.UpstreamServiceUnavailable => ServiceUnavailable("")
-    case IncomeSourceListParser.UnexpectedStatus => InternalServerError("")
   }
 
 }

@@ -16,27 +16,4 @@
 
 package models
 
-import play.api.libs.json.{JsObject, Json}
-import testUtils.TestSuite
-
-class ErrorResponseSpec extends TestSuite{
-
-  val model: ErrorResponse = new ErrorResponse(
-    500,
-    "INTERNAL_SERVER_ERROR",
-    "an error has occurred"
-  )
-
-  val jsonModel: JsObject = Json.obj(
-    "code" -> "INTERNAL_SERVER_ERROR",
-    "message" -> "an error has occurred"
-  )
-
-  "ErrorResponse" should {
-
-    "parse to json" in {
-      Json.toJson(model) mustBe jsonModel
-    }
-  }
-
-}
+case class DesErrorModel(status: Int, body: DesErrorBodyModel)

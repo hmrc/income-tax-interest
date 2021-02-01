@@ -16,34 +16,49 @@
 
 package services
 
-import connectors.httpParsers.IncomeSourceListParser.IncomeSourceListException
-import connectors.httpParsers.IncomeSourcesDetailsParser.{IncomeSourcesDetailsResponse, InterestDetailsException}
-import connectors.httpParsers.{IncomeSourceListParser, IncomeSourcesDetailsParser}
+
+import connectors.httpParsers.IncomeSourcesDetailsParser.IncomeSourcesDetailsResponse
 import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector}
-import javax.inject.Inject
-import models.NamedInterestDetailsModel
+import models.{DesErrorBodyModel, DesErrorModel, NamedInterestDetailsModel}
 import play.api.libs.json.{JsValue, Json}
 import uk.gov.hmrc.http.HeaderCarrier
+import play.api.http.Status._
+import javax.inject.Inject
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourceListConnector,
                                     getIncomeSourceDetailsConnector: GetIncomeSourceDetailsConnector) {
 
-  def getInterestsList(nino: String, taxYear: String)(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[IncomeSourceListException, JsValue]] = {
+
+  def getInterestsList(nino: String, taxYear: String)
+                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]] = {
     getIncomeSourceListConnector.getIncomeSourceList(nino, taxYear).flatMap {
-      case Right(incomeSourcesModel) => Future.sequence(incomeSourcesModel.map(incomeSource => {
-        getIncomeSourceDetails(nino, taxYear, incomeSource.incomeSourceId).map {
-          case Right(interestDetailsModel) =>
-            NamedInterestDetailsModel(incomeSource.incomeSourceName, interestDetailsModel.incomeSourceId,
-              interestDetailsModel.taxedUkInterest, interestDetailsModel.untaxedUkInterest)
-          case Left(exception) =>
-            handleDetailsFetchException(exception)
+      case Right(incomeSourcesModel) =>
+
+        val listOfResponses: Future[List[Either[DesErrorModel, Option[NamedInterestDetailsModel]]]] = Future.sequence(
+          incomeSourcesModel.map(incomeSource => {
+            getIncomeSourceDetails(nino, taxYear, incomeSource.incomeSourceId).map {
+              case Right(interestDetailsModel) =>
+                Right(Some(NamedInterestDetailsModel(incomeSource.incomeSourceName, interestDetailsModel.incomeSourceId,
+                  interestDetailsModel.taxedUkInterest, interestDetailsModel.untaxedUkInterest)))
+              case Left(errorResponse) => handleDetailsError(errorResponse)
+            }
+          })
+        )
+
+        listOfResponses.map{
+          listOfResponses =>
+
+            if(listOfResponses.exists(_.isLeft)){
+
+              val error: Option[DesErrorModel] = listOfResponses.filter(_.isLeft).map(_.left.get).headOption
+              Left(error.getOrElse(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)))
+            } else {
+              Right(listOfResponses.filter(_.isRight).flatMap(_.right.get))
+            }
         }
-      })).map(interestList => Right(Json.toJson(interestList.filter(_.incomeSourceId != "NotFound"))))
-      case Left(exception) => Future.successful(Left(exception))
-    }.recover {
-      case _ => Left(IncomeSourceListParser.IncomeSourcesInvalidJson)
+      case Left(error) => Future.successful(Left(error))
     }
   }
 
@@ -51,12 +66,8 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
     getIncomeSourceDetailsConnector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)
   }
 
-  private def handleDetailsFetchException(exception: InterestDetailsException) = exception match {
-    case IncomeSourcesDetailsParser.InvalidSubmission => throw new Exception
-    case IncomeSourcesDetailsParser.NotFoundException => NamedInterestDetailsModel("NotFound", "NotFound", None, None)
-    case IncomeSourcesDetailsParser.InternalServerErrorUpstream => throw new Exception
-    case IncomeSourcesDetailsParser.ServiceUnavailable => throw new Exception
-    case IncomeSourcesDetailsParser.UnexpectedStatus => throw new Exception
+  private def handleDetailsError(error: DesErrorModel): Either[DesErrorModel, Option[NamedInterestDetailsModel]] = error.status match {
+    case NOT_FOUND => Right(None)
+    case _ => Left(error)
   }
-
 }

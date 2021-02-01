@@ -26,8 +26,8 @@ object ErrorResponse {
 
   implicit val writes: Writes[ErrorResponse] =  (
     (JsPath \ "code").write[String] and
-    (JsPath \ "message").write[String]
-  ) (error => (error.errorCode, error.errorMsg))
+      (JsPath \ "message").write[String]
+    ) (error => (error.errorCode, error.errorMsg))
 }
 
 case object InternalServerError extends ErrorResponse(

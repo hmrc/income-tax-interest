@@ -16,35 +16,60 @@
 
 package connectors.httpParsers
 
-import models.IncomeSourceModel
+import models.{DesErrorBodyModel, DesErrorModel, IncomeSourceModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
+import utils.PagerDutyHelper.PagerDutyKeys._
+import utils.PagerDutyHelper._
 
 object IncomeSourceListParser {
-  type IncomeSourceListResponse = Either[IncomeSourceListException, List[IncomeSourceModel]]
+  type IncomeSourceListResponse = Either[DesErrorModel, List[IncomeSourceModel]]
 
   implicit object IncomeSourceHttpReads extends HttpReads[IncomeSourceListResponse] {
     override def read(method: String, url: String, response: HttpResponse): IncomeSourceListResponse = response.status match {
       case OK => response.json.validate[List[IncomeSourceModel]].fold[IncomeSourceListResponse](
-        jsonErrors => Left(IncomeSourcesInvalidJson),
+        jsonErrors => {
+          pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, Some(s"[IncomeSourceListParser][read] Invalid Json from DES."))
+          Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
+        },
         parsedModel => Right(parsedModel)
       )
-      case BAD_REQUEST => Left(InvalidSubmission)
-      case NOT_FOUND => Left(NotFoundException)
-      case INTERNAL_SERVER_ERROR => Left(InternalServerErrorUpstream)
-      case SERVICE_UNAVAILABLE => Left(UpstreamServiceUnavailable)
-      case _ => Left(UnexpectedStatus)
+      case BAD_REQUEST | NOT_FOUND =>
+        pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(response))
+        handleDESError(response)
+      case INTERNAL_SERVER_ERROR =>
+        pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_DES, logMessage(response))
+        handleDESError(response)
+      case SERVICE_UNAVAILABLE =>
+        pagerDutyLog(SERVICE_UNAVAILABLE_FROM_DES, logMessage(response))
+        handleDESError(response)
+      case _ =>
+        pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, logMessage(response))
+        handleDESError(response, Some(INTERNAL_SERVER_ERROR))
     }
 
   }
 
-  sealed trait IncomeSourceListException
+  private def handleDESError(response: HttpResponse, statusOverride: Option[Int] = None): IncomeSourceListResponse = {
 
-  object IncomeSourcesInvalidJson extends IncomeSourceListException
-  object InvalidSubmission extends IncomeSourceListException
-  object NotFoundException extends IncomeSourceListException
-  object InternalServerErrorUpstream extends IncomeSourceListException
-  object UpstreamServiceUnavailable extends IncomeSourceListException
-  object UnexpectedStatus extends IncomeSourceListException
+    val status = statusOverride.getOrElse(response.status)
 
+    try {
+    response.json.validate[DesErrorBodyModel].fold[IncomeSourceListResponse](
+      {
+        jsonErrors =>
+        {
+          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, Some(s"[IncomeSourceListParser][read] Unexpected Json from DES."))
+          Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
+        }
+      },
+        parsedModel => Left(DesErrorModel(status, parsedModel)))
+    } catch {
+      case _: Exception => Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
+    }
+  }
+
+  private def logMessage(response:HttpResponse): Option[String] ={
+    Some(s"[IncomeSourceListParser][read] Received ${response.status} from DES. Body:${response.body}")
+  }
 }
