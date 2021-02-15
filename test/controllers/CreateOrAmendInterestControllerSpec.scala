@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInterestResponse
-import models.{CreateOrAmendInterestModel, NotFoundError}
+import models.{CreateOrAmendInterestModel, DesErrorBodyModel, DesErrorModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -32,6 +32,8 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
   val serviceMock: CreateOrAmendInterestService = mock[CreateOrAmendInterestService]
   val controller = new CreateOrAmendInterestController(serviceMock, mockControllerComponents, authorisedAction)
 
+  val notFoundModel: DesErrorModel = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NotFound", "Unable to find source"))
+
   val nino = "nino"
   val taxYear = 2021
   val incomeSourceName = "incomeSourceNameTest"
@@ -45,7 +47,7 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
     Future.successful(Seq(Right(true), Right(true), Right(true)))
 
   val interestFailResponse: Future[Seq[CreateOrAmendInterestResponse]] =
-    Future.successful(Seq(Right(true), Left(NotFoundError), Right(true)))
+    Future.successful(Seq(Right(true), Left(notFoundModel), Right(true)))
 
   def mockServiceSuccessCall: CallHandler4[String, Int, Seq[CreateOrAmendInterestModel], HeaderCarrier, Future[Seq[CreateOrAmendInterestResponse]]] =
     (serviceMock.createOrAmendAllInterest(_: String, _: Int, _: Seq[CreateOrAmendInterestModel])(_: HeaderCarrier))
@@ -74,7 +76,7 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
   }
     "return an error" when {
       "passed a valid model but at least one post fails" in {
-        val expectedResult = INTERNAL_SERVER_ERROR
+        val expectedResult = NOT_FOUND
 
         mockAuth()
         mockServiceFailCall
