@@ -21,6 +21,7 @@ import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInter
 import connectors.{CreateIncomeSourceConnector, CreateOrAmendInterestConnector}
 import models._
 import org.scalamock.handlers.{CallHandler, CallHandler4}
+import play.api.http.Status.{NOT_FOUND, SERVICE_UNAVAILABLE}
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -38,6 +39,8 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
   val incomeSourceName = "incomeSourceNameTest"
   val incomeSourceId = "incomeSourceIdTest"
 
+  val notFoundModel: DesErrorModel = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NotFound", "Unable to find source"))
+
   val interestDetailsModel: InterestDetailsModel = InterestDetailsModel(incomeSourceId, Some(100.00), Some(100.00))
   val submissionModel: InterestSubmissionModel = InterestSubmissionModel(incomeSourceName = incomeSourceName)
   val connectorResult: IncomeSourceIdModel = IncomeSourceIdModel(incomeSourceId)
@@ -52,7 +55,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
   def createOrAmendInterestMockFailure: CallHandler[Future[CreateOrAmendInterestResponse]] =
     (createOrAmendInterestConnector.createOrAmendInterest(_: String, _: Int, _: InterestDetailsModel)(_: HeaderCarrier))
     .expects(nino, taxYear, interestDetailsModel,  *)
-    .returning(Future.successful(Left(NotFoundError)))
+    .returning(Future.successful(Left(notFoundModel)))
 
   def createIncomeSourceConnectorMockSuccess: CallHandler[Future[CreateIncomeSourcesResponse]] =
     (createIncomeSourceConnector.createIncomeSource(_: String, _: InterestSubmissionModel)(_: HeaderCarrier))
@@ -62,7 +65,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
   def createIncomeSourceConnectorMockFailure: CallHandler[Future[CreateIncomeSourcesResponse]] =
     (createIncomeSourceConnector.createIncomeSource(_: String, _: InterestSubmissionModel)(_: HeaderCarrier))
     .expects(nino, submissionModel, *)
-    .returning(Future.successful(Left(NotFoundError)))
+    .returning(Future.successful(Left(notFoundModel)))
 
   ".createOrAmendInterest" should {
 
@@ -78,7 +81,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
     }
     "return a Left(errorResponse)" in {
 
-      val expectedResult = Left(NotFoundError)
+      val expectedResult = Left(notFoundModel)
 
       createOrAmendInterestMockFailure.repeat(3)
 
@@ -111,7 +114,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
     }
     "return an error " in{
 
-      val expectedResult = Left(NotFoundError)
+      val expectedResult = Left(notFoundModel)
 
       createIncomeSourceConnectorMockFailure.repeat(3)
 
@@ -185,7 +188,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
     "return a Left(Error)" when {
 
       "CreateIncomeSourceConnector fails and CreateOrAmendConnector passes" in {
-        val expectedResult = Seq(Left(NotFoundError))
+        val expectedResult = Seq(Left(notFoundModel))
 
         createIncomeSourceConnectorMockFailure.repeat(3)
 
@@ -195,7 +198,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
       }
 
       "CreateIncomeSourceConnector passes and CreateOrAmendConnector fails" in {
-        val expectedResult = Seq(Left(NotFoundError))
+        val expectedResult = Seq(Left(notFoundModel))
 
         createIncomeSourceConnectorMockSuccess
 

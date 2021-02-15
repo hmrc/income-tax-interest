@@ -49,7 +49,7 @@ class CreateOrAmendInterestService @Inject()(
   }
 
   def getIncomeSourceId(nino: String, interestSubmittedModel: CreateOrAmendInterestModel, attempt: Int = 0)
-                       (implicit hc: HeaderCarrier): Future[Either[ErrorResponse, InterestDetailsModel]] = {
+                       (implicit hc: HeaderCarrier): Future[Either[DesErrorModel, InterestDetailsModel]] = {
     if (interestSubmittedModel.id.isEmpty) {
       createIncomeSourceConnector.createIncomeSource(nino, InterestSubmissionModel(incomeSourceName = interestSubmittedModel.accountName)).flatMap {
         case Right(incomeSourceIdModel) =>

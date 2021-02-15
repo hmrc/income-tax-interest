@@ -18,8 +18,9 @@ package controllers
 
 
 import controllers.predicates.AuthorisedAction
+
 import javax.inject.Inject
-import models.CreateOrAmendInterestModel
+import models.{CreateOrAmendInterestModel, DesErrorBodyModel, DesErrorModel}
 import play.api.libs.json.JsSuccess
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.CreateOrAmendInterestService
@@ -37,7 +38,9 @@ class CreateOrAmendInterestController @Inject()(createOrAmendInterestService: Cr
       case Some(JsSuccess(model, _)) =>
         createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model).flatMap(response =>
           if (response.exists(_.isLeft)) {
-            Future.successful(InternalServerError)
+            val error: DesErrorModel = response.filter(_.isLeft).map(_.left.get).headOption
+              .getOrElse(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
+            Future.successful(Status(error.status))
           } else {
             Future.successful(NoContent)
           }

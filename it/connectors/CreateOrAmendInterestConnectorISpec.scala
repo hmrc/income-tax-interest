@@ -5,7 +5,7 @@ package connectors
 import helpers.WiremockSpec
 import models._
 import org.scalatestplus.play.PlaySpec
-import play.api.http.Status.{INTERNAL_SERVER_ERROR, NOT_FOUND, OK, SERVICE_UNAVAILABLE}
+import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -33,11 +33,29 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
         result mustBe Right(expectedResult)
       }
     }
-    "return a failed result" when {
-      "DES Returns a Not Found" in {
-        val expectedResult = NotFoundError
+    "return a InternalServerError parsing error when incorrectly parsed" in {
 
-        stubPostWithoutResponseBody(url, NOT_FOUND, Json.toJson(model).toString())
+      val invalidJson = Json.obj(
+        "notErrormodel" -> "test"
+      )
+
+      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+      stubPostWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(model).toString(), invalidJson.toString)
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+    "return a failed result" when {
+      "DES Returns a BAD_REQUEST" in {
+        val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_IDTYPE","ID is invalid"))
+
+        val responseBody = Json.obj(
+          "code" -> "INVALID_IDTYPE",
+          "description" -> "ID is invalid"
+        )
+        stubPostWithResponseBody(url, BAD_REQUEST, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
@@ -45,9 +63,13 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
         result mustBe Left(expectedResult)
       }
       "DES Returns a SERVICE_UNAVAILABLE" in {
-        val expectedResult = ServiceUnavailableError
+        val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
 
-        stubPostWithoutResponseBody(url, SERVICE_UNAVAILABLE, Json.toJson(model).toString())
+        val responseBody = Json.obj(
+          "code" -> "SERVICE_UNAVAILABLE",
+          "description" -> "The service is currently unavailable"
+        )
+        stubPostWithResponseBody(url, SERVICE_UNAVAILABLE, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
@@ -55,9 +77,23 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
         result mustBe Left(expectedResult)
       }
       "DES Returns a INTERNAL_SERVER_ERROR" in {
-        val expectedResult = InternalServerError
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
 
-        stubPostWithoutResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(model).toString())
+        val responseBody = Json.obj(
+          "code" -> "SERVER_ERROR",
+          "description" -> "Internal Server Error"
+        )
+        stubPostWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(model).toString(), responseBody.toString())
+
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+
+        result mustBe Left(expectedResult)
+      }
+      "DES Returns a unexpected response" in {
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+        stubPostWithoutResponseBody(url, GONE, Json.toJson(model).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
