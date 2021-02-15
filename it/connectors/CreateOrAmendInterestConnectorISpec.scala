@@ -17,7 +17,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
   val taxYear = 2021
   val url = s"/income-tax/nino/$nino/income-source/savings/annual/$taxYear"
 
-  val model: InterestDetailsModel = InterestDetailsModel("incomeSourceId", Some(100), Some(100))
+  val model: InterestDetailsModel = InterestDetailsModel("incomeSourceId", Some(100.00), Some(100.00))
 
 
   " CreateOrAmendInterestConnector" should {

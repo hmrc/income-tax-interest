@@ -5,7 +5,7 @@ package connectors
 import helpers.WiremockSpec
 import models._
 import org.scalatestplus.play.PlaySpec
-import play.api.http.Status.{BAD_REQUEST, CONFLICT, INTERNAL_SERVER_ERROR, NOT_FOUND, OK, SERVICE_UNAVAILABLE}
+import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -109,7 +109,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec{
         val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 
 
-        stubPostWithoutResponseBody(url, 501, Json.toJson(model).toString())
+        stubPostWithoutResponseBody(url, NOT_IMPLEMENTED, Json.toJson(model).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.createIncomeSource(nino, model)(hc))
