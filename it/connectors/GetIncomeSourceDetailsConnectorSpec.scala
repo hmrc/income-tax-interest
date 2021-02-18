@@ -99,7 +99,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
       val responseBody = Json.obj(
         "code" -> "INVALID_NINO",
-        "description" -> "NINO is invalid"
+        "reason" -> "NINO is invalid"
       )
       val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_NINO","NINO is invalid"))
       stubGetWithResponseBody(url, BAD_REQUEST, responseBody.toString())
@@ -114,7 +114,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
       val responseBody = Json.obj(
         "code" -> "NOT_FOUND_INCOME_SOURCE",
-        "description" -> "Can't find the income source"
+        "reason" -> "Can't find the income source"
       )
       val expectedResult = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find the income source"))
       stubGetWithResponseBody(url, NOT_FOUND, responseBody.toString())
@@ -129,7 +129,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
       val responseBody = Json.obj(
         "code" -> "SERVER_ERROR",
-        "description" -> "Internal Server Error"
+        "reason" -> "Internal Server Error"
       )
       val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
       stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, responseBody.toString())
@@ -144,7 +144,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
       val responseBody = Json.obj(
         "code" -> "SERVICE_UNAVAILABLE",
-        "description" -> "The service is currently unavailable"
+        "reason" -> "The service is currently unavailable"
       )
       val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
       stubGetWithResponseBody(url, SERVICE_UNAVAILABLE, responseBody.toString())

@@ -49,7 +49,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec{
 
         val responseBody = Json.obj(
           "code" -> "INVALID_IDTYPE",
-          "description" -> "ID is invalid"
+          "reason" -> "ID is invalid"
         )
 
         stubPostWithResponseBody(url, BAD_REQUEST, Json.toJson(model).toString(), responseBody.toString())
@@ -65,7 +65,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec{
 
         val responseBody = Json.obj(
           "code" -> "MAX_ACCOUNTS_REACHED",
-          "description" -> "The remote endpoint has indicated that the maximum savings accounts reached."
+          "reason" -> "The remote endpoint has indicated that the maximum savings accounts reached."
         )
 
         stubPostWithResponseBody(url, CONFLICT, Json.toJson(model).toString(), responseBody.toString())
@@ -80,7 +80,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec{
 
         val responseBody = Json.obj(
           "code" -> "SERVICE_UNAVAILABLE",
-          "description" -> "The service is currently unavailable"
+          "reason" -> "The service is currently unavailable"
         )
 
         stubPostWithResponseBody(url, SERVICE_UNAVAILABLE, Json.toJson(model).toString(), responseBody.toString())
@@ -95,7 +95,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec{
 
         val responseBody = Json.obj(
           "code" -> "SERVER_ERROR",
-          "description" -> "Internal Server Error"
+          "reason" -> "Internal Server Error"
         )
 
         stubPostWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(model).toString(), responseBody.toString())
