@@ -16,14 +16,12 @@
 
 package services
 
-import connectors.httpParsers.{IncomeSourceListParser, IncomeSourcesDetailsParser}
-import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector}
 import connectors.httpParsers.IncomeSourceListParser.IncomeSourceListResponse
-import models.{DesErrorBodyModel, DesErrorModel, IncomeSourceModel, InterestDetailsModel, NamedInterestDetailsModel}
-import play.api.libs.json.Json
+import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector}
+import models._
+import play.api.http.Status._
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
-import play.api.http.Status._
 
 import scala.concurrent.Future
 
