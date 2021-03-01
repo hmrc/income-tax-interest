@@ -19,7 +19,7 @@ package controllers
 import models.{DesErrorBodyModel, DesErrorModel, NamedInterestDetailsModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.Json
 import services.GetInterestsService
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier

@@ -20,11 +20,10 @@ package services
 import connectors.httpParsers.IncomeSourcesDetailsParser.IncomeSourcesDetailsResponse
 import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector}
 import models.{DesErrorBodyModel, DesErrorModel, NamedInterestDetailsModel}
-import play.api.libs.json.{JsValue, Json}
-import uk.gov.hmrc.http.HeaderCarrier
 import play.api.http.Status._
-import javax.inject.Inject
+import uk.gov.hmrc.http.HeaderCarrier
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourceListConnector,

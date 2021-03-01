@@ -21,7 +21,7 @@ import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInter
 import connectors.{CreateIncomeSourceConnector, CreateOrAmendInterestConnector}
 import models._
 import org.scalamock.handlers.{CallHandler, CallHandler4}
-import play.api.http.Status.{NOT_FOUND, SERVICE_UNAVAILABLE}
+import play.api.http.Status.NOT_FOUND
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
 
