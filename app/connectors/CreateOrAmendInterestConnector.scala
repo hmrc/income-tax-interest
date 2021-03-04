@@ -24,14 +24,18 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateOrAmendInterestConnector @Inject()(http: HttpClient, config: AppConfig)(implicit ec: ExecutionContext) {
+class CreateOrAmendInterestConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
 
   def createOrAmendInterest(
                              nino: String, taxYear: Int, interestModel: InterestDetailsModel
                            )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
-    val createOrAmendInterestUrl: String = config.desBaseUrl + s"/income-tax/nino/$nino/income-source/savings/" +
+    val createOrAmendInterestUrl: String = appConfig.desBaseUrl + s"/income-tax/nino/$nino/income-source/savings/" +
       s"annual/$taxYear"
-    http.POST[InterestDetailsModel, CreateOrAmendInterestResponse](createOrAmendInterestUrl, interestModel)
-  }
 
+    def desCall(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
+      http.POST[InterestDetailsModel, CreateOrAmendInterestResponse](createOrAmendInterestUrl, interestModel)
+    }
+
+    desCall(desHeaderCarrier)
+  }
 }
