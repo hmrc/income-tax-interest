@@ -23,11 +23,15 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetIncomeSourceListConnector @Inject()(http: HttpClient, appConfig: AppConfig)(implicit ec: ExecutionContext) {
+class GetIncomeSourceListConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
 
-    def getIncomeSourceList(nino: String, taxYear: String)(implicit hc: HeaderCarrier): Future[IncomeSourceListResponse] = {
-      val getIncomeSourceUrl = appConfig.desBaseUrl + s"/income-tax/income-sources/nino/$nino?incomeSourceType=interest-from-uk-banks&taxYear=$taxYear"
+  def getIncomeSourceList(nino: String, taxYear: String)(implicit hc: HeaderCarrier): Future[IncomeSourceListResponse] = {
+    val getIncomeSourceUrl = appConfig.desBaseUrl + s"/income-tax/income-sources/nino/$nino?incomeSourceType=interest-from-uk-banks&taxYear=$taxYear"
+
+    def desCall(implicit hc: HeaderCarrier): Future[IncomeSourceListResponse] = {
       http.GET[IncomeSourceListResponse](getIncomeSourceUrl)
     }
 
+    desCall(desHeaderCarrier)
+  }
 }
