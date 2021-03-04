@@ -26,7 +26,7 @@ class DesErrorBodyModelSpec extends TestSuite {
 
   val jsModel: JsObject = Json.obj(
     "code" -> "SERVICE_UNAVAILABLE",
-    "description" -> "The service is currently unavailable"
+    "reason" -> "The service is currently unavailable"
   )
 
   "The DesErrorBodyModel" should {
