@@ -53,6 +53,18 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
       }
     }
 
+    "return an error" when {
+
+      "DES returns an empty 200" in {
+        stubGetWithResponseBody(url, OK, desReturnedEmpty.toString())
+        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
+        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+
+        result mustBe Left(expectedResult)
+
+      }
+    }
+
     "return a InternalServerError parsing error when incorrectly parsed" in {
 
       val invalidJson = Json.obj(
