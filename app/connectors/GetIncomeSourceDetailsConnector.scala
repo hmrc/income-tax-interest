@@ -27,7 +27,7 @@ class GetIncomeSourceDetailsConnector @Inject()(http: HttpClient, val appConfig:
 
   def getIncomeSourceDetails(nino: String, taxYear: String, incomeSourceId: String)(implicit hc: HeaderCarrier): Future[IncomeSourcesDetailsResponse] = {
     val incomeSourcesUrl = appConfig.desBaseUrl +
-      s"/income-tax/nino/$nino/income-sources/savings/annual/$taxYear?incomeSourceId=$incomeSourceId"
+      s"/income-tax/nino/$nino/income-source/savings/annual/$taxYear?incomeSourceId=$incomeSourceId"
 
     def desCall(implicit hc: HeaderCarrier): Future[IncomeSourcesDetailsResponse] = {
       http.GET[IncomeSourcesDetailsResponse](incomeSourcesUrl)

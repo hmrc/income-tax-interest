@@ -31,7 +31,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
   val taxYear = "2020"
   val incomeSourceId = "someId"
 
-  val url = s"/income-tax/nino/$nino/income-sources/savings/annual/$taxYear\\?incomeSourceId=$incomeSourceId"
+  val url = s"/income-tax/nino/$nino/income-source/savings/annual/$taxYear\\?incomeSourceId=$incomeSourceId"
 
   val model: InterestDetailsModel = InterestDetailsModel(incomeSourceId, Some(29.99), Some(37.65))
   val desReturned: JsObject = Json.obj(
