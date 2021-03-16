@@ -67,6 +67,6 @@ object CreateIncomeSourcesHttpParser {
   }
 
   private def logMessage(response:HttpResponse): Option[String] ={
-    Some(s"[CreateIncomeSourcesParser][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId)
+    Some(s"[CreateIncomeSourcesParser][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId(response))
   }
 }

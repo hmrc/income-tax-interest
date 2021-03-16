@@ -64,6 +64,6 @@ object CreateOrAmendInterestHttpParser {
   }
 
   private def logMessage(response:HttpResponse): Option[String] ={
-    Some(s"[CreateOrAmendInterestParser][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId)
+    Some(s"[CreateOrAmendInterestParser][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId(response))
   }
 }
