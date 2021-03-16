@@ -21,6 +21,7 @@ import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
+import utils.PagerDutyHelper.getCorrelationId
 
 object CreateOrAmendInterestHttpParser {
   type CreateOrAmendInterestResponse = Either[DesErrorModel, Boolean]
@@ -63,6 +64,6 @@ object CreateOrAmendInterestHttpParser {
   }
 
   private def logMessage(response:HttpResponse): Option[String] ={
-    Some(s"[CreateOrAmendInterestParser][read] Received ${response.status} from DES. Body:${response.body}")
+    Some(s"[CreateOrAmendInterestParser][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId(response))
   }
 }
