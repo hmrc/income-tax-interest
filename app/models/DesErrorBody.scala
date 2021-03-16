@@ -25,7 +25,6 @@ case class DesErrorModel(status: Int, body: DesErrorBody){
     body match {
       case error: DesErrorBodyModel => Json.toJson(error)
       case errors: DesErrorsBodyModel => Json.toJson(errors)
-      case _ => Json.toJson(DesErrorBodyModel.parsingError)
     }
   }
 }
