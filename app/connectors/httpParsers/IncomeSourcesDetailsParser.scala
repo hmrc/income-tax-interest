@@ -69,7 +69,11 @@ object IncomeSourcesDetailsParser {
   }
 
   private def logMessage(response:HttpResponse): Option[String] ={
-    Some(s"[IncomeSourceDetailsParser][read] Received ${response.status} from DES. Body:${response.body}")
+    val correlationId = response.header("CorrelationId") match {
+      case Some(id) => s" CorrelationId: $id"
+      case _ => ""
+    }
+    Some(s"[IncomeSourceDetailsParser][read] Received ${response.status} from DES. Body:${response.body}" + correlationId)
   }
 
 }

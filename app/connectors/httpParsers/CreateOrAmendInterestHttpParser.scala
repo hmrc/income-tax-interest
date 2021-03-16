@@ -63,6 +63,10 @@ object CreateOrAmendInterestHttpParser {
   }
 
   private def logMessage(response:HttpResponse): Option[String] ={
-    Some(s"[CreateOrAmendInterestParser][read] Received ${response.status} from DES. Body:${response.body}")
+    val correlationId = response.header("CorrelationId") match {
+      case Some(id) => s" CorrelationId: $id"
+      case _ => ""
+    }
+    Some(s"[CreateOrAmendInterestParser][read] Received ${response.status} from DES. Body:${response.body}" + correlationId)
   }
 }
