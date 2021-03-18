@@ -252,7 +252,7 @@ class AuthorisedActionSpec extends TestSuite {
 
           lazy val result = {
             mockAuthAsAgent()
-            auth.async("1234567890")(block)(fakeRequest)
+            auth.async(block)(fakeRequest)
           }
 
           "should return an OK(200) status" in {
@@ -266,7 +266,7 @@ class AuthorisedActionSpec extends TestSuite {
 
           lazy val result = {
             mockAuth()
-            auth.async("1234567890")(block)(fakeRequest)
+            auth.async(block)(fakeRequest)
           }
 
           status(result) mustBe OK
@@ -281,7 +281,7 @@ class AuthorisedActionSpec extends TestSuite {
 
           lazy val result = {
             mockAuthReturnException(AuthException)
-            auth.async("1234567890")( block)
+            auth.async( block)
           }
           status(result(fakeRequest)) mustBe UNAUTHORIZED
         }
@@ -295,7 +295,7 @@ class AuthorisedActionSpec extends TestSuite {
 
           lazy val result = {
             mockAuthReturnException(NoActiveSession)
-            auth.async("1234567890")(block)
+            auth.async(block)
           }
 
           status(result(fakeRequest)) mustBe UNAUTHORIZED
