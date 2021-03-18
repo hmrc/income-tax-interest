@@ -30,7 +30,7 @@ class GetInterestsController @Inject()(cc: ControllerComponents,
                                           getInterestsService: GetInterestsService)
                                          (implicit ec: ExecutionContext) extends BackendController(cc){
 
-  def getIncomeSource(nino: String, taxYear: String, mtditid: String): Action[AnyContent] = authorisedAction.async(mtditid) { implicit user =>
+  def getIncomeSource(nino: String, taxYear: String): Action[AnyContent] = authorisedAction.async { implicit user =>
     getInterestsService.getInterestsList(nino, taxYear).map{
         case Right(interestList) => Ok(Json.toJson(interestList))
         case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)

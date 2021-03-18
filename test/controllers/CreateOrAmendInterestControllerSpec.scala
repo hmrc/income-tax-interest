@@ -67,7 +67,7 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
 
       mockAuth()
       mockServiceSuccessCall
-      val result = controller.createOrAmendInterest(nino, taxYear, mtditid)(fakeRequestWithMtditid.withJsonBody(Json.toJson(interestSubmittedModel)))
+      val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModel)))
 
 
       status(result) mustBe expectedResult
@@ -80,7 +80,7 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
 
         mockAuth()
         mockServiceFailCall
-        val result = controller.createOrAmendInterest(nino, taxYear, mtditid)(fakeRequestWithMtditid.withJsonBody(Json.toJson(interestSubmittedModel)))
+        val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModel)))
 
 
         status(result) mustBe expectedResult
@@ -90,7 +90,7 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
         val expectedResult = BAD_REQUEST
 
         mockAuth()
-        val result = controller.createOrAmendInterest(nino, taxYear, mtditid)(fakeRequestWithMtditid.withJsonBody(Json.toJson(interestSubmittedModelInvalid)))
+        val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModelInvalid)))
 
 
         status(result) mustBe expectedResult

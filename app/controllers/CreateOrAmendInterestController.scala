@@ -32,7 +32,7 @@ class CreateOrAmendInterestController @Inject()(createOrAmendInterestService: Cr
                                                 authorisedAction: AuthorisedAction)
                                                (implicit ec: ExecutionContext) extends BackendController(cc) {
 
-  def createOrAmendInterest(nino: String, taxYear: Int, mtditid: String): Action[AnyContent] = authorisedAction.async(mtditid) { implicit user =>
+  def createOrAmendInterest(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     user.request.body.asJson.map(_.validate[Seq[CreateOrAmendInterestModel]]) match {
       case Some(JsSuccess(model, _)) =>
         createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model).map(response =>
