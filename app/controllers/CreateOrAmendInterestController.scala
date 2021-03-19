@@ -20,7 +20,7 @@ package controllers
 import controllers.predicates.AuthorisedAction
 import javax.inject.Inject
 import models.{CreateOrAmendInterestModel, DesErrorBodyModel, DesErrorModel}
-import play.api.libs.json.{JsSuccess, Json}
+import play.api.libs.json.JsSuccess
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.CreateOrAmendInterestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
