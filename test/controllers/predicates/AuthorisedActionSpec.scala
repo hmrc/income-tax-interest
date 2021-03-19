@@ -21,9 +21,10 @@ import models.User
 import play.api.http.Status._
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, Result}
+import play.api.test.FakeRequest
 import testUtils.TestSuite
 import uk.gov.hmrc.auth.core.authorise.Predicate
-import uk.gov.hmrc.auth.core.retrieve.{Retrieval}
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments, _}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -281,7 +282,7 @@ class AuthorisedActionSpec extends TestSuite {
 
           lazy val result = {
             mockAuthReturnException(AuthException)
-            auth.async( block)
+            auth.async(block)
           }
           status(result(fakeRequest)) mustBe UNAUTHORIZED
         }
@@ -300,8 +301,15 @@ class AuthorisedActionSpec extends TestSuite {
 
           status(result(fakeRequest)) mustBe UNAUTHORIZED
         }
-      }
 
+
+        "the mtditid is not in the header" in {
+
+          lazy val result = auth.async(block)(FakeRequest())
+          status(result) mustBe UNAUTHORIZED
+        }
+
+      }
     }
   }
 }
