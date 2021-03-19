@@ -33,7 +33,7 @@ class GetInterestsController @Inject()(cc: ControllerComponents,
   def getIncomeSource(nino: String, taxYear: String, mtditid: String): Action[AnyContent] = authorisedAction.async(mtditid) { implicit user =>
     getInterestsService.getInterestsList(nino, taxYear).map{
         case Right(interestList) => Ok(Json.toJson(interestList))
-        case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.body))
+        case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
       }
   }
 

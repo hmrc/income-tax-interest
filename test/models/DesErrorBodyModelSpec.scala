@@ -16,6 +16,7 @@
 
 package models
 
+import controllers.Assets.SERVICE_UNAVAILABLE
 import play.api.libs.json.{JsObject, Json}
 import testUtils.TestSuite
 
@@ -29,6 +30,15 @@ class DesErrorBodyModelSpec extends TestSuite {
     "reason" -> "The service is currently unavailable"
   )
 
+  val errorsJsModel: JsObject = Json.obj(
+    "failures" -> Json.arr(
+      Json.obj("code" -> "SERVICE_UNAVAILABLE",
+      "reason" -> "The service is currently unavailable"),
+      Json.obj("code" -> "INTERNAL_SERVER_ERROR",
+      "reason" -> "The service is currently facing issues.")
+    )
+  )
+
   "The DesErrorBodyModel" should {
 
     "parse to Json" in {
@@ -37,6 +47,22 @@ class DesErrorBodyModelSpec extends TestSuite {
 
     "parse from json" in {
       jsModel.as[DesErrorBodyModel]
+    }
+  }
+
+  "The DesErrorModel" should {
+
+    val model = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE","The service is currently unavailable"))
+    val errorsModel = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorsBodyModel(Seq(
+      DesErrorBodyModel("SERVICE_UNAVAILABLE","The service is currently unavailable"),
+      DesErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")
+    )))
+
+    "parse to Json" in {
+      model.toJson mustBe jsModel
+    }
+    "parse to Json for multiple errors" in {
+      errorsModel.toJson mustBe errorsJsModel
     }
   }
 

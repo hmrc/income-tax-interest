@@ -18,7 +18,6 @@ package controllers
 
 
 import controllers.predicates.AuthorisedAction
-
 import javax.inject.Inject
 import models.{CreateOrAmendInterestModel, DesErrorBodyModel, DesErrorModel}
 import play.api.libs.json.JsSuccess
@@ -36,13 +35,15 @@ class CreateOrAmendInterestController @Inject()(createOrAmendInterestService: Cr
   def createOrAmendInterest(nino: String, taxYear: Int, mtditid: String): Action[AnyContent] = authorisedAction.async(mtditid) { implicit user =>
     user.request.body.asJson.map(_.validate[Seq[CreateOrAmendInterestModel]]) match {
       case Some(JsSuccess(model, _)) =>
-        createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model).flatMap(response =>
+        createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model).map(response =>
+
           if (response.exists(_.isLeft)) {
             val error: DesErrorModel = response.filter(_.isLeft).map(_.left.get).headOption
               .getOrElse(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
-            Future.successful(Status(error.status))
+
+            Status(error.status)(error.toJson)
           } else {
-            Future.successful(NoContent)
+            NoContent
           }
         )
       case _ => Future.successful(BadRequest)

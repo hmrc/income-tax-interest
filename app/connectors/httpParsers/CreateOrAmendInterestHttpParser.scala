@@ -21,10 +21,11 @@ import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
-import utils.PagerDutyHelper.getCorrelationId
 
-object CreateOrAmendInterestHttpParser {
+object CreateOrAmendInterestHttpParser extends DESParser {
   type CreateOrAmendInterestResponse = Either[DesErrorModel, Boolean]
+
+  override val parserName: String = "CreateOrAmendInterestParser"
 
   implicit object CreateOrAmendInterestsHttpReads extends HttpReads[CreateOrAmendInterestResponse] {
     override def read(method: String, url: String, response: HttpResponse): CreateOrAmendInterestResponse = {
@@ -44,26 +45,5 @@ object CreateOrAmendInterestHttpParser {
           handleDESError(response, Some(INTERNAL_SERVER_ERROR))
       }
     }
-  }
-
-  private def handleDESError(response: HttpResponse, statusOverride: Option[Int] = None): CreateOrAmendInterestResponse = {
-
-    val status = statusOverride.getOrElse(response.status)
-
-    try {
-      response.json.validate[DesErrorBodyModel].fold[CreateOrAmendInterestResponse](
-
-        jsonErrors => {
-          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, Some(s"[CreateOrAmendInterestParser][read] Unexpected Json from DES."))
-          Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
-        },
-        parsedModel => Left(DesErrorModel(status, parsedModel)))
-    } catch {
-      case _: Exception => Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
-    }
-  }
-
-  private def logMessage(response:HttpResponse): Option[String] ={
-    Some(s"[CreateOrAmendInterestParser][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId(response))
   }
 }

@@ -16,22 +16,21 @@
 
 package connectors.httpParsers
 
-import models.{DesErrorBodyModel, DesErrorModel, IncomeSourceModel}
+import models.{DesErrorModel, IncomeSourceModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper._
 
-object IncomeSourceListParser {
+object IncomeSourceListParser extends DESParser {
   type IncomeSourceListResponse = Either[DesErrorModel, List[IncomeSourceModel]]
+
+  override val parserName: String = "IncomeSourceListParser"
 
   implicit object IncomeSourceHttpReads extends HttpReads[IncomeSourceListResponse] {
     override def read(method: String, url: String, response: HttpResponse): IncomeSourceListResponse = response.status match {
       case OK => response.json.validate[List[IncomeSourceModel]].fold[IncomeSourceListResponse](
-        jsonErrors => {
-          pagerDutyLog(BAD_SUCCESS_JSON_FROM_DES, Some(s"[IncomeSourceListParser][read] Invalid Json from DES."))
-          Left(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
-        },
+        jsonErrors => badSuccessJsonFromDES,
         parsedModel => Right(parsedModel)
       )
       case BAD_REQUEST | NOT_FOUND =>
@@ -47,29 +46,5 @@ object IncomeSourceListParser {
         pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, logMessage(response))
         handleDESError(response, Some(INTERNAL_SERVER_ERROR))
     }
-
-  }
-
-  private def handleDESError(response: HttpResponse, statusOverride: Option[Int] = None): IncomeSourceListResponse = {
-
-    val status = statusOverride.getOrElse(response.status)
-
-    try {
-    response.json.validate[DesErrorBodyModel].fold[IncomeSourceListResponse](
-      {
-        jsonErrors =>
-        {
-          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, Some(s"[IncomeSourceListParser][read] Unexpected Json from DES."))
-          Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
-        }
-      },
-        parsedModel => Left(DesErrorModel(status, parsedModel)))
-    } catch {
-      case _: Exception => Left(DesErrorModel(status, DesErrorBodyModel.parsingError))
-    }
-  }
-
-  private def logMessage(response:HttpResponse): Option[String] ={
-    Some(s"[IncomeSourceListParser][read] Received ${response.status} from DES. Body:${response.body}" + getCorrelationId(response))
   }
 }

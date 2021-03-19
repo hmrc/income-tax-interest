@@ -76,6 +76,26 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
 
         result mustBe Left(expectedResult)
       }
+      "DES Returns multiple errors" in {
+        val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorsBodyModel(Seq(
+          DesErrorBodyModel("INVALID_IDTYPE","ID is invalid"),
+          DesErrorBodyModel("INVALID_IDTYPE_2","ID 2 is invalid"))))
+
+        val responseBody = Json.obj(
+          "failures" -> Json.arr(
+            Json.obj("code" -> "INVALID_IDTYPE",
+              "reason" -> "ID is invalid"),
+            Json.obj("code" -> "INVALID_IDTYPE_2",
+              "reason" -> "ID 2 is invalid")
+          )
+        )
+        stubPostWithResponseBody(url, BAD_REQUEST, Json.toJson(model).toString(), responseBody.toString)
+
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+
+        result mustBe Left(expectedResult)
+      }
       "DES Returns a SERVICE_UNAVAILABLE" in {
         val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
 
