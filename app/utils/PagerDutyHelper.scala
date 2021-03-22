@@ -18,6 +18,7 @@ package utils
 
 import play.api.Logging
 import uk.gov.hmrc.http.HttpResponse
+import play.api.http.Status._
 
 object PagerDutyHelper extends Logging {
 
@@ -37,6 +38,15 @@ object PagerDutyHelper extends Logging {
     response.header("CorrelationId") match {
       case Some(id) => s" CorrelationId: $id"
       case _ => ""
+    }
+  }
+
+  def getPagerKeyFromInt(status: Int): PagerDutyKeys.Value = {
+    status match {
+      case BAD_REQUEST | FORBIDDEN | CONFLICT => PagerDutyKeys.FOURXX_RESPONSE_FROM_DES
+      case INTERNAL_SERVER_ERROR => PagerDutyKeys.INTERNAL_SERVER_ERROR_FROM_DES
+      case SERVICE_UNAVAILABLE => PagerDutyKeys.SERVICE_UNAVAILABLE_FROM_DES
+      case _ => PagerDutyKeys.UNEXPECTED_RESPONSE_FROM_DES
     }
   }
 }

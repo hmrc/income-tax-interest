@@ -18,11 +18,13 @@ package services
 
 import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInterestResponse
 import connectors.{CreateIncomeSourceConnector, CreateOrAmendInterestConnector}
+
 import javax.inject.{Inject, Singleton}
 import models._
 import org.slf4j
 import play.api.Logger
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.PagerDutyHelper.{getPagerKeyFromInt, pagerDutyLog}
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -39,10 +41,11 @@ class CreateOrAmendInterestService @Inject()(
     createOrAmendInterestConnector.createOrAmendInterest(nino, taxYear, submittedInterest).flatMap {
       case Right(true) => Future.successful(Right(true))
       case Left(errorResponse) =>
-        logger.info(s"[CreateOrAmendInterestService][createOrAmendInterest] - Failed to update income Source - Attempt number $attempt")
         if (attempt< 2) {
           createOrAmendInterest(nino, taxYear, submittedInterest, attempt + 1)
         }else{
+          pagerDutyLog(getPagerKeyFromInt(errorResponse.status),
+            Some(s"[CreateOrAmendInterestService][createOrAmendInterest] Received ${errorResponse.status} from DES. Body:${errorResponse.body}"))
           Future.successful(Left(errorResponse))
         }
     }
@@ -57,10 +60,11 @@ class CreateOrAmendInterestService @Inject()(
             InterestDetailsModel(incomeSourceIdModel.incomeSourceId, interestSubmittedModel.taxedUkInterest, interestSubmittedModel.untaxedUkInterest)
           ))
         case Left(errorResponse) =>
-          logger.info(s"[CreateOrAmendInterestService][getIncomeSourceId] - Failed to create new income Source - Attempt number $attempt")
           if (attempt < 2) {
             getIncomeSourceId(nino, interestSubmittedModel, attempt + 1)
           } else {
+            pagerDutyLog(getPagerKeyFromInt(errorResponse.status),
+              Some(s"[CreateOrAmendInterestService][getIncomeSourceId] Received ${errorResponse.status} from DES. Body:${errorResponse.body}"))
             Future.successful(Left(errorResponse))
           }
       }
