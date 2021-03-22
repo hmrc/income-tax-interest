@@ -17,13 +17,15 @@
 package connectors.httpParsers
 
 import models._
+import org.slf4j
+import play.api.Logger
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
-import utils.PagerDutyHelper.PagerDutyKeys._
-import utils.PagerDutyHelper.pagerDutyLog
 
 object CreateOrAmendInterestHttpParser extends DESParser {
   type CreateOrAmendInterestResponse = Either[DesErrorModel, Boolean]
+
+  lazy val logger: slf4j.Logger = Logger.logger
 
   override val parserName: String = "CreateOrAmendInterestParser"
 
@@ -32,16 +34,16 @@ object CreateOrAmendInterestHttpParser extends DESParser {
       response.status match {
         case OK => Right(true)
         case INTERNAL_SERVER_ERROR =>
-          pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_DES, logMessage(response))
+          logger.error(logMessage(response).get)
           handleDESError(response)
         case SERVICE_UNAVAILABLE =>
-          pagerDutyLog(SERVICE_UNAVAILABLE_FROM_DES, logMessage(response))
+          logger.error(logMessage(response).get)
           handleDESError(response)
         case BAD_REQUEST | FORBIDDEN =>
-          pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(response))
+          logger.error(logMessage(response).get)
           handleDESError(response)
         case _ =>
-          pagerDutyLog(UNEXPECTED_RESPONSE_FROM_DES, logMessage(response))
+          logger.error(logMessage(response).get)
           handleDESError(response, Some(INTERNAL_SERVER_ERROR))
       }
     }
