@@ -38,28 +38,32 @@ class GetInterestsControllerSpec extends TestSuite{
   val badRequestModel: DesErrorBodyModel = DesErrorBodyModel("BAD_REQUEST", "The supplied NINO is invalid")
   val internalServerErrorModel: DesErrorBodyModel = DesErrorBodyModel("INTERNAL_SERVER_ERROR", "There has been an unexpected error")
 
-  def mockGetIncomeSourceNotFound(): CallHandler4[String, String, HeaderCarrier, ExecutionContext,Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] = {
+  def mockGetIncomeSourceNotFound(): CallHandler4[String, String, HeaderCarrier, ExecutionContext,
+    Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] = {
     val invalidIncomeSource: Either[DesErrorModel, List[NamedInterestDetailsModel]] = Left(DesErrorModel(NOT_FOUND, notFoundModel))
     (service.getInterestsList(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects("nino", "2020", *, *)
       .returning(Future.successful(invalidIncomeSource))
   }
 
-  def mockGetIncomeSourceServiceUnavailable(): CallHandler4[String, String, HeaderCarrier, ExecutionContext, Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] ={
+  def mockGetIncomeSourceServiceUnavailable(): CallHandler4[String, String, HeaderCarrier, ExecutionContext,
+    Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] ={
     val invalidIncomeSource: Either[DesErrorModel, List[NamedInterestDetailsModel]] = Left(DesErrorModel(SERVICE_UNAVAILABLE,serviceUnavailableModel))
     (service.getInterestsList(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects("nino", "2020", *, *)
       .returning(Future.successful(invalidIncomeSource))
   }
 
-  def mockGetIncomeSourceBadRequest(): CallHandler4[String, String, HeaderCarrier, ExecutionContext, Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] ={
+  def mockGetIncomeSourceBadRequest(): CallHandler4[String, String, HeaderCarrier, ExecutionContext,
+    Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] ={
     val invalidIncomeSource: Either[DesErrorModel, List[NamedInterestDetailsModel]] = Left(DesErrorModel(BAD_REQUEST, badRequestModel))
     (service.getInterestsList(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects("nino", "2020", *, *)
       .returning(Future.successful(invalidIncomeSource))
   }
 
-  def mockGetIncomeSourceInternalServerError(): CallHandler4[String, String, HeaderCarrier, ExecutionContext, Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] ={
+  def mockGetIncomeSourceInternalServerError(): CallHandler4[String, String, HeaderCarrier, ExecutionContext,
+    Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] ={
     val invalidIncomeSource: Either[DesErrorModel, List[NamedInterestDetailsModel]] = Left(DesErrorModel(INTERNAL_SERVER_ERROR, internalServerErrorModel))
     (service.getInterestsList(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects("nino", "2020", *, *)
@@ -82,7 +86,7 @@ class GetInterestsControllerSpec extends TestSuite{
       val result = {
         mockAuth()
         serviceCallMock()
-        controller.getIncomeSource("nino", "2020", "someMtditid")(fakeRequestWithMtditid)
+        controller.getIncomeSource("nino", "2020")(fakeRequest)
       }
 
       status(result) mustBe OK
@@ -97,7 +101,7 @@ class GetInterestsControllerSpec extends TestSuite{
         val result = {
           mockAuth()
           mockGetIncomeSourceNotFound()
-          controller.getIncomeSource("nino", "2020", "someMtditid")(fakeRequestWithMtditid)
+          controller.getIncomeSource("nino", "2020")(fakeRequest)
         }
         status(result) mustBe NOT_FOUND
       }
@@ -107,7 +111,7 @@ class GetInterestsControllerSpec extends TestSuite{
         val result = {
           mockAuthAsAgent()
           mockGetIncomeSourceNotFound()
-          controller.getIncomeSource("nino", "2020", "someMtditid")(fakeRequestWithMtditid)
+          controller.getIncomeSource("nino", "2020")(fakeRequest)
         }
         status(result) mustBe NOT_FOUND
       }
@@ -122,7 +126,7 @@ class GetInterestsControllerSpec extends TestSuite{
         val result = {
           mockAuth()
           mockGetIncomeSourceBadRequest()
-          controller.getIncomeSource("nino", "2020", "someMtditid")(fakeRequestWithMtditid)
+          controller.getIncomeSource("nino", "2020")(fakeRequest)
         }
         status(result) mustBe BAD_REQUEST
       }
@@ -132,7 +136,7 @@ class GetInterestsControllerSpec extends TestSuite{
         val result = {
           mockAuthAsAgent()
           mockGetIncomeSourceBadRequest()
-          controller.getIncomeSource("nino", "2020", "someMtditid")(fakeRequestWithMtditid)
+          controller.getIncomeSource("nino", "2020")(fakeRequest)
         }
         status(result) mustBe BAD_REQUEST
       }
@@ -145,7 +149,7 @@ class GetInterestsControllerSpec extends TestSuite{
         val result = {
           mockAuth()
           mockGetIncomeSourceServiceUnavailable()
-          controller.getIncomeSource("nino", "2020", "someMtditid")(fakeRequestWithMtditid)
+          controller.getIncomeSource("nino", "2020")(fakeRequest)
         }
         status(result) mustBe SERVICE_UNAVAILABLE
 
@@ -156,7 +160,7 @@ class GetInterestsControllerSpec extends TestSuite{
         val result = {
           mockAuthAsAgent()
           mockGetIncomeSourceServiceUnavailable()
-          controller.getIncomeSource("nino", "2020", "someMtditid")(fakeRequestWithMtditid)
+          controller.getIncomeSource("nino", "2020")(fakeRequest)
         }
         status(result) mustBe SERVICE_UNAVAILABLE
       }
@@ -169,7 +173,7 @@ class GetInterestsControllerSpec extends TestSuite{
         val result = {
           mockAuth()
           mockGetIncomeSourceInternalServerError()
-          controller.getIncomeSource("nino", "2020", "someMtditid")(fakeRequestWithMtditid)
+          controller.getIncomeSource("nino", "2020")(fakeRequest)
         }
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
@@ -179,7 +183,7 @@ class GetInterestsControllerSpec extends TestSuite{
         val result ={
           mockAuthAsAgent()
           mockGetIncomeSourceInternalServerError()
-          controller.getIncomeSource("nino", "2020", "someMtditid")(fakeRequestWithMtditid)
+          controller.getIncomeSource("nino", "2020")(fakeRequest)
         }
         status(result) mustBe INTERNAL_SERVER_ERROR
       }
