@@ -17,12 +17,13 @@
 package connectors.httpParsers
 
 import models.{DesErrorModel, InterestDetailsModel}
+import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
 
-object IncomeSourcesDetailsParser extends DESParser {
+object IncomeSourcesDetailsParser extends DESParser with Logging {
   type IncomeSourcesDetailsResponse = Either[DesErrorModel, InterestDetailsModel]
 
   override val parserName: String = "IncomeSourceDetailsParser"
@@ -34,7 +35,10 @@ object IncomeSourcesDetailsParser extends DESParser {
           jsErrors => badSuccessJsonFromDES,
           parsedModel => if(parsedModel.nonEmpty) Right(parsedModel.head) else handleDESError(response, Some(INTERNAL_SERVER_ERROR))
         )
-        case BAD_REQUEST | NOT_FOUND =>
+        case NOT_FOUND =>
+          logger.info(logMessage(response))
+          handleDESError(response)
+        case BAD_REQUEST =>
           pagerDutyLog(FOURXX_RESPONSE_FROM_DES, logMessage(response))
           handleDESError(response)
         case INTERNAL_SERVER_ERROR =>

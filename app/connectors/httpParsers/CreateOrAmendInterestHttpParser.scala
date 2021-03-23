@@ -34,16 +34,16 @@ object CreateOrAmendInterestHttpParser extends DESParser {
       response.status match {
         case OK => Right(true)
         case INTERNAL_SERVER_ERROR =>
-          logger.error(logMessage(response).get)
+          logger.error(logMessage(response))
           handleDESError(response)
         case SERVICE_UNAVAILABLE =>
-          logger.error(logMessage(response).get)
+          logger.error(logMessage(response))
           handleDESError(response)
         case BAD_REQUEST | FORBIDDEN =>
-          logger.error(logMessage(response).get)
+          logger.error(logMessage(response))
           handleDESError(response)
         case _ =>
-          logger.error(logMessage(response).get)
+          logger.error(logMessage(response))
           handleDESError(response, Some(INTERNAL_SERVER_ERROR))
       }
     }

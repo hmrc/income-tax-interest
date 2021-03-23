@@ -45,7 +45,7 @@ class CreateOrAmendInterestService @Inject()(
           createOrAmendInterest(nino, taxYear, submittedInterest, attempt + 1)
         }else{
           pagerDutyLog(getPagerKeyFromInt(errorResponse.status),
-            Some(s"[CreateOrAmendInterestService][createOrAmendInterest] Received ${errorResponse.status} from DES. Body:${errorResponse.body}"))
+            s"[CreateOrAmendInterestService][createOrAmendInterest] Received ${errorResponse.status} from DES. Body:${errorResponse.body}")
           Future.successful(Left(errorResponse))
         }
     }
@@ -64,7 +64,7 @@ class CreateOrAmendInterestService @Inject()(
             getIncomeSourceId(nino, interestSubmittedModel, attempt + 1)
           } else {
             pagerDutyLog(getPagerKeyFromInt(errorResponse.status),
-              Some(s"[CreateOrAmendInterestService][getIncomeSourceId] Received ${errorResponse.status} from DES. Body:${errorResponse.body}"))
+              s"[CreateOrAmendInterestService][getIncomeSourceId] Received ${errorResponse.status} from DES. Body:${errorResponse.body}")
             Future.successful(Left(errorResponse))
           }
       }
