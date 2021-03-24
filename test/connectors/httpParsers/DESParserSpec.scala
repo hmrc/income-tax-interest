@@ -41,7 +41,7 @@ class DESParserSpec extends TestSuite{
   "FakeParser" should {
     "log the correct message" in {
       val result = FakeParser.logMessage(httpResponse())
-      result mustBe Some(
+      result mustBe (
         """[TestParser][read] Received 500 from DES. Body:{
           |  "failures" : [ {
           |    "code" : "SERVICE_UNAVAILABLE",

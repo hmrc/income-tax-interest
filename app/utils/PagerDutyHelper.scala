@@ -30,8 +30,8 @@ object PagerDutyHelper extends Logging {
     val FOURXX_RESPONSE_FROM_DES: PagerDutyKeys.Value = Value
   }
 
-  def pagerDutyLog(pagerDutyKey: PagerDutyKeys.Value, otherDetail: Option[String] = None): Unit = {
-    logger.error(s"$pagerDutyKey ${otherDetail.getOrElse("")}")
+  def pagerDutyLog(pagerDutyKey: PagerDutyKeys.Value, otherDetail: String = ""): Unit = {
+    logger.error(s"$pagerDutyKey $otherDetail")
   }
 
   def getCorrelationId(response:HttpResponse): String ={
