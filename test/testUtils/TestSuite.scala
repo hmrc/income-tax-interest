@@ -92,10 +92,7 @@ trait TestSuite extends PlaySpec with MockFactory with GuiceOneAppPerSuite with 
 
   //noinspection ScalaStyle
   def mockAuthAsAgent(enrolments: Enrolments = agentEnrolments) = {
-    val enrolments = Enrolments(Set(
-      Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
-      Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
-    ))
+
     (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, Retrievals.affinityGroup, *, *)
       .returning(Future.successful(Some(AffinityGroup.Agent)))
