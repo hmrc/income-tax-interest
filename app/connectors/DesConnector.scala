@@ -16,16 +16,33 @@
 
 package connectors
 
+import com.typesafe.config.ConfigFactory
 import config.AppConfig
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.http.logging.Authorization
+import uk.gov.hmrc.http.Authorization
+import uk.gov.hmrc.http.HeaderCarrier.Config
+import utils.HeaderCarrierSyntax.HeaderCarrierSyntax
+import java.net.URL
 
 trait DesConnector {
 
   val appConfig: AppConfig
 
-  private[connectors] def desHeaderCarrier(implicit hc: HeaderCarrier): HeaderCarrier =
-    hc.copy(authorization = Some(Authorization(s"Bearer ${appConfig.authorisationToken}")))
-      .withExtraHeaders("Environment" -> appConfig.environment)
+  val headerCarrierConfig: Config = HeaderCarrier.Config.fromConfig(ConfigFactory.load())
+
+  private[connectors] def desHeaderCarrier(url: String="")(implicit hc: HeaderCarrier): HeaderCarrier = {
+
+    val isInternalHost = headerCarrierConfig.internalHostPatterns.exists(_.pattern.matcher(new URL(url).getHost).matches())
+
+    val hcWithAuth = hc.copy(authorization = Some(Authorization(s"Bearer ${appConfig.authorisationToken}")))
+
+    val extraHeaders = Seq("Environment" -> appConfig.environment)
+
+    if (isInternalHost) {
+      hcWithAuth.withExtraHeaders(extraHeaders: _*)
+    } else {
+      hcWithAuth.withExtraHeaders(extraHeaders ++ hcWithAuth.addExplicitHeaders: _*)
+    }
+  }
 
 }

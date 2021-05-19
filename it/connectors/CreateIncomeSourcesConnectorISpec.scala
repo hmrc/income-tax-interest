@@ -16,25 +16,74 @@
 
 package connectors
 
+import config.AppConfig
+import com.github.tomakehurst.wiremock.http.HttpHeader
 import helpers.WiremockSpec
 import models._
 import org.scalatestplus.play.PlaySpec
+import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec{
+class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec {
 
   lazy val connector: CreateIncomeSourceConnector = app.injector.instanceOf[CreateIncomeSourceConnector]
-  implicit val hc = HeaderCarrier()
+
+  lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+
+  def appConfig(desHost: String): AppConfig = new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
+  }
+
+  val taxYear: Int = 1999
   val nino = "nino"
   val incomeSourceName = "testName"
   val url = s"/income-tax/income-sources/nino/$nino"
 
   val model: InterestSubmissionModel = InterestSubmissionModel(incomeSourceName = incomeSourceName)
+  val createIncomeSource = IncomeSourceIdModel("1234567890")
 
 
   "CreateIncomeSourcesConnector" should {
+
+    "include internal headers" when {
+      val requestBody = Json.toJson(model).toString()
+      val responseBody = Json.toJson(createIncomeSource).toString()
+
+      val headersSentToDes = Seq(
+        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+      )
+
+      val externalHost = "127.0.0.1"
+
+      "the host for DES is 'Internal'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val expectedResult = IncomeSourceIdModel("1234567890")
+
+        stubPostWithResponseBody(url, OK, requestBody, responseBody, headersSentToDes)
+
+        val result = await(connector.createIncomeSource(nino, model)(hc))
+
+        result mustBe Right(expectedResult)
+      }
+
+      "the host for DES is 'External'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val connector = new CreateIncomeSourceConnector(httpClient, appConfig(externalHost))
+        val expectedResult = createIncomeSource
+
+        stubPostWithResponseBody(url, OK, requestBody, responseBody, headersSentToDes)
+
+        val result = await(connector.createIncomeSource(nino, model)(hc))
+
+        result mustBe Right(expectedResult)
+      }
+    }
+
+
     "return a success result" when {
       "DES Returns a 200 with valid json" in {
         val expectedResult = IncomeSourceIdModel("1234567890")
@@ -59,7 +108,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec{
         result mustBe Left(expectedResult)
       }
       "DES Returns a BadRequest" in {
-        val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_IDTYPE","ID is invalid"))
+        val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_IDTYPE", "ID is invalid"))
 
         val responseBody = Json.obj(
           "code" -> "INVALID_IDTYPE",
@@ -132,5 +181,4 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec{
       }
     }
   }
-
 }

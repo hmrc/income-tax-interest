@@ -16,12 +16,16 @@
 
 package connectors
 
+import com.github.tomakehurst.wiremock.http.HttpHeader
+import config.AppConfig
 import helpers.WiremockSpec
 import models.{DesErrorBodyModel, DesErrorModel, IncomeSourceModel}
 import org.scalatestplus.play.PlaySpec
+import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
 
@@ -31,9 +35,47 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
   val taxYear = "2020"
   val url = s"/income-tax/income-sources/nino/$nino\\?incomeSourceType=interest-from-uk-banks&taxYear=$taxYear"
 
+  lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+
+  def appConfig(desHost: String): AppConfig = new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
+  }
+
   val model: List[IncomeSourceModel] = List(IncomeSourceModel(taxYear, "interest-from-uk-banks", "incomeSource1"))
 
   "GetIncomeSourceListConnector" should {
+
+    "include internal headers" when {
+
+      val headersSentToDes = Seq(
+        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+      )
+
+      val externalHost = "127.0.0.1"
+
+      "the host for DES is 'Internal'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+
+        stubGetWithResponseBody(url, OK, Json.toJson(model).toString(), headersSentToDes)
+
+        val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+
+        result mustBe Right(model)
+      }
+
+      "the host for DES is 'External'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+
+        stubGetWithResponseBody(url, OK, Json.toJson(model).toString(),headersSentToDes)
+
+        val connector = new GetIncomeSourceListConnector(httpClient, appConfig(externalHost))
+
+        val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+
+        result mustBe Right(model)
+      }
+    }
 
     "return a success result" when {
 

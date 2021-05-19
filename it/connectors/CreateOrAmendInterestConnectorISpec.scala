@@ -16,12 +16,16 @@
 
 package connectors
 
+import com.github.tomakehurst.wiremock.http.HttpHeader
+import config.AppConfig
 import helpers.WiremockSpec
 import models._
 import org.scalatestplus.play.PlaySpec
+import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
 
@@ -31,10 +35,51 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
   val taxYear = 2021
   val url = s"/income-tax/nino/$nino/income-source/savings/annual/$taxYear"
 
+  lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+
   val model: InterestDetailsModel = InterestDetailsModel("incomeSourceId", Some(100.00), Some(100.00))
 
+  def appConfig(desHost: String): AppConfig = new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
+  }
 
   " CreateOrAmendInterestConnector" should {
+
+    "include internal headers" when {
+      val requestBody = Json.toJson(model).toString()
+
+      val headersSentToDes = Seq(
+        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+      )
+
+      val externalHost = "127.0.0.1"
+
+      "the host for DES is 'Internal'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val expectedResult = true
+
+        stubPostWithoutResponseBody(url, OK, requestBody, headersSentToDes)
+
+        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+
+        result mustBe Right(expectedResult)
+      }
+
+      "the host for DES is 'External'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+        val expectedResult = true
+
+        val connector = new CreateOrAmendInterestConnector(httpClient, appConfig(externalHost))
+
+        stubPostWithoutResponseBody(url, OK, requestBody,headersSentToDes)
+
+        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+
+        result mustBe Right(expectedResult)
+      }
+    }
+
     "return a success result" when {
       "DES Returns a 200" in {
         val expectedResult = true

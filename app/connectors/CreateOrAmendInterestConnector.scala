@@ -36,6 +36,6 @@ class CreateOrAmendInterestConnector @Inject()(http: HttpClient, val appConfig: 
       http.POST[InterestDetailsModel, CreateOrAmendInterestResponse](createOrAmendInterestUrl, interestModel)
     }
 
-    desCall(desHeaderCarrier)
+    desCall(desHeaderCarrier(createOrAmendInterestUrl))
   }
 }

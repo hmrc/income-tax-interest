@@ -16,12 +16,16 @@
 
 package connectors
 
+import com.github.tomakehurst.wiremock.http.HttpHeader
+import config.AppConfig
 import helpers.WiremockSpec
 import models.{DesErrorBodyModel, DesErrorModel, InterestDetailsModel}
 import org.scalatestplus.play.PlaySpec
+import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
@@ -33,6 +37,12 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
   val url = s"/income-tax/nino/$nino/income-source/savings/annual/$taxYear\\?incomeSourceId=$incomeSourceId"
 
+  lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+
+  def appConfig(desHost: String): AppConfig = new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
+  }
+
   val model: InterestDetailsModel = InterestDetailsModel(incomeSourceId, Some(29.99), Some(37.65))
   val desReturned: JsObject = Json.obj(
     "savingsInterestAnnualIncome" -> Json.arr(model)
@@ -42,6 +52,39 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
   )
 
   ".getIncomeSourceDetails" should {
+
+    "include internal headers" when {
+
+      val headersSentToDes = Seq(
+        new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
+        new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
+      )
+
+      val externalHost = "127.0.0.1"
+
+      "the host for DES is 'Internal'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+
+        stubGetWithResponseBody(url, OK, desReturned.toString())
+
+        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+
+        result mustBe Right(model)
+      }
+
+      "the host for DES is 'External'" in {
+        implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+
+        stubGetWithResponseBody(url, OK, desReturned.toString(),headersSentToDes)
+
+        val connector = new GetIncomeSourceDetailsConnector(httpClient, appConfig(externalHost))
+
+
+        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+
+        result mustBe Right(model)
+      }
+    }
 
     "return a success result" when {
 
