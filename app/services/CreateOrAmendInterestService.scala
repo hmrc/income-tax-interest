@@ -19,7 +19,6 @@ package services
 import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInterestResponse
 import connectors.{CreateIncomeSourceConnector, CreateOrAmendInterestConnector}
 import models._
-import org.slf4j
 import play.api.Logger
 import play.api.http.Status.isServerError
 import uk.gov.hmrc.http.HeaderCarrier
@@ -34,7 +33,7 @@ class CreateOrAmendInterestService @Inject()(
                                               createOrAmendInterestConnector: CreateOrAmendInterestConnector,
                                               createIncomeSourceConnector: CreateIncomeSourceConnector)(implicit ec: ExecutionContext) {
 
-  lazy val logger: slf4j.Logger = Logger.logger
+  lazy val logger: Logger = Logger(this.getClass())
 
   def createOrAmendInterest(nino: String, taxYear: Int, submittedInterest: InterestDetailsModel, attempt: Int = 0
                            )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
