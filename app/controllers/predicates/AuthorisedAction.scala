@@ -17,31 +17,30 @@
 package controllers.predicates
 
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
-import javax.inject.Inject
 import models.User
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc.Results.Unauthorized
 import play.api.mvc._
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, allEnrolments, confidenceLevel}
 import uk.gov.hmrc.auth.core.retrieve.~
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.HeaderCarrierConverter
+import uk.gov.hmrc.play.http.HeaderCarrierConverter
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
                                    defaultActionBuilder: DefaultActionBuilder,
-                                   val cc: ControllerComponents) extends AuthorisedFunctions {
+                                   val cc: ControllerComponents) extends AuthorisedFunctions with Logging {
 
-  lazy val logger: Logger = Logger.apply(this.getClass)
   implicit val executionContext: ExecutionContext = cc.executionContext
 
   val unauthorized: Future[Result] = Future(Unauthorized)
 
   def async(block: User[AnyContent] => Future[Result]): Action[AnyContent] = defaultActionBuilder.async { implicit request =>
 
-    implicit lazy val headerCarrier: HeaderCarrier = HeaderCarrierConverter.fromHeadersAndSession(request.headers)
+    implicit lazy val headerCarrier: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
 
     request.headers.get("mtditid").fold {
       logger.warn("[AuthorisedAction][async] - No MTDITID in the header. Returning unauthorised.")

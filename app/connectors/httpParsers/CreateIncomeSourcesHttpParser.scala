@@ -17,15 +17,12 @@
 package connectors.httpParsers
 
 import models._
-import org.slf4j
-import play.api.Logger
+import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
-object CreateIncomeSourcesHttpParser extends DESParser {
+object CreateIncomeSourcesHttpParser extends DESParser with Logging {
   type CreateIncomeSourcesResponse = Either[DesErrorModel, IncomeSourceIdModel]
-
-  lazy val logger: slf4j.Logger = Logger.logger
 
   override val parserName: String = "CreateIncomeSourcesParser"
 

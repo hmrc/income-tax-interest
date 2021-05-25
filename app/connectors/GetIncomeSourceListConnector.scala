@@ -32,6 +32,6 @@ class GetIncomeSourceListConnector @Inject()(http: HttpClient, val appConfig: Ap
       http.GET[IncomeSourceListResponse](getIncomeSourceUrl)
     }
 
-    desCall(desHeaderCarrier)
+    desCall(desHeaderCarrier(getIncomeSourceUrl))
   }
 }
