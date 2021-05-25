@@ -1,6 +1,4 @@
 import play.core.PlayVersion.current
-import play.sbt.PlayImport._
-import sbt.Keys.libraryDependencies
 import sbt._
 
 object AppDependencies {
@@ -11,7 +9,7 @@ object AppDependencies {
 
   val test = Seq(
     "uk.gov.hmrc"             %% "bootstrap-test-play-27"   % "5.3.0"                 % Test,
-    "org.scalatest"           %% "scalatest"                % "3.0.9"                 % Test,
+    "org.scalatest"           %% "scalatest"                % "3.2.9"                 % Test,
     "com.typesafe.play"       %% "play-test"                % current                 % Test,
     "org.pegdown"             %  "pegdown"                  % "1.6.0"                 % "test, it",
     "com.vladsch.flexmark"    % "flexmark-all"              % "0.36.8"                % "test, it",
