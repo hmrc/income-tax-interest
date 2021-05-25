@@ -19,7 +19,7 @@ package services
 import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInterestResponse
 import connectors.{CreateIncomeSourceConnector, CreateOrAmendInterestConnector}
 import models._
-import play.api.Logger
+import play.api.Logging
 import play.api.http.Status.isServerError
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.PagerDutyHelper.{getPagerKeyFromInt, pagerDutyLog}
@@ -31,9 +31,8 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class CreateOrAmendInterestService @Inject()(
                                               createOrAmendInterestConnector: CreateOrAmendInterestConnector,
-                                              createIncomeSourceConnector: CreateIncomeSourceConnector)(implicit ec: ExecutionContext) {
+                                              createIncomeSourceConnector: CreateIncomeSourceConnector)(implicit ec: ExecutionContext) extends Logging {
 
-  lazy val logger: Logger = Logger(this.getClass())
 
   def createOrAmendInterest(nino: String, taxYear: Int, submittedInterest: InterestDetailsModel, attempt: Int = 0
                            )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
