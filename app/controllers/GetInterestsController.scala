@@ -26,9 +26,9 @@ import javax.inject.Inject
 import scala.concurrent.ExecutionContext
 
 class GetInterestsController @Inject()(cc: ControllerComponents,
-                                          authorisedAction: AuthorisedAction,
-                                          getInterestsService: GetInterestsService)
-                                         (implicit ec: ExecutionContext) extends BackendController(cc){
+                                       authorisedAction: AuthorisedAction,
+                                       getInterestsService: GetInterestsService)
+                                      (implicit ec: ExecutionContext) extends BackendController(cc){
 
   def getIncomeSource(nino: String, taxYear: String): Action[AnyContent] = authorisedAction.async { implicit user =>
     getInterestsService.getInterestsList(nino, taxYear).map{
