@@ -32,7 +32,7 @@ class GetInterestsControllerSpec extends TestSuite{
   val mtditid: String = "1234567890"
   val taxYear: String = "2020"
   val service: GetInterestsService = mock[GetInterestsService]
-  val controller = new GetInterestsController(mockControllerComponents, authorisedAction, service)
+  val controller = new GetInterestsController(mockControllerComponents, authorisedAction, service)(mockExecutionContext)
   val notFoundModel: DesErrorBodyModel = DesErrorBodyModel("NOT_FOUND", "No data can be found")
   val serviceUnavailableModel: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable")
   val badRequestModel: DesErrorBodyModel = DesErrorBodyModel("BAD_REQUEST", "The supplied NINO is invalid")
