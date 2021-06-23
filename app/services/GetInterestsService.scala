@@ -16,14 +16,13 @@
 
 package services
 
-
 import connectors.httpParsers.IncomeSourcesDetailsParser.IncomeSourcesDetailsResponse
 import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector}
-import models.{DesErrorBodyModel, DesErrorModel, NamedInterestDetailsModel}
+import models.{DesErrorBodyModel, DesErrorModel, IncomeSourceModel, NamedInterestDetailsModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.HeaderCarrier
-
 import javax.inject.Inject
+
 import scala.concurrent.{ExecutionContext, Future}
 
 class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourceListConnector,
@@ -32,7 +31,7 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
 
   def getInterestsList(nino: String, taxYear: String)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]] = {
-    getIncomeSourceListConnector.getIncomeSourceList(nino, taxYear).flatMap {
+    getIncomeSourceListConnector.getIncomeSourceList(nino).flatMap {
       case Right(incomeSourcesModel) =>
 
         val listOfResponses: Future[List[Either[DesErrorModel, Option[NamedInterestDetailsModel]]]] = Future.sequence(
@@ -41,7 +40,7 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
               case Right(interestDetailsModel) =>
                 Right(Some(NamedInterestDetailsModel(incomeSource.incomeSourceName, interestDetailsModel.incomeSourceId,
                   interestDetailsModel.taxedUkInterest, interestDetailsModel.untaxedUkInterest)))
-              case Left(errorResponse) => handleDetailsError(errorResponse)
+              case Left(errorResponse) => handleDetailsError(incomeSource, errorResponse)
             }
           })
         )
@@ -65,8 +64,9 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
     getIncomeSourceDetailsConnector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)
   }
 
-  private def handleDetailsError(error: DesErrorModel): Either[DesErrorModel, Option[NamedInterestDetailsModel]] = error.status match {
-    case NOT_FOUND => Right(None)
+  private def handleDetailsError(incomeSource: IncomeSourceModel,
+                                 error: DesErrorModel): Either[DesErrorModel, Option[NamedInterestDetailsModel]] = error.status match {
+    case NOT_FOUND => Right(Some(NamedInterestDetailsModel(incomeSource.incomeSourceName, incomeSource.incomeSourceId, None, None)))
     case _ => Left(error)
   }
 }
