@@ -32,8 +32,8 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
   lazy val connector: GetIncomeSourceListConnector = app.injector.instanceOf[GetIncomeSourceListConnector]
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino = "nino"
-  val taxYear = "2020"
-  val url = s"/income-tax/income-sources/nino/$nino\\?incomeSourceType=interest-from-uk-banks&taxYear=$taxYear"
+  val id = "2020"
+  val url = s"/income-tax/income-sources/nino/$nino\\?incomeSourceType=interest-from-uk-banks"
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
@@ -41,7 +41,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
     override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
   }
 
-  val model: List[IncomeSourceModel] = List(IncomeSourceModel(taxYear, "interest-from-uk-banks", "incomeSource1"))
+  val model: List[IncomeSourceModel] = List(IncomeSourceModel(id, "interest-from-uk-banks", "incomeSource1"))
 
   "GetIncomeSourceListConnector" should {
 
@@ -59,7 +59,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
 
         stubGetWithResponseBody(url, OK, Json.toJson(model).toString(), headersSentToDes)
 
-        val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+        val result = await(connector.getIncomeSourceList(nino)(hc))
 
         result mustBe Right(model)
       }
@@ -71,7 +71,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
 
         val connector = new GetIncomeSourceListConnector(httpClient, appConfig(externalHost))
 
-        val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+        val result = await(connector.getIncomeSourceList(nino)(hc))
 
         result mustBe Right(model)
       }
@@ -82,7 +82,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
       "DES returns a 200" in {
         stubGetWithResponseBody(url, OK, Json.toJson(model).toString())
 
-        val result = await(connector.getIncomeSourceList(nino, taxYear))
+        val result = await(connector.getIncomeSourceList(nino))
         result mustBe Right(model)
       }
     }
@@ -97,7 +97,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
 
       stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, invalidJson.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+      val result = await(connector.getIncomeSourceList(nino)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -111,7 +111,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
 
       stubGetWithResponseBody(url, OK, invalidJson.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+      val result = await(connector.getIncomeSourceList(nino)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -122,7 +122,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
 
       stubGetWithResponseBody(url, NO_CONTENT, "{}")
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+      val result = await(connector.getIncomeSourceList(nino)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -138,7 +138,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
 
       stubGetWithResponseBody(url, BAD_REQUEST, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+      val result = await(connector.getIncomeSourceList(nino)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -153,7 +153,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
 
       stubGetWithResponseBody(url, NOT_FOUND, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+      val result = await(connector.getIncomeSourceList(nino)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -168,7 +168,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
 
       stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+      val result = await(connector.getIncomeSourceList(nino)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -183,7 +183,7 @@ class GetIncomeSourceListConnectorSpec extends PlaySpec with WiremockSpec{
 
       stubGetWithResponseBody(url, SERVICE_UNAVAILABLE, responseBody.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceList(nino, taxYear)(hc))
+      val result = await(connector.getIncomeSourceList(nino)(hc))
 
       result mustBe Left(expectedResult)
     }
