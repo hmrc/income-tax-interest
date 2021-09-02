@@ -69,7 +69,6 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
       mockServiceSuccessCall
       val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModel)))
 
-
       status(result) mustBe expectedResult
 
     }
@@ -82,7 +81,6 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
         mockServiceFailCall
         val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModel)))
 
-
         status(result) mustBe expectedResult
       }
 
@@ -91,7 +89,6 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
 
         mockAuth()
         val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModelInvalid)))
-
 
         status(result) mustBe expectedResult
       }
