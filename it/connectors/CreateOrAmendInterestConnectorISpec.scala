@@ -121,6 +121,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
 
         result mustBe Left(expectedResult)
       }
+
       "DES Returns multiple errors" in {
         val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorsBodyModel(Seq(
           DesErrorBodyModel("INVALID_IDTYPE","ID is invalid"),
@@ -141,6 +142,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
 
         result mustBe Left(expectedResult)
       }
+
       "DES Returns a SERVICE_UNAVAILABLE" in {
         val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
 
@@ -155,6 +157,37 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
 
         result mustBe Left(expectedResult)
       }
+
+      "DES Returns a NOT_FOUND" in {
+        val expectedResult = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NOT_FOUND", "Submission Period not found"))
+
+        val responseBody = Json.obj(
+          "code" -> "NOT_FOUND",
+          "reason" -> "Submission Period not found"
+        )
+        stubPostWithResponseBody(url, NOT_FOUND, Json.toJson(model).toString(), responseBody.toString)
+
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+
+        result mustBe Left(expectedResult)
+      }
+
+      "DES Returns a UNPROCESSABLE_ENTITY" in {
+        val expectedResult = DesErrorModel(UNPROCESSABLE_ENTITY, DesErrorBodyModel("UNPROCESSABLE_ENTITY", "The remote endpoint has indicated that for given income source type, message payload is incorrect."))
+
+        val responseBody = Json.obj(
+          "code" -> "UNPROCESSABLE_ENTITY",
+          "reason" -> "The remote endpoint has indicated that for given income source type, message payload is incorrect."
+        )
+        stubPostWithResponseBody(url, UNPROCESSABLE_ENTITY, Json.toJson(model).toString(), responseBody.toString)
+
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+
+        result mustBe Left(expectedResult)
+      }
+
       "DES Returns a INTERNAL_SERVER_ERROR" in {
         val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
 
@@ -169,6 +202,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
 
         result mustBe Left(expectedResult)
       }
+
       "DES Returns a unexpected response" in {
         val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
 

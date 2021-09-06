@@ -24,7 +24,6 @@ import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 object CreateOrAmendInterestHttpParser extends DESParser with Logging{
   type CreateOrAmendInterestResponse = Either[DesErrorModel, Boolean]
 
-
   override val parserName: String = "CreateOrAmendInterestParser"
 
   implicit object CreateOrAmendInterestsHttpReads extends HttpReads[CreateOrAmendInterestResponse] {
@@ -37,7 +36,7 @@ object CreateOrAmendInterestHttpParser extends DESParser with Logging{
         case SERVICE_UNAVAILABLE =>
           logger.error(logMessage(response))
           handleDESError(response)
-        case BAD_REQUEST | FORBIDDEN =>
+        case BAD_REQUEST | FORBIDDEN | NOT_FOUND | UNPROCESSABLE_ENTITY =>
           logger.error(logMessage(response))
           handleDESError(response)
         case _ =>
