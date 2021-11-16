@@ -16,7 +16,7 @@
 
 package connectors
 
-import config.AppConfig
+import config.{AppConfig, BackendAppConfig}
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import helpers.WiremockSpec
 import models._
@@ -33,7 +33,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec {
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
-  def appConfig(desHost: String): AppConfig = new AppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+  def appConfig(desHost: String): AppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
     override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
   }
 
