@@ -33,14 +33,14 @@ class CreateOrAmendSavingsController @Inject()(createOrAmendSavingsService: Crea
                                                authorisedAction: AuthorisedAction)
                                               (implicit ec: ExecutionContext) extends BackendController(cc) {
 
- def createOrAmendSavings(nino: String, taxYear:Int): Action[AnyContent] = authorisedAction.async { implicit user =>
+  def createOrAmendSavings(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     user.request.body.asJson.map(_.validate[CreateOrAmendSavingsModel]) match {
       case Some(JsSuccess(model, _)) => responseHandler(createOrAmendSavingsService.createOrAmendSavings(nino, taxYear, model))
       case _ => Future.successful(BadRequest)
     }
   }
 
-  def responseHandler(serviceResponse: Future[CreateOrAmendSavingsResponse]): Future[Result] ={
+  def responseHandler(serviceResponse: Future[CreateOrAmendSavingsResponse]): Future[Result] = {
     serviceResponse.map {
       case Right(responseModel) => NoContent
       case Left(errorModel) => Status(errorModel.status)(Json.toJson(errorModel.toJson))

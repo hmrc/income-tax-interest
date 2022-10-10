@@ -21,6 +21,6 @@ import play.api.libs.json.{Json, OFormat}
 case class CreateOrAmendSavingsModel(securities: SecuritiesModel, foreignInterest: Seq[ForeignInterestModel])
 
 
-object CreateOrAmendSavingsModel{
+object CreateOrAmendSavingsModel {
   implicit val formats: OFormat[CreateOrAmendSavingsModel] = Json.format[CreateOrAmendSavingsModel]
 }

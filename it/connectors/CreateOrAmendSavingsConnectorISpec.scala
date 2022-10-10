@@ -27,7 +27,7 @@ import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec{
+class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec {
 
   val model: CreateOrAmendSavingsModel = CreateOrAmendSavingsModel(
     securities = SecuritiesModel(Some(800.67), 7455.99, Some(6123.2)),
@@ -42,6 +42,7 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec{
   def mkTaxYear(taxYear: Int): String = {
     s"${taxYear - 1}-${taxYear.toString takeRight 2}"
   }
+
   val url = s"/income-tax/income/savings/$nino/${mkTaxYear(taxYear)}"
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
@@ -71,7 +72,7 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec{
       "the host for DES is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
 
-        stubPutWithoutResponseBody(url, Json.toJson(desReturned).toString,  OK)
+        stubPutWithoutResponseBody(url, Json.toJson(desReturned).toString, OK)
 
         val result = await(connector.createOrAmendSavings(nino, taxYear, model)(hc))
 
@@ -108,8 +109,8 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec{
         "code" -> "INVALID_NINO",
         "reason" -> "NINO is invalid"
       )
-      val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_NINO","NINO is invalid"))
-      stubPutWithoutResponseBody(url, BAD_REQUEST, expectedResult.toString)
+      val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_NINO", "NINO is invalid"))
+      stubPutWithResponseBody(url, BAD_REQUEST, Json.toJson(desReturned).toString(), responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.createOrAmendSavings(nino, taxYear, model)(hc))
@@ -124,7 +125,7 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec{
         "reason" -> "Internal Server Error"
       )
       val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
-      stubPutWithoutResponseBody(url, INTERNAL_SERVER_ERROR, responseBody.toString())
+      stubPutWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(desReturned).toString(), responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.createOrAmendSavings(nino, taxYear, model)(hc))
@@ -139,7 +140,7 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec{
         "reason" -> "The service is currently unavailable"
       )
       val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
-      stubPutWithoutResponseBody(url, SERVICE_UNAVAILABLE, responseBody.toString())
+      stubPutWithResponseBody(url, SERVICE_UNAVAILABLE, Json.toJson(desReturned).toString(), responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
       val result = await(connector.createOrAmendSavings(nino, taxYear, model)(hc))

@@ -21,7 +21,7 @@ import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
-object CreateOrAmendSavingsHttpParser extends DESParser with Logging{
+object CreateOrAmendSavingsHttpParser extends DESParser with Logging {
   type CreateOrAmendSavingsResponse = Either[DesErrorModel, Boolean]
 
   override val parserName: String = "CreateOrAmendSavingsParser"
