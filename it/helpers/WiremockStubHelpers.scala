@@ -67,6 +67,32 @@ trait WiremockStubHelpers {
           .withStatus(status)
           .withBody(response)
           .withHeader("Content-Type", "application/json; charset=utf-8")))
+
+  }
+  def stubPutWithResponseBody(url: String, status: Int, requestBody: String, response: String, requestHeaders: Seq[HttpHeader] = Seq.empty): StubMapping = {
+    val mappingWithHeaders: MappingBuilder = requestHeaders.foldLeft(put(urlEqualTo(url)).withRequestBody(equalToJson(requestBody))){ (result, nxt) =>
+      result.withHeader(nxt.key(), equalTo(nxt.firstValue()))
+    }
+
+    stubFor(mappingWithHeaders
+      .willReturn(
+        aResponse()
+          .withStatus(status)
+          .withBody(response)
+          .withHeader("Content-Type", "application/json; charset=utf-8")))
+
+  }
+
+  def stubPutWithoutResponseBody(url: String, status: Int, requestBody: String, requestHeaders: Seq[HttpHeader] = Seq.empty): StubMapping = {
+    val mappingWithHeaders: MappingBuilder = requestHeaders.foldLeft(put(urlEqualTo(url)).withRequestBody(equalToJson(requestBody))){ (result, nxt) =>
+      result.withHeader(nxt.key(), equalTo(nxt.firstValue()))
+    }
+
+    stubFor(mappingWithHeaders
+      .willReturn(
+        aResponse()
+          .withStatus(status)
+          .withHeader("Content-Type", "application/json; charset=utf-8")))
   }
 
   def stubPutWithoutResponseBody(url: String, requestBody: String, status: Int): StubMapping =
