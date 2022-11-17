@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
 import helpers.WiremockSpec
-import models.{DesErrorBodyModel, DesErrorModel}
+import models.{ErrorBodyModel, ErrorModel}
 import play.api.Configuration
 import play.api.http.Status._
 import org.scalatestplus.play.PlaySpec
@@ -80,12 +80,12 @@ class DeleteSavingsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
 
     "handle error" when {
 
-      val desErrorBodyModel = DesErrorBodyModel("DES_CODE", "DES_REASON")
+      val errorBodyModel = ErrorBodyModel("DES_CODE", "DES_REASON")
 
       Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST).foreach { status =>
 
         s"Des returns $status" in {
-          val desError = DesErrorModel(status, desErrorBodyModel)
+          val desError = ErrorModel(status, errorBodyModel)
           implicit val hc: HeaderCarrier = HeaderCarrier()
 
           stubDeleteWithResponseBody(desUrl, status, desError.toJson.toString())
@@ -97,7 +97,7 @@ class DeleteSavingsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
       }
 
       "DES returns an unexpected error code - 502 BadGateway" in {
-        val desError = DesErrorModel(INTERNAL_SERVER_ERROR, desErrorBodyModel)
+        val desError = ErrorModel(INTERNAL_SERVER_ERROR, errorBodyModel)
         implicit val hc: HeaderCarrier = HeaderCarrier()
 
         stubDeleteWithResponseBody(desUrl, BAD_GATEWAY, desError.toJson.toString())

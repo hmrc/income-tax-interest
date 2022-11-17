@@ -98,7 +98,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
         "notErrormodel" -> "test"
       )
 
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
       stubPostWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(model).toString(), invalidJson.toString)
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -108,7 +108,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
     }
     "return a failed result" when {
       "DES Returns a BAD_REQUEST" in {
-        val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_IDTYPE","ID is invalid"))
+        val expectedResult = ErrorModel(BAD_REQUEST, ErrorBodyModel("INVALID_IDTYPE","ID is invalid"))
 
         val responseBody = Json.obj(
           "code" -> "INVALID_IDTYPE",
@@ -123,9 +123,9 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
       }
 
       "DES Returns multiple errors" in {
-        val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorsBodyModel(Seq(
-          DesErrorBodyModel("INVALID_IDTYPE","ID is invalid"),
-          DesErrorBodyModel("INVALID_IDTYPE_2","ID 2 is invalid"))))
+        val expectedResult = ErrorModel(BAD_REQUEST, ErrorsBodyModel(Seq(
+          ErrorBodyModel("INVALID_IDTYPE","ID is invalid"),
+          ErrorBodyModel("INVALID_IDTYPE_2","ID 2 is invalid"))))
 
         val responseBody = Json.obj(
           "failures" -> Json.arr(
@@ -144,7 +144,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
       }
 
       "DES Returns a SERVICE_UNAVAILABLE" in {
-        val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
+        val expectedResult = ErrorModel(SERVICE_UNAVAILABLE, ErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
 
         val responseBody = Json.obj(
           "code" -> "SERVICE_UNAVAILABLE",
@@ -159,7 +159,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
       }
 
       "DES Returns a NOT_FOUND" in {
-        val expectedResult = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NOT_FOUND", "Submission Period not found"))
+        val expectedResult = ErrorModel(NOT_FOUND, ErrorBodyModel("NOT_FOUND", "Submission Period not found"))
 
         val responseBody = Json.obj(
           "code" -> "NOT_FOUND",
@@ -174,7 +174,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
       }
 
       "DES Returns a UNPROCESSABLE_ENTITY" in {
-        val expectedResult = DesErrorModel(UNPROCESSABLE_ENTITY, DesErrorBodyModel("UNPROCESSABLE_ENTITY", "The remote endpoint has indicated that for given income source type, message payload is incorrect."))
+        val expectedResult = ErrorModel(UNPROCESSABLE_ENTITY, ErrorBodyModel("UNPROCESSABLE_ENTITY", "The remote endpoint has indicated that for given income source type, message payload is incorrect."))
 
         val responseBody = Json.obj(
           "code" -> "UNPROCESSABLE_ENTITY",
@@ -189,7 +189,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
       }
 
       "DES Returns a INTERNAL_SERVER_ERROR" in {
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
+        val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
 
         val responseBody = Json.obj(
           "code" -> "SERVER_ERROR",
@@ -204,7 +204,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
       }
 
       "DES Returns a unexpected response" in {
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+        val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
         stubPostWithoutResponseBody(url, GONE, Json.toJson(model).toString())
 

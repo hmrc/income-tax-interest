@@ -17,7 +17,7 @@
 package connectors.httpParsers
 
 
-import models.{DesErrorBodyModel, DesErrorModel, DesErrorsBodyModel}
+import models.{ErrorBodyModel, ErrorModel, ErrorsBodyModel}
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import play.api.libs.json.{JsValue, Json}
 import testUtils.TestSuite
@@ -25,8 +25,7 @@ import uk.gov.hmrc.http.HttpResponse
 
 class DESParserSpec extends TestSuite {
 
-  object FakeParser extends DESParser {
-    override val parserName: String = "TestParser"
+  object FakeParser extends APIParser {
   }
 
   def httpResponse(json: JsValue =
@@ -43,7 +42,7 @@ class DESParserSpec extends TestSuite {
     "log the correct message" in {
       val result = FakeParser.logMessage(httpResponse())
       result mustBe (
-        """[TestParser][read] Received 500 from DES. Body:{
+        """[APIParser][read] Received 500 status code. Body:{
           |  "failures" : [ {
           |    "code" : "SERVICE_UNAVAILABLE",
           |    "reason" : "The service is currently unavailable"
@@ -54,20 +53,20 @@ class DESParserSpec extends TestSuite {
           |} CorrelationId: 1234645654645""".stripMargin)
     }
     "return the the correct error" in {
-      val result = FakeParser.badSuccessJsonFromDES
-      result mustBe Left(DesErrorModel(INTERNAL_SERVER_ERROR,DesErrorBodyModel("PARSING_ERROR","Error parsing response from DES")))
+      val result = FakeParser.badSuccessJsonFromAPI
+      result mustBe Left(ErrorModel(INTERNAL_SERVER_ERROR,ErrorBodyModel("PARSING_ERROR","Error parsing response from API")))
     }
     "handle multiple errors" in {
-      val result = FakeParser.handleDESError(httpResponse())
-      result mustBe Left(DesErrorModel(INTERNAL_SERVER_ERROR,DesErrorsBodyModel(Seq(
-        DesErrorBodyModel("SERVICE_UNAVAILABLE","The service is currently unavailable"),
-        DesErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")
+      val result = FakeParser.handleAPIError(httpResponse())
+      result mustBe Left(ErrorModel(INTERNAL_SERVER_ERROR,ErrorsBodyModel(Seq(
+        ErrorBodyModel("SERVICE_UNAVAILABLE","The service is currently unavailable"),
+        ErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")
       ))))
     }
     "handle single errors" in {
-      val result = FakeParser.handleDESError(httpResponse(Json.parse(
+      val result = FakeParser.handleAPIError(httpResponse(Json.parse(
         """{"code":"INTERNAL_SERVER_ERROR","reason":"The service is currently facing issues."}""".stripMargin)))
-      result mustBe Left(DesErrorModel(INTERNAL_SERVER_ERROR,DesErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")))
+      result mustBe Left(ErrorModel(INTERNAL_SERVER_ERROR,ErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")))
     }
   }
 

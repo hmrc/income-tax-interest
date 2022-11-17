@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInterestResponse
-import models.{CreateOrAmendInterestModel, DesErrorBodyModel, DesErrorModel}
+import models.{CreateOrAmendInterestModel, ErrorBodyModel, ErrorModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -32,7 +32,7 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
   val serviceMock: CreateOrAmendInterestService = mock[CreateOrAmendInterestService]
   val controller = new CreateOrAmendInterestController(serviceMock, mockControllerComponents, authorisedAction)
 
-  val notFoundModel: DesErrorModel = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NotFound", "Unable to find source"))
+  val notFoundModel: ErrorModel = ErrorModel(NOT_FOUND, ErrorBodyModel("NotFound", "Unable to find source"))
 
   val nino = "nino"
   val taxYear = 2021

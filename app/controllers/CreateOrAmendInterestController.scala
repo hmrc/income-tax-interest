@@ -19,7 +19,7 @@ package controllers
 
 import controllers.predicates.AuthorisedAction
 import javax.inject.Inject
-import models.{CreateOrAmendInterestModel, DesErrorBodyModel, DesErrorModel}
+import models.{CreateOrAmendInterestModel, ErrorBodyModel, ErrorModel}
 import play.api.libs.json.JsSuccess
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.CreateOrAmendInterestService
@@ -38,8 +38,8 @@ class CreateOrAmendInterestController @Inject()(createOrAmendInterestService: Cr
         createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model).map(response =>
 
           if (response.exists(_.isLeft)) {
-            val error: DesErrorModel = response.filter(_.isLeft).map(_.left.get).headOption
-              .getOrElse(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError))
+            val error: ErrorModel = response.filter(_.isLeft).map(_.left.get).headOption
+              .getOrElse(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))
 
             Status(error.status)(error.toJson)
           } else {

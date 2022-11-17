@@ -98,7 +98,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec {
     }
     "return a failed result" when {
       "DES Returns a 200 with invalid json" in {
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+        val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
         stubPostWithResponseBody(url, OK, Json.toJson(model).toString(), Json.obj("invalidJson" -> "test").toString())
 
@@ -108,7 +108,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec {
         result mustBe Left(expectedResult)
       }
       "DES Returns a BadRequest" in {
-        val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_IDTYPE", "ID is invalid"))
+        val expectedResult = ErrorModel(BAD_REQUEST, ErrorBodyModel("INVALID_IDTYPE", "ID is invalid"))
 
         val responseBody = Json.obj(
           "code" -> "INVALID_IDTYPE",
@@ -123,7 +123,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec {
         result mustBe Left(expectedResult)
       }
       "DES Returns a Conflict" in {
-        val expectedResult = DesErrorModel(CONFLICT, DesErrorBodyModel("MAX_ACCOUNTS_REACHED",
+        val expectedResult = ErrorModel(CONFLICT, ErrorBodyModel("MAX_ACCOUNTS_REACHED",
           "The remote endpoint has indicated that the maximum savings accounts reached."))
 
         val responseBody = Json.obj(
@@ -139,7 +139,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec {
         result mustBe Left(expectedResult)
       }
       "DES Returns a SERVICE_UNAVAILABLE" in {
-        val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
+        val expectedResult = ErrorModel(SERVICE_UNAVAILABLE, ErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
 
         val responseBody = Json.obj(
           "code" -> "SERVICE_UNAVAILABLE",
@@ -154,7 +154,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec {
         result mustBe Left(expectedResult)
       }
       "DES Returns a INTERNAL_SERVER_ERROR" in {
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
+        val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
 
         val responseBody = Json.obj(
           "code" -> "SERVER_ERROR",
@@ -169,7 +169,7 @@ class CreateIncomeSourcesConnectorISpec extends PlaySpec with WiremockSpec {
         result mustBe Left(expectedResult)
       }
       "DES Returns a unexpected response" in {
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+        val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
 
         stubPostWithoutResponseBody(url, NOT_IMPLEMENTED, Json.toJson(model).toString())

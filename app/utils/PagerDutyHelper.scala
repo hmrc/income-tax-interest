@@ -23,11 +23,12 @@ import play.api.http.Status._
 object PagerDutyHelper extends Logging {
 
   object PagerDutyKeys extends Enumeration {
-    val BAD_SUCCESS_JSON_FROM_DES: PagerDutyKeys.Value = Value
-    val SERVICE_UNAVAILABLE_FROM_DES: PagerDutyKeys.Value = Value
-    val INTERNAL_SERVER_ERROR_FROM_DES: PagerDutyKeys.Value = Value
-    val UNEXPECTED_RESPONSE_FROM_DES: PagerDutyKeys.Value = Value
-    val FOURXX_RESPONSE_FROM_DES: PagerDutyKeys.Value = Value
+    val BAD_SUCCESS_JSON_FROM_API: PagerDutyKeys.Value = Value
+    val SERVICE_UNAVAILABLE_FROM_API: PagerDutyKeys.Value = Value
+    val INTERNAL_SERVER_ERROR_FROM_API: PagerDutyKeys.Value = Value
+    val UNEXPECTED_RESPONSE_FROM_API: PagerDutyKeys.Value = Value
+    val FOURXX_RESPONSE_FROM_API: PagerDutyKeys.Value = Value
+    val UNPROCESSABLE_ENTITY_FROM_API: PagerDutyKeys.Value = Value
   }
 
   def pagerDutyLog(pagerDutyKey: PagerDutyKeys.Value, otherDetail: String = ""): Unit = {
@@ -43,10 +44,10 @@ object PagerDutyHelper extends Logging {
 
   def getPagerKeyFromInt(status: Int): PagerDutyKeys.Value = {
     status match {
-      case BAD_REQUEST | FORBIDDEN | CONFLICT => PagerDutyKeys.FOURXX_RESPONSE_FROM_DES
-      case INTERNAL_SERVER_ERROR => PagerDutyKeys.INTERNAL_SERVER_ERROR_FROM_DES
-      case SERVICE_UNAVAILABLE => PagerDutyKeys.SERVICE_UNAVAILABLE_FROM_DES
-      case _ => PagerDutyKeys.UNEXPECTED_RESPONSE_FROM_DES
+      case BAD_REQUEST | FORBIDDEN | CONFLICT => PagerDutyKeys.FOURXX_RESPONSE_FROM_API
+      case INTERNAL_SERVER_ERROR => PagerDutyKeys.INTERNAL_SERVER_ERROR_FROM_API
+      case SERVICE_UNAVAILABLE => PagerDutyKeys.SERVICE_UNAVAILABLE_FROM_API
+      case _ => PagerDutyKeys.UNEXPECTED_RESPONSE_FROM_API
     }
   }
 }

@@ -103,7 +103,7 @@ class GetSavingsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
       "DES returns an empty 200" in {
         stubGetWithResponseBody(url, OK, desReturnedEmpty.toString())
         val result = await(connector.getSavingsIncomeData(nino, taxYear))
-        val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+        val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
         result mustBe Left(expectedResult)
 
@@ -112,7 +112,7 @@ class GetSavingsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
 
     "return a NoContent response" in {
 
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)
+      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
       stubGetWithResponseBody(url, NO_CONTENT, "{}")
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -127,7 +127,7 @@ class GetSavingsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
         "code" -> "INVALID_NINO",
         "reason" -> "NINO is invalid"
       )
-      val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_NINO","NINO is invalid"))
+      val expectedResult = ErrorModel(BAD_REQUEST, ErrorBodyModel("INVALID_NINO","NINO is invalid"))
       stubGetWithResponseBody(url, BAD_REQUEST, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -142,7 +142,7 @@ class GetSavingsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
         "code" -> "NOT_FOUND_INCOME_SOURCE",
         "reason" -> "Can't find the income source"
       )
-      val expectedResult = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find the income source"))
+      val expectedResult = ErrorModel(NOT_FOUND, ErrorBodyModel("NOT_FOUND_INCOME_SOURCE", "Can't find the income source"))
       stubGetWithResponseBody(url, NOT_FOUND, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -157,7 +157,7 @@ class GetSavingsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
         "code" -> "SERVER_ERROR",
         "reason" -> "Internal Server Error"
       )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
+      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
       stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -172,7 +172,7 @@ class GetSavingsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
         "code" -> "SERVICE_UNAVAILABLE",
         "reason" -> "The service is currently unavailable"
       )
-      val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
+      val expectedResult = ErrorModel(SERVICE_UNAVAILABLE, ErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
       stubGetWithResponseBody(url, SERVICE_UNAVAILABLE, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()

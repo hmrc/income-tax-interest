@@ -39,8 +39,8 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
   val incomeSourceName = "incomeSourceNameTest"
   val incomeSourceId = "incomeSourceIdTest"
 
-  val notFoundModel: DesErrorModel = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NotFound", "Unable to find source"))
-  val internalServerErrorModel: DesErrorModel = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("InternalServerError", "Internal Server Error"))
+  val notFoundModel: ErrorModel = ErrorModel(NOT_FOUND, ErrorBodyModel("NotFound", "Unable to find source"))
+  val internalServerErrorModel: ErrorModel = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("InternalServerError", "Internal Server Error"))
 
   val interestDetailsModel: InterestDetailsModel = InterestDetailsModel(incomeSourceId, Some(100.00), Some(100.00))
   val submissionModel: InterestSubmissionModel = InterestSubmissionModel(incomeSourceName = incomeSourceName)
@@ -53,7 +53,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
     .expects(nino, taxYear, interestDetailsModel,  *)
     .returning(Future.successful(Right(true)))
 
-  def createOrAmendInterestMockFailure(expectedErrorModel: DesErrorModel): CallHandler[Future[CreateOrAmendInterestResponse]] =
+  def createOrAmendInterestMockFailure(expectedErrorModel: ErrorModel): CallHandler[Future[CreateOrAmendInterestResponse]] =
     (createOrAmendInterestConnector.createOrAmendInterest(_: String, _: Int, _: InterestDetailsModel)(_: HeaderCarrier))
     .expects(nino, taxYear, interestDetailsModel,  *)
     .returning(Future.successful(Left(expectedErrorModel)))
@@ -63,7 +63,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
       .expects(nino, submissionModel, *)
       .returning(Future.successful(Right(connectorResult)))
 
-  def createIncomeSourceConnectorMockFailure(expectedErrorModel: DesErrorModel): CallHandler[Future[CreateIncomeSourcesResponse]] =
+  def createIncomeSourceConnectorMockFailure(expectedErrorModel: ErrorModel): CallHandler[Future[CreateIncomeSourcesResponse]] =
     (createIncomeSourceConnector.createIncomeSource(_: String, _: InterestSubmissionModel)(_: HeaderCarrier))
     .expects(nino, submissionModel, *)
     .returning(Future.successful(Left(expectedErrorModel)))

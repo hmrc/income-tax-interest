@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.httpParsers.CreateOrAmendSavingsHttpParser.CreateOrAmendSavingsResponse
-import models.{CreateOrAmendSavingsModel, DesErrorBodyModel, DesErrorModel, ForeignInterestModel, SecuritiesModel}
+import models.{CreateOrAmendSavingsModel, ErrorBodyModel, ErrorModel, ForeignInterestModel, SecuritiesModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -34,10 +34,10 @@ class CreateOrAmendSavingsControllerSpec extends TestSuite {
   val serviceMock: CreateOrAmendSavingsService = mock[CreateOrAmendSavingsService]
   val controller = new CreateOrAmendSavingsController(serviceMock, mockControllerComponents, authorisedAction)
 
-  val notFoundModel: DesErrorModel = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NotFound", "Unable to find source"))
-  val serviceUnavailableModel: DesErrorModel = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
-  val badRequestModel: DesErrorModel = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("BAD_REQUEST", "The supplied NINO is invalid"))
-  val internalServerErrorModel: DesErrorModel = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("INTERNAL_SERVER_ERROR", "There has been an unexpected error"))
+  val notFoundModel: ErrorModel = ErrorModel(NOT_FOUND, ErrorBodyModel("NotFound", "Unable to find source"))
+  val serviceUnavailableModel: ErrorModel = ErrorModel(SERVICE_UNAVAILABLE, ErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
+  val badRequestModel: ErrorModel = ErrorModel(BAD_REQUEST, ErrorBodyModel("BAD_REQUEST", "The supplied NINO is invalid"))
+  val internalServerErrorModel: ErrorModel = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("INTERNAL_SERVER_ERROR", "There has been an unexpected error"))
 
   val model: CreateOrAmendSavingsModel = CreateOrAmendSavingsModel(
     securities = SecuritiesModel(Some(800.67), 7455.99, Some(6123.2)),
@@ -74,7 +74,7 @@ class CreateOrAmendSavingsControllerSpec extends TestSuite {
 
     "return a Left response" when {
 
-      def mockCreateOrAmendSavingsWithError(errorModel: DesErrorModel): CallHandler4[String, Int, CreateOrAmendSavingsModel, HeaderCarrier, Future[CreateOrAmendSavingsResponse]] = {
+      def mockCreateOrAmendSavingsWithError(errorModel: ErrorModel): CallHandler4[String, Int, CreateOrAmendSavingsModel, HeaderCarrier, Future[CreateOrAmendSavingsResponse]] = {
         (serviceMock.createOrAmendSavings(_: String, _: Int, _: CreateOrAmendSavingsModel)(_: HeaderCarrier))
           .expects(nino, taxYear, *, *)
           .returning(Future.successful(Left(errorModel)))

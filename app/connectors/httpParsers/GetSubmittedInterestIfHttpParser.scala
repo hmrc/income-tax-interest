@@ -16,32 +16,38 @@
 
 package connectors.httpParsers
 
-import models.ErrorModel
+import models.{ErrorModel, InterestDetailsModel}
+import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
 import utils.PagerDutyHelper.pagerDutyLog
-import play.api.Logging
 
-object DeleteSavingsIncomeDataParser extends APIParser with Logging {
-  type DeleteSavingsIncomeDataResponse = Either[ErrorModel, Boolean]
+object GetSubmittedInterestIfHttpParser extends APIParser with Logging {
+  type GetAnnualIncomeSourcePeriod = Either[ErrorModel, InterestDetailsModel]
 
-  implicit object DeleteSavingsIncomeDataHttpReads extends HttpReads[DeleteSavingsIncomeDataResponse] {
+  implicit object GetAnnualIncomeSourcePeriodReads extends HttpReads[GetAnnualIncomeSourcePeriod] {
 
-    override def read(method: String, url: String, response: HttpResponse): DeleteSavingsIncomeDataResponse = {
+    override def read(method: String, url: String, response: HttpResponse): GetAnnualIncomeSourcePeriod = {
+
       response.status match {
-
-        case NO_CONTENT => Right(true)
-        case NOT_FOUND =>
-          logger.info(logMessage(response))
-          handleAPIError(response)
+        case OK => (response.json \ "savingsInterestAnnualIncome").validate[List[InterestDetailsModel]].fold[GetAnnualIncomeSourcePeriod](
+          jsErrors => badSuccessJsonFromAPI,
+          parsedModel => if(parsedModel.nonEmpty) Right(parsedModel.head) else handleAPIError(response, Some(INTERNAL_SERVER_ERROR))
+        )
         case INTERNAL_SERVER_ERROR =>
           pagerDutyLog(INTERNAL_SERVER_ERROR_FROM_API, logMessage(response))
           handleAPIError(response)
         case SERVICE_UNAVAILABLE =>
           pagerDutyLog(SERVICE_UNAVAILABLE_FROM_API, logMessage(response))
           handleAPIError(response)
-        case BAD_REQUEST | NOT_FOUND =>
+        case UNPROCESSABLE_ENTITY =>
+          pagerDutyLog(UNPROCESSABLE_ENTITY_FROM_API, logMessage(response))
+          handleAPIError(response)
+        case NOT_FOUND =>
+          logger.info(logMessage(response))
+          handleAPIError(response)
+        case BAD_REQUEST =>
           pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(response))
           handleAPIError(response)
         case _ =>

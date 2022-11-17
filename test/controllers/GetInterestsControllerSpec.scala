@@ -16,7 +16,7 @@
 
 package controllers
 
-import models.{DesErrorBodyModel, DesErrorModel, NamedInterestDetailsModel}
+import models.{ErrorBodyModel, ErrorModel, NamedInterestDetailsModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -33,38 +33,38 @@ class GetInterestsControllerSpec extends TestSuite{
   val taxYear: String = "2020"
   val service: GetInterestsService = mock[GetInterestsService]
   val controller = new GetInterestsController(mockControllerComponents, authorisedAction, service)(mockExecutionContext)
-  val notFoundModel: DesErrorBodyModel = DesErrorBodyModel("NOT_FOUND", "No data can be found")
-  val serviceUnavailableModel: DesErrorBodyModel = DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable")
-  val badRequestModel: DesErrorBodyModel = DesErrorBodyModel("BAD_REQUEST", "The supplied NINO is invalid")
-  val internalServerErrorModel: DesErrorBodyModel = DesErrorBodyModel("INTERNAL_SERVER_ERROR", "There has been an unexpected error")
+  val notFoundModel: ErrorBodyModel = ErrorBodyModel("NOT_FOUND", "No data can be found")
+  val serviceUnavailableModel: ErrorBodyModel = ErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable")
+  val badRequestModel: ErrorBodyModel = ErrorBodyModel("BAD_REQUEST", "The supplied NINO is invalid")
+  val internalServerErrorModel: ErrorBodyModel = ErrorBodyModel("INTERNAL_SERVER_ERROR", "There has been an unexpected error")
 
   def mockGetIncomeSourceNotFound(): CallHandler4[String, String, HeaderCarrier, ExecutionContext,
-    Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] = {
-    val invalidIncomeSource: Either[DesErrorModel, List[NamedInterestDetailsModel]] = Left(DesErrorModel(NOT_FOUND, notFoundModel))
+    Future[Either[ErrorModel, List[NamedInterestDetailsModel]]]] = {
+    val invalidIncomeSource: Either[ErrorModel, List[NamedInterestDetailsModel]] = Left(ErrorModel(NOT_FOUND, notFoundModel))
     (service.getInterestsList(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects("nino", "2020", *, *)
       .returning(Future.successful(invalidIncomeSource))
   }
 
   def mockGetIncomeSourceServiceUnavailable(): CallHandler4[String, String, HeaderCarrier, ExecutionContext,
-    Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] ={
-    val invalidIncomeSource: Either[DesErrorModel, List[NamedInterestDetailsModel]] = Left(DesErrorModel(SERVICE_UNAVAILABLE,serviceUnavailableModel))
+    Future[Either[ErrorModel, List[NamedInterestDetailsModel]]]] ={
+    val invalidIncomeSource: Either[ErrorModel, List[NamedInterestDetailsModel]] = Left(ErrorModel(SERVICE_UNAVAILABLE,serviceUnavailableModel))
     (service.getInterestsList(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects("nino", "2020", *, *)
       .returning(Future.successful(invalidIncomeSource))
   }
 
   def mockGetIncomeSourceBadRequest(): CallHandler4[String, String, HeaderCarrier, ExecutionContext,
-    Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] ={
-    val invalidIncomeSource: Either[DesErrorModel, List[NamedInterestDetailsModel]] = Left(DesErrorModel(BAD_REQUEST, badRequestModel))
+    Future[Either[ErrorModel, List[NamedInterestDetailsModel]]]] ={
+    val invalidIncomeSource: Either[ErrorModel, List[NamedInterestDetailsModel]] = Left(ErrorModel(BAD_REQUEST, badRequestModel))
     (service.getInterestsList(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects("nino", "2020", *, *)
       .returning(Future.successful(invalidIncomeSource))
   }
 
   def mockGetIncomeSourceInternalServerError(): CallHandler4[String, String, HeaderCarrier, ExecutionContext,
-    Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]]] ={
-    val invalidIncomeSource: Either[DesErrorModel, List[NamedInterestDetailsModel]] = Left(DesErrorModel(INTERNAL_SERVER_ERROR, internalServerErrorModel))
+    Future[Either[ErrorModel, List[NamedInterestDetailsModel]]]] ={
+    val invalidIncomeSource: Either[ErrorModel, List[NamedInterestDetailsModel]] = Left(ErrorModel(INTERNAL_SERVER_ERROR, internalServerErrorModel))
     (service.getInterestsList(_: String, _: String)(_: HeaderCarrier, _: ExecutionContext))
       .expects("nino", "2020", *, *)
       .returning(Future.successful(invalidIncomeSource))

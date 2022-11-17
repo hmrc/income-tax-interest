@@ -18,7 +18,10 @@ package models
 
 import play.api.libs.json._
 
-case class InterestDetailsModel (incomeSourceId: String, taxedUkInterest: Option[BigDecimal], untaxedUkInterest: Option[BigDecimal])
+case class InterestDetailsModel(incomeSourceId: String,
+                                taxedUkInterest: Option[BigDecimal],
+                                untaxedUkInterest: Option[BigDecimal],
+                                deletedPeriod: Option[Boolean] = None)
 
 object InterestDetailsModel {
 
@@ -27,8 +30,9 @@ object InterestDetailsModel {
       incomeSourceId <- (__ \ "incomeSourceId").read[String]
       taxedUkInterest <- (__ \ "taxedUkInterest").readNullable[BigDecimal]
       untaxedUkInterest <- (__ \ "untaxedUkInterest").readNullable[BigDecimal]
+      deletedPeriod <- (__ \ "deletedPeriod").readNullable[Boolean]
     } yield {
-      InterestDetailsModel(incomeSourceId, taxedUkInterest, untaxedUkInterest)
+      InterestDetailsModel(incomeSourceId, taxedUkInterest, untaxedUkInterest, deletedPeriod)
     }
   }
 

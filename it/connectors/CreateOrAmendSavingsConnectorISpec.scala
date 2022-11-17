@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
 import helpers.WiremockSpec
-import models.{CreateOrAmendSavingsModel, DesErrorBodyModel, DesErrorModel, ForeignInterestModel, SecuritiesModel}
+import models.{CreateOrAmendSavingsModel, ErrorBodyModel, ErrorModel, ForeignInterestModel, SecuritiesModel}
 import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.http.Status._
@@ -109,7 +109,7 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec {
         "code" -> "INVALID_NINO",
         "reason" -> "NINO is invalid"
       )
-      val expectedResult = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("INVALID_NINO", "NINO is invalid"))
+      val expectedResult = ErrorModel(BAD_REQUEST, ErrorBodyModel("INVALID_NINO", "NINO is invalid"))
       stubPutWithResponseBody(url, BAD_REQUEST, Json.toJson(desReturned).toString(), responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -124,7 +124,7 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec {
         "code" -> "SERVER_ERROR",
         "reason" -> "Internal Server Error"
       )
-      val expectedResult = DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
+      val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
       stubPutWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(desReturned).toString(), responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -139,7 +139,7 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec {
         "code" -> "SERVICE_UNAVAILABLE",
         "reason" -> "The service is currently unavailable"
       )
-      val expectedResult = DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
+      val expectedResult = ErrorModel(SERVICE_UNAVAILABLE, ErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
       stubPutWithResponseBody(url, SERVICE_UNAVAILABLE, Json.toJson(desReturned).toString(), responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
