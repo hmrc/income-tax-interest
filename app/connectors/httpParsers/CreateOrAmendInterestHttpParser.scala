@@ -21,10 +21,8 @@ import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
-object CreateOrAmendInterestHttpParser extends DESParser with Logging{
-  type CreateOrAmendInterestResponse = Either[DesErrorModel, Boolean]
-
-  override val parserName: String = "CreateOrAmendInterestParser"
+object CreateOrAmendInterestHttpParser extends APIParser with Logging{
+  type CreateOrAmendInterestResponse = Either[ErrorModel, Boolean]
 
   implicit object CreateOrAmendInterestsHttpReads extends HttpReads[CreateOrAmendInterestResponse] {
     override def read(method: String, url: String, response: HttpResponse): CreateOrAmendInterestResponse = {
@@ -32,16 +30,16 @@ object CreateOrAmendInterestHttpParser extends DESParser with Logging{
         case OK => Right(true)
         case INTERNAL_SERVER_ERROR =>
           logger.error(logMessage(response))
-          handleDESError(response)
+          handleAPIError(response)
         case SERVICE_UNAVAILABLE =>
           logger.error(logMessage(response))
-          handleDESError(response)
+          handleAPIError(response)
         case BAD_REQUEST | FORBIDDEN | NOT_FOUND | UNPROCESSABLE_ENTITY =>
           logger.error(logMessage(response))
-          handleDESError(response)
+          handleAPIError(response)
         case _ =>
           logger.error(logMessage(response))
-          handleDESError(response, Some(INTERNAL_SERVER_ERROR))
+          handleAPIError(response, Some(INTERNAL_SERVER_ERROR))
       }
     }
   }

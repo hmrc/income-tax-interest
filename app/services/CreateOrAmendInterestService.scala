@@ -44,7 +44,7 @@ class CreateOrAmendInterestService @Inject()(
   }
 
   def getIncomeSourceId(nino: String, interestSubmittedModel: CreateOrAmendInterestModel, attempt: Int = 0)
-                       (implicit hc: HeaderCarrier): Future[Either[DesErrorModel, InterestDetailsModel]] = {
+                       (implicit hc: HeaderCarrier): Future[Either[ErrorModel, InterestDetailsModel]] = {
     if (interestSubmittedModel.id.isEmpty) {
       createIncomeSourceConnector.createIncomeSource(nino, InterestSubmissionModel(incomeSourceName = interestSubmittedModel.accountName)).flatMap {
         case Right(incomeSourceIdModel) =>
@@ -74,7 +74,7 @@ class CreateOrAmendInterestService @Inject()(
     })
   }
 
-  private def logAndReturn(errorResponse: DesErrorModel, logKey: String) = {
+  private def logAndReturn(errorResponse: ErrorModel, logKey: String) = {
     pagerDutyLog(
       getPagerKeyFromInt(errorResponse.status),
       s"$logKey Received ${errorResponse.status} from DES. Body:${errorResponse.body}"

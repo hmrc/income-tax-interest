@@ -21,11 +21,12 @@ import testUtils.TestSuite
 
 class InterestDetailsModelSpec extends TestSuite {
 
-  val model: InterestDetailsModel = new InterestDetailsModel("incomeSourceId", Some(74.09), Some(27.39))
+  val model: InterestDetailsModel = new InterestDetailsModel("incomeSourceId", Some(74.09), Some(27.39), Some(false))
   val jsonModel: JsObject = Json.obj(
     "incomeSourceId" -> "incomeSourceId",
             "taxedUkInterest" -> 74.09,
-            "untaxedUkInterest" -> 27.39
+            "untaxedUkInterest" -> 27.39,
+            "deletedPeriod" -> false
   )
 
   "submitted interest" should {

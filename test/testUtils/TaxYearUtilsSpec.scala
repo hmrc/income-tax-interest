@@ -16,24 +16,19 @@
 
 package testUtils
 
-import config.AppConfig
-import org.scalamock.scalatest.MockFactory
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import utils.TaxYearUtils
 
-class MockAppConfig extends AppConfig with MockFactory {
+class TaxYearUtilsSpec extends AnyWordSpec with Matchers {
 
-  override val authBaseUrl: String = "/auth"
+  "IFTaxYearHelper" should {
 
-  override val desBaseUrl: String = "/des"
+    "return a string containing the last year and the last two digits of this year" in {
+      val taxYear = 2024
+      val result = TaxYearUtils.convertSpecificTaxYear(taxYear)
+      result mustBe "2023-24"
+    }
 
-  override val auditingEnabled: Boolean = true
-  override val graphiteHost: String = "/graphite"
-
-  override val environment: String = "dev"
-
-  override val authorisationToken: String = "someToken"
-  override val authorisationTokenKey: String = ""
-  override val ifBaseUrl: String = ""
-  override val ifEnvironment: String = ""
-
-  override def authorisationTokenFor(apiVersion: String): String = ???
+  }
 }

@@ -17,24 +17,25 @@
 package services
 
 import connectors.httpParsers.IncomeSourcesDetailsParser.IncomeSourcesDetailsResponse
-import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector}
-import models.{DesErrorBodyModel, DesErrorModel, IncomeSourceModel, NamedInterestDetailsModel}
+import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector, GetAnnualIncomeSourcePeriodConnector}
+import models.{ErrorBodyModel, ErrorModel, IncomeSourceModel, NamedInterestDetailsModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.HeaderCarrier
-import javax.inject.Inject
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourceListConnector,
-                                    getIncomeSourceDetailsConnector: GetIncomeSourceDetailsConnector) {
+                                    getIncomeSourceDetailsConnector: GetIncomeSourceDetailsConnector,
+                                    getSubmittedInterestIfConnector: GetAnnualIncomeSourcePeriodConnector)(implicit ec: ExecutionContext) {
 
 
   def getInterestsList(nino: String, taxYear: String)
-                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[DesErrorModel, List[NamedInterestDetailsModel]]] = {
+                      (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ErrorModel, List[NamedInterestDetailsModel]]] = {
     getIncomeSourceListConnector.getIncomeSourceList(nino).flatMap {
       case Right(incomeSourcesModel) =>
 
-        val listOfResponses: Future[List[Either[DesErrorModel, Option[NamedInterestDetailsModel]]]] = Future.sequence(
+        val listOfResponses: Future[List[Either[ErrorModel, Option[NamedInterestDetailsModel]]]] = Future.sequence(
           incomeSourcesModel.map(incomeSource => {
             getIncomeSourceDetails(nino, taxYear, incomeSource.incomeSourceId).map {
               case Right(interestDetailsModel) =>
@@ -45,13 +46,13 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
           })
         )
 
-        listOfResponses.map{
+        listOfResponses.map {
           listOfResponses =>
 
-            if(listOfResponses.exists(_.isLeft)){
+            if (listOfResponses.exists(_.isLeft)) {
 
-              val error: Option[DesErrorModel] = listOfResponses.filter(_.isLeft).map(_.left.get).headOption
-              Left(error.getOrElse(DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel.parsingError)))
+              val error: Option[ErrorModel] = listOfResponses.filter(_.isLeft).map(_.left.get).headOption
+              Left(error.getOrElse(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)))
             } else {
               Right(listOfResponses.filter(_.isRight).flatMap(_.right.get))
             }
@@ -61,11 +62,16 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
   }
 
   def getIncomeSourceDetails(nino: String, taxYear: String, incomeSourceId: String)(implicit hc: HeaderCarrier): Future[IncomeSourcesDetailsResponse] = {
-    getIncomeSourceDetailsConnector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)
+    if (taxYear.equals("2024")) {
+      getSubmittedInterestIfConnector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, Some(false))
+    }
+    else {
+      getIncomeSourceDetailsConnector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)
+    }
   }
 
   private def handleDetailsError(incomeSource: IncomeSourceModel,
-                                 error: DesErrorModel): Either[DesErrorModel, Option[NamedInterestDetailsModel]] = error.status match {
+                                 error: ErrorModel): Either[ErrorModel, Option[NamedInterestDetailsModel]] = error.status match {
     case NOT_FOUND => Right(Some(NamedInterestDetailsModel(incomeSource.incomeSourceName, incomeSource.incomeSourceId, None, None)))
     case _ => Left(error)
   }

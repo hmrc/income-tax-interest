@@ -17,70 +17,76 @@
 package connectors
 
 import com.github.tomakehurst.wiremock.http.HttpHeader
-import config.{AppConfig, BackendAppConfig}
+import config.BackendAppConfig
 import helpers.WiremockSpec
-import models.{ErrorBodyModel, ErrorModel, InterestDetailsModel}
-import org.scalatestplus.play.PlaySpec
+import models._
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import org.scalatestplus.play.PlaySpec
 
-class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
-  lazy val connector: GetIncomeSourceDetailsConnector = app.injector.instanceOf[GetIncomeSourceDetailsConnector]
+class GetAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with WiremockSpec {
+
+  def taxYearParameter(taxYear: Int): String = {
+    s"${taxYear - 1}-${taxYear.toString takeRight 2}"
+  }
+  
+  lazy val connector: GetAnnualIncomeSourcePeriodConnector = app.injector.instanceOf[GetAnnualIncomeSourcePeriodConnector]
   implicit val hc: HeaderCarrier = HeaderCarrier()
-  val nino = "nino"
-  val taxYear = "2020"
+  val nino = "123456789"
+  val taxYear: String = "2024"
   val incomeSourceId = "someId"
+  val deletedPeriod = Some(false)
+  val connectorTaxYear: String = taxYearParameter(2024)
 
-  val url = s"/income-tax/nino/$nino/income-source/savings/annual/$taxYear\\?incomeSourceId=$incomeSourceId"
+  val url: String = s"/income-tax/$connectorTaxYear/$nino/income-source/savings/annual\\?deleteReturnPeriod=false&incomeSourceId=$incomeSourceId"
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
-  def appConfig(desHost: String): AppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
-    override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
+  def appConfig(ifHost: String): BackendAppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    override lazy val ifBaseUrl: String = s"http://$ifHost:$wireMockPort"
   }
 
   val model: InterestDetailsModel = InterestDetailsModel(incomeSourceId, Some(29.99), Some(37.65))
-  val desReturned: JsObject = Json.obj(
+  val ifReturned: JsObject = Json.obj(
     "savingsInterestAnnualIncome" -> Json.arr(model)
   )
-  val desReturnedEmpty: JsObject = Json.obj(
+  val ifReturnedEmpty: JsObject = Json.obj(
     "savingsInterestAnnualIncome" -> Json.arr()
   )
 
-  ".getIncomeSourceDetails" should {
+  ".InterestDetailsIfModel" should {
 
     "include internal headers" when {
 
-      val headersSentToDes = Seq(
+      val headersSentToIf = Seq(
         new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
         new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
       )
 
+      val internalHost = "localhost"
       val externalHost = "127.0.0.1"
 
-      "the host for DES is 'Internal'" in {
+      "the host for IF is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
 
-        stubGetWithResponseBody(url, OK, desReturned.toString())
-
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+        stubGetWithResponseBody(url, OK, ifReturned.toString())
+        val connector = new GetAnnualIncomeSourcePeriodConnector(httpClient, appConfig(internalHost))
+        val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod)(hc))
 
         result mustBe Right(model)
       }
 
-      "the host for DES is 'External'" in {
+
+      "the host for IF is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
 
-        stubGetWithResponseBody(url, OK, desReturned.toString(),headersSentToDes)
-
-        val connector = new GetIncomeSourceDetailsConnector(httpClient, appConfig(externalHost))
-
-
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+        stubGetWithResponseBody(url, OK, ifReturned.toString(),headersSentToIf)
+        val connector = new GetAnnualIncomeSourcePeriodConnector(httpClient, appConfig(externalHost))
+        val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod)(hc))
 
         result mustBe Right(model)
       }
@@ -88,9 +94,9 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
     "return a success result" when {
 
-      "DES returns a 200" in {
-        stubGetWithResponseBody(url, OK, desReturned.toString())
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
+      "IF returns a 200" in {
+        stubGetWithResponseBody(url, OK, ifReturned.toString())
+        val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod))
 
         result mustBe Right(model)
 
@@ -99,9 +105,9 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
 
     "return an error" when {
 
-      "DES returns an empty 200" in {
-        stubGetWithResponseBody(url, OK, desReturnedEmpty.toString())
-        val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
+      "IF returns an empty 200" in {
+        stubGetWithResponseBody(url, OK, ifReturnedEmpty.toString())
+        val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod))
         val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
         result mustBe Left(expectedResult)
@@ -118,7 +124,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
       val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
       stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, invalidJson.toString())
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod))
 
       result mustBe Left(expectedResult)
     }
@@ -135,7 +141,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
       stubGetWithResponseBody(url, OK, invalidJson.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -146,7 +152,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
       stubGetWithResponseBody(url, NO_CONTENT, "{}")
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -161,7 +167,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
       stubGetWithResponseBody(url, BAD_REQUEST, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -176,7 +182,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
       stubGetWithResponseBody(url, NOT_FOUND, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -191,7 +197,7 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
       stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -206,9 +212,23 @@ class GetIncomeSourceDetailsConnectorSpec extends PlaySpec with WiremockSpec{
       stubGetWithResponseBody(url, SERVICE_UNAVAILABLE, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)(hc))
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod)(hc))
 
       result mustBe Left(expectedResult)
     }
 
-}}
+    "return an Unprocessable entity Error when IF throws an unexpected result that isn't parsable" in {
+      val responseBody = Json.obj(
+        "code" -> "UNPROCESSABLE_ENTITY"
+      )
+      val expectedResult = ErrorModel(UNPROCESSABLE_ENTITY, ErrorBodyModel.parsingError)
+
+      stubGetWithResponseBody(url, UNPROCESSABLE_ENTITY, responseBody.toString())
+      implicit val hc: HeaderCarrier = HeaderCarrier()
+      val result = await(connector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, deletedPeriod)(hc))
+
+      result mustBe Left(expectedResult)
+    }
+
+  }
+}

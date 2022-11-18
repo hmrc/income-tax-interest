@@ -21,30 +21,29 @@ import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
-object CreateIncomeSourcesHttpParser extends DESParser with Logging {
-  type CreateIncomeSourcesResponse = Either[DesErrorModel, IncomeSourceIdModel]
+object CreateIncomeSourcesHttpParser extends APIParser with Logging {
+  type CreateIncomeSourcesResponse = Either[ErrorModel, IncomeSourceIdModel]
 
-  override val parserName: String = "CreateIncomeSourcesParser"
 
   implicit object CreateIncomeSourcesHttpReads extends HttpReads[CreateIncomeSourcesResponse] {
     override def read(method: String, url: String, response: HttpResponse): CreateIncomeSourcesResponse = {
       response.status match {
         case OK => response.json.validate[IncomeSourceIdModel].fold[CreateIncomeSourcesResponse](
-          jsonErrors => badSuccessJsonFromDES,
+          jsonErrors => badSuccessJsonFromAPI,
           parsedModel => Right(parsedModel)
         )
         case INTERNAL_SERVER_ERROR =>
           logger.error(logMessage(response))
-          handleDESError(response)
+          handleAPIError(response)
         case SERVICE_UNAVAILABLE =>
           logger.error(logMessage(response))
-          handleDESError(response)
+          handleAPIError(response)
         case BAD_REQUEST | FORBIDDEN | CONFLICT =>
           logger.error(logMessage(response))
-          handleDESError(response)
+          handleAPIError(response)
         case _ =>
           logger.error(logMessage(response))
-          handleDESError(response, Some(INTERNAL_SERVER_ERROR))
+          handleAPIError(response, Some(INTERNAL_SERVER_ERROR))
       }
     }
   }

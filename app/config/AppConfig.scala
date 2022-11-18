@@ -21,19 +21,6 @@ import javax.inject.Inject
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-class BackendAppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
-
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
-
-  val desBaseUrl: String = servicesConfig.baseUrl("des")
-
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
-
-  val environment: String = config.get[String]("microservice.services.des.environment")
-  val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
-
-}
 
 @ImplementedBy(classOf[BackendAppConfig])
 trait AppConfig {
@@ -46,4 +33,30 @@ trait AppConfig {
 
   val environment: String
   val authorisationToken: String
+
+  val authorisationTokenKey: String
+  val ifBaseUrl: String
+  val ifEnvironment: String
+
+  def authorisationTokenFor(apiVersion: String): String
+}
+
+
+class BackendAppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) extends AppConfig {
+
+  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+
+  val desBaseUrl: String = servicesConfig.baseUrl("des")
+
+  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
+  val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
+
+  val environment: String = config.get[String]("microservice.services.des.environment")
+  val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
+
+  lazy val authorisationTokenKey: String = "microservice.services.integration-framework.authorisation-token"
+  lazy val ifBaseUrl: String = servicesConfig.baseUrl(serviceName = "integration-framework")
+  lazy val ifEnvironment: String = servicesConfig.getString(key = "microservice.services.integration-framework.environment")
+
+  def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
 }

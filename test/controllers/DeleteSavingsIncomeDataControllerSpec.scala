@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.httpParsers.DeleteSavingsIncomeDataParser.DeleteSavingsIncomeDataResponse
-import models.{DesErrorBodyModel, DesErrorModel}
+import models.{ErrorBodyModel, ErrorModel}
 import org.scalamock.handlers.CallHandler3
 import play.api.http.Status._
 import services.DeleteSavingsIncomeDataService
@@ -31,12 +31,12 @@ class DeleteSavingsIncomeDataControllerSpec extends TestSuite{
 
   val controller = new DeleteSavingsIncomeDataController(serviceMock, mockControllerComponents, authorisedAction)
 
-  val notFoundModel: DesErrorModel = DesErrorModel(NOT_FOUND, DesErrorBodyModel("NotFound", "Unable to find source"))
-  val serviceUnavailableModel: DesErrorModel =
-    DesErrorModel(SERVICE_UNAVAILABLE, DesErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
-  val badRequestModel: DesErrorModel = DesErrorModel(BAD_REQUEST, DesErrorBodyModel("BAD_REQUEST", "The supplied NINO is invalid"))
-  val internalServerErrorModel: DesErrorModel =
-    DesErrorModel(INTERNAL_SERVER_ERROR, DesErrorBodyModel("INTERNAL_SERVER_ERROR", "There has been an unexpected error"))
+  val notFoundModel: ErrorModel = ErrorModel(NOT_FOUND, ErrorBodyModel("NotFound", "Unable to find source"))
+  val serviceUnavailableModel: ErrorModel =
+    ErrorModel(SERVICE_UNAVAILABLE, ErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
+  val badRequestModel: ErrorModel = ErrorModel(BAD_REQUEST, ErrorBodyModel("BAD_REQUEST", "The supplied NINO is invalid"))
+  val internalServerErrorModel: ErrorModel =
+    ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("INTERNAL_SERVER_ERROR", "There has been an unexpected error"))
 
   val nino = "nino"
   val taxYear = 2021
@@ -64,7 +64,7 @@ class DeleteSavingsIncomeDataControllerSpec extends TestSuite{
 
     "return a Left response" when {
 
-      def mockDeleteSavingIncomeDataWithError(errorModel: DesErrorModel): CallHandler3[String, Int, HeaderCarrier, Future[DeleteSavingsIncomeDataResponse]] = {
+      def mockDeleteSavingIncomeDataWithError(errorModel: ErrorModel): CallHandler3[String, Int, HeaderCarrier, Future[DeleteSavingsIncomeDataResponse]] = {
         (serviceMock.deleteSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
           .expects(nino, taxYear, *)
           .returning(Future.successful(Left(errorModel)))
