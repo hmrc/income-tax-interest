@@ -17,8 +17,9 @@
 package connectors
 
 import config.AppConfig
-import connectors.httpParsers.GetSubmittedInterestIfHttpParser.{GetAnnualIncomeSourcePeriodReads, GetAnnualIncomeSourcePeriod}
+import connectors.httpParsers.GetSubmittedInterestIfHttpParser.{GetAnnualIncomeSourcePeriod, GetAnnualIncomeSourcePeriodReads}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import utils.TaxYearUtils.convertSpecificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -29,7 +30,7 @@ class GetAnnualIncomeSourcePeriodConnector @Inject()(val http: HttpClient,
                                   taxYear: String,
                                   incomeSourceId: String,
                                   deletedPeriod: Option[Boolean])(implicit hc: HeaderCarrier): Future[GetAnnualIncomeSourcePeriod] = {
-    val taxYearParameter = s"${taxYear.toInt - 1}-${taxYear takeRight 2}"
+    val taxYearParameter = convertSpecificTaxYear(taxYear)
 
     val incomeSourcesUri: String = appConfig.ifBaseUrl + deletedPeriod.map {
       period => s"/income-tax/$taxYearParameter/$nino/income-source/savings/annual?deleteReturnPeriod=$period&incomeSourceId=$incomeSourceId"
