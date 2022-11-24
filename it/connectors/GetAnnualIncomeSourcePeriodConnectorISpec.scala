@@ -26,13 +26,10 @@ import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import org.scalatestplus.play.PlaySpec
+import utils.TaxYearUtils.convertSpecificTaxYear
 
 
 class GetAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with WiremockSpec {
-
-  def taxYearParameter(taxYear: Int): String = {
-    s"${taxYear - 1}-${taxYear.toString takeRight 2}"
-  }
   
   lazy val connector: GetAnnualIncomeSourcePeriodConnector = app.injector.instanceOf[GetAnnualIncomeSourcePeriodConnector]
   implicit val hc: HeaderCarrier = HeaderCarrier()
@@ -40,7 +37,7 @@ class GetAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with WiremockSp
   val taxYear: String = "2024"
   val incomeSourceId = "someId"
   val deletedPeriod = Some(false)
-  val connectorTaxYear: String = taxYearParameter(2024)
+  val connectorTaxYear: String = convertSpecificTaxYear("2024")
 
   val url: String = s"/income-tax/$connectorTaxYear/$nino/income-source/savings/annual\\?deleteReturnPeriod=false&incomeSourceId=$incomeSourceId"
 

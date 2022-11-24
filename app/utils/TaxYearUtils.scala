@@ -25,6 +25,6 @@ object TaxYearUtils extends Logging {
     taxYear.take(4).toInt + 1
   }
 
-  def convertSpecificTaxYear(taxYear: Int): String =
-    s"${taxYear - 1}-${taxYear.toString takeRight 2}"
+  def convertSpecificTaxYear(taxYear: String): String =
+    s"${(taxYear.toInt - 1).toString takeRight 2}-${taxYear takeRight 2}"
 }

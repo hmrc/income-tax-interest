@@ -27,7 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourceListConnector,
                                     getIncomeSourceDetailsConnector: GetIncomeSourceDetailsConnector,
-                                    getSubmittedInterestIfConnector: GetAnnualIncomeSourcePeriodConnector)(implicit ec: ExecutionContext) {
+                                    getAnnualIncomeSourcePeriodConnector: GetAnnualIncomeSourcePeriodConnector)(implicit ec: ExecutionContext) {
 
 
   def getInterestsList(nino: String, taxYear: String)
@@ -63,7 +63,7 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
 
   def getIncomeSourceDetails(nino: String, taxYear: String, incomeSourceId: String)(implicit hc: HeaderCarrier): Future[IncomeSourcesDetailsResponse] = {
     if (taxYear.equals("2024")) {
-      getSubmittedInterestIfConnector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, Some(false))
+      getAnnualIncomeSourcePeriodConnector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, Some(false))
     }
     else {
       getIncomeSourceDetailsConnector.getIncomeSourceDetails(nino, taxYear, incomeSourceId)
