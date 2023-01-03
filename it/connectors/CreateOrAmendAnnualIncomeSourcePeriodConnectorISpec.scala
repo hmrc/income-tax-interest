@@ -26,68 +26,70 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import utils.TaxYearUtils.convertSpecificTaxYear
 
-class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
+class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with WiremockSpec{
 
-  lazy val connector: CreateOrAmendInterestConnector = app.injector.instanceOf[CreateOrAmendInterestConnector]
+  lazy val connector: CreateOrAmendAnnualIncomeSourcePeriodConnector = app.injector.instanceOf[CreateOrAmendAnnualIncomeSourcePeriodConnector]
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino = "nino"
-  val taxYear = 2021
-  val url = s"/income-tax/nino/$nino/income-source/savings/annual/$taxYear"
+  val taxYear:Int = 2024
+  val taxYearParameter: String = convertSpecificTaxYear(taxYear)
+  val url = s"/income-tax/$taxYearParameter/$nino/income-source/savings/annual"
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
   val model: InterestDetailsModel = InterestDetailsModel("incomeSourceId", Some(100.00), Some(100.00))
 
-  def appConfig(desHost: String): AppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
-    override val desBaseUrl: String = s"http://$desHost:$wireMockPort"
+  def appConfig(ifHost: String): AppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
+    override lazy val ifBaseUrl: String = s"http://$ifHost:$wireMockPort"
   }
 
-  " CreateOrAmendInterestConnector" should {
+  "CreateOrAmendAnnualIncomeSourcePeriodConnector" should {
 
     "include internal headers" when {
       val requestBody = Json.toJson(model).toString()
 
-      val headersSentToDes = Seq(
+      val headersSentToIF = Seq(
         new HttpHeader(HeaderNames.authorisation, "Bearer secret"),
         new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
       )
 
       val externalHost = "127.0.0.1"
 
-      "the host for DES is 'Internal'" in {
+      "the host for IF is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
         val expectedResult = true
 
-        stubPostWithoutResponseBody(url, OK, requestBody, headersSentToDes)
+        stubPostWithoutResponseBody(url, OK, requestBody, headersSentToIF)
 
-        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
         result mustBe Right(expectedResult)
       }
 
-      "the host for DES is 'External'" in {
+      "the host for IF is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
         val expectedResult = true
 
-        val connector = new CreateOrAmendInterestConnector(httpClient, appConfig(externalHost))
+        val connector = new CreateOrAmendAnnualIncomeSourcePeriodConnector(httpClient, appConfig(externalHost))
 
-        stubPostWithoutResponseBody(url, OK, requestBody,headersSentToDes)
+        stubPostWithoutResponseBody(url, OK, requestBody,headersSentToIF)
 
-        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
         result mustBe Right(expectedResult)
       }
     }
 
     "return a success result" when {
-      "DES Returns a 200" in {
+      "IF Returns a 200" in {
         val expectedResult = true
 
         stubPostWithoutResponseBody(url, OK, Json.toJson(model).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
         result mustBe Right(expectedResult)
       }
@@ -102,12 +104,12 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
 
       stubPostWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(model).toString(), invalidJson.toString)
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+      val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
       result mustBe Left(expectedResult)
     }
     "return a failed result" when {
-      "DES Returns a BAD_REQUEST" in {
+      "IF Returns a BAD_REQUEST" in {
         val expectedResult = ErrorModel(BAD_REQUEST, ErrorBodyModel("INVALID_IDTYPE","ID is invalid"))
 
         val responseBody = Json.obj(
@@ -117,12 +119,12 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
         stubPostWithResponseBody(url, BAD_REQUEST, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
 
-      "DES Returns multiple errors" in {
+      "IF Returns multiple errors" in {
         val expectedResult = ErrorModel(BAD_REQUEST, ErrorsBodyModel(Seq(
           ErrorBodyModel("INVALID_IDTYPE","ID is invalid"),
           ErrorBodyModel("INVALID_IDTYPE_2","ID 2 is invalid"))))
@@ -138,12 +140,12 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
         stubPostWithResponseBody(url, BAD_REQUEST, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
 
-      "DES Returns a SERVICE_UNAVAILABLE" in {
+      "IF Returns a SERVICE_UNAVAILABLE" in {
         val expectedResult = ErrorModel(SERVICE_UNAVAILABLE, ErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable"))
 
         val responseBody = Json.obj(
@@ -153,12 +155,12 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
         stubPostWithResponseBody(url, SERVICE_UNAVAILABLE, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
 
-      "DES Returns a NOT_FOUND" in {
+      "IF Returns a NOT_FOUND" in {
         val expectedResult = ErrorModel(NOT_FOUND, ErrorBodyModel("NOT_FOUND", "Submission Period not found"))
 
         val responseBody = Json.obj(
@@ -168,12 +170,12 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
         stubPostWithResponseBody(url, NOT_FOUND, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
 
-      "DES Returns a UNPROCESSABLE_ENTITY" in {
+      "IF Returns a UNPROCESSABLE_ENTITY" in {
         val expectedResult = ErrorModel(UNPROCESSABLE_ENTITY, ErrorBodyModel("UNPROCESSABLE_ENTITY", "The remote endpoint has indicated that for given income source type, message payload is incorrect."))
 
         val responseBody = Json.obj(
@@ -183,12 +185,12 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
         stubPostWithResponseBody(url, UNPROCESSABLE_ENTITY, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
 
-      "DES Returns a INTERNAL_SERVER_ERROR" in {
+      "IF Returns a INTERNAL_SERVER_ERROR" in {
         val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("SERVER_ERROR", "Internal Server Error"))
 
         val responseBody = Json.obj(
@@ -198,18 +200,18 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
         stubPostWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(model).toString(), responseBody.toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
 
-      "DES Returns a unexpected response" in {
+      "IF Returns a unexpected response" in {
         val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
         stubPostWithoutResponseBody(url, GONE, Json.toJson(model).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }

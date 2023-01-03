@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,14 @@ class TaxYearUtilsSpec extends AnyWordSpec with Matchers {
 
   "IFTaxYearHelper" should {
 
-    "return a string containing the last year and the last two digits of this year" in {
+    "return a string containing the two digits of last year and this year when input taxYear is string" in {
       val taxYear = "2024"
+      val result = TaxYearUtils.convertSpecificTaxYear(taxYear)
+      result mustBe "23-24"
+    }
+
+    "return a string containing the two digits of last year and this year when input taxYear is int" in {
+      val taxYear:Int = 2024
       val result = TaxYearUtils.convertSpecificTaxYear(taxYear)
       result mustBe "23-24"
     }

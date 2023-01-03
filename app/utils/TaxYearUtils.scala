@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,4 +27,7 @@ object TaxYearUtils extends Logging {
 
   def convertSpecificTaxYear(taxYear: String): String =
     s"${(taxYear.toInt - 1).toString takeRight 2}-${taxYear takeRight 2}"
+
+  def convertSpecificTaxYear(taxYear: Int): String =
+    s"${(taxYear - 1).toString takeRight 2}-${taxYear.toString takeRight 2}"
 }

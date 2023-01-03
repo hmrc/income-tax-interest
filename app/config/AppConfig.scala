@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,11 @@ trait AppConfig {
   val auditingEnabled: Boolean
   val graphiteHost: String
 
-  val environment: String
+  val desEnvironment: String
   val authorisationToken: String
 
   val authorisationTokenKey: String
+  val ifAuthorisationToken: String
   val ifBaseUrl: String
   val ifEnvironment: String
 
@@ -51,10 +52,11 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
   val graphiteHost: String = config.get[String]("microservice.metrics.graphite.host")
 
-  val environment: String = config.get[String]("microservice.services.des.environment")
+  val desEnvironment: String = config.get[String]("microservice.services.des.environment")
   val authorisationToken: String = config.get[String]("microservice.services.des.authorisation-token")
 
   lazy val authorisationTokenKey: String = "microservice.services.integration-framework.authorisation-token"
+  lazy val ifAuthorisationToken: String = config.get[String]("microservice.services.integration-framework.authorisation-token")
   lazy val ifBaseUrl: String = servicesConfig.baseUrl(serviceName = "integration-framework")
   lazy val ifEnvironment: String = servicesConfig.getString(key = "microservice.services.integration-framework.environment")
 

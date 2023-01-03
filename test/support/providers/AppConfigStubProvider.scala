@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package models
+package support.providers
 
-import play.api.libs.json.{Json, OFormat}
+import config.AppConfig
+import support.stubs.AppConfigStub
 
-case class CreateOrAmendInterestModel(id: Option[String],
-                                      accountName: String,
-                                      taxedUkInterest: Option[BigDecimal],
-                                      untaxedUkInterest: Option[BigDecimal])
+trait AppConfigStubProvider {
 
-
-object CreateOrAmendInterestModel{
-  implicit val formats: OFormat[CreateOrAmendInterestModel] = Json.format[CreateOrAmendInterestModel]
+  lazy val appConfigStub: AppConfig = new AppConfigStub().config()
 }
-
