@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package services
 
 import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInterestResponse
-import connectors.{CreateIncomeSourceConnector, CreateOrAmendInterestConnector}
+import connectors.{CreateIncomeSourceConnector, CreateOrAmendAnnualIncomeSourcePeriodConnector, CreateOrAmendInterestConnector}
 import models._
 import play.api.Logging
 import play.api.http.Status.isServerError
@@ -31,15 +31,25 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class CreateOrAmendInterestService @Inject()(
                                               createOrAmendInterestConnector: CreateOrAmendInterestConnector,
+                                              createOrAmendAnnualIncomeSourcePeriodConnector:CreateOrAmendAnnualIncomeSourcePeriodConnector,
                                               createIncomeSourceConnector: CreateIncomeSourceConnector)(implicit ec: ExecutionContext) extends Logging {
 
 
   def createOrAmendInterest(nino: String, taxYear: Int, submittedInterest: InterestDetailsModel, attempt: Int = 0
                            )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
-    createOrAmendInterestConnector.createOrAmendInterest(nino, taxYear, submittedInterest).flatMap {
-      case Right(true) => Future.successful(Right(true))
-      case Left(errorResponse) if isServerError(errorResponse.status) && attempt < 2 => createOrAmendInterest(nino, taxYear, submittedInterest, attempt + 1)
-      case Left(errorResponse) => logAndReturn(errorResponse, "[CreateOrAmendInterestService][createOrAmendInterest]")
+    if (taxYear.equals(2024)) {
+      createOrAmendAnnualIncomeSourcePeriodConnector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, submittedInterest).flatMap {
+        case Right(true) => Future.successful(Right(true))
+        case Left(errorResponse) if isServerError(errorResponse.status) && attempt < 2 => createOrAmendInterest(nino, taxYear, submittedInterest, attempt + 1)
+        case Left(errorResponse) => logAndReturn(errorResponse, "[CreateOrAmendInterestService][createOrAmendInterest]")
+      }
+    }
+    else {
+      createOrAmendInterestConnector.createOrAmendInterest(nino, taxYear, submittedInterest).flatMap {
+        case Right(true) => Future.successful(Right(true))
+        case Left(errorResponse) if isServerError(errorResponse.status) && attempt < 2 => createOrAmendInterest(nino, taxYear, submittedInterest, attempt + 1)
+        case Left(errorResponse) => logAndReturn(errorResponse, "[CreateOrAmendInterestService][createOrAmendInterest]")
+      }
     }
   }
 

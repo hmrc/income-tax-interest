@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-package models
+package services
 
-import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.auth.core.{AuthConnector, AuthorisedFunctions}
 
-case class CreateOrAmendInterestModel(id: Option[String],
-                                      accountName: String,
-                                      taxedUkInterest: Option[BigDecimal],
-                                      untaxedUkInterest: Option[BigDecimal])
+import javax.inject.{Inject, Singleton}
 
-
-object CreateOrAmendInterestModel{
-  implicit val formats: OFormat[CreateOrAmendInterestModel] = Json.format[CreateOrAmendInterestModel]
-}
-
+@Singleton
+class AuthService @Inject()(val authConnector: AuthConnector) extends AuthorisedFunctions

@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,7 @@ import java.net.URL
 trait IFConnector {
 
   protected val appConfig: AppConfig
-  protected[connectors] lazy val baseUrl: String = appConfig.ifBaseUrl
-  val GetAnnualIncomeSourcePeriod = "1785"
-
+  protected[connectors] lazy val baseUrl: String = if (appConfig.ifEnvironment == "test") appConfig.ifBaseUrl + "/if" else appConfig.ifBaseUrl
   protected val headerCarrierConfig: Config = HeaderCarrier.Config.fromConfig(ConfigFactory.load())
 
   protected[connectors] def ifHeaderCarrier(url: String, apiVersion: String)(implicit hc: HeaderCarrier): HeaderCarrier = {
