@@ -27,7 +27,7 @@ object CreateOrAmendSavingsHttpParser extends APIParser with Logging {
   implicit object CreateOrAmendSavingsHttpReads extends HttpReads[CreateOrAmendSavingsResponse] {
     override def read(method: String, url: String, response: HttpResponse): CreateOrAmendSavingsResponse = {
       response.status match {
-        case OK => Right(true)
+        case NO_CONTENT => Right(true)
         case INTERNAL_SERVER_ERROR =>
           logger.error(logMessage(response))
           handleAPIError(response)
