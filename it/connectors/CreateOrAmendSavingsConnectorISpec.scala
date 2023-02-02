@@ -72,7 +72,7 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec {
       "the host for DES is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
 
-        stubPutWithoutResponseBody(url, Json.toJson(desReturned).toString, OK)
+        stubPutWithoutResponseBody(url, Json.toJson(desReturned).toString, NO_CONTENT)
 
         val result = await(connector.createOrAmendSavings(nino, taxYear, model)(hc))
 
@@ -82,7 +82,7 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec {
       "the host for DES is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
 
-        stubPutWithoutResponseBody(url, OK, Json.toJson(desReturned).toString, headersSentToDes)
+        stubPutWithoutResponseBody(url, NO_CONTENT, Json.toJson(desReturned).toString, headersSentToDes)
 
         val connector = new CreateOrAmendSavingsConnector(httpClient, appConfig(externalHost))
 
@@ -95,7 +95,7 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec {
     "return a success result" when {
 
       "DES returns a 200" in {
-        stubPutWithoutResponseBody(url, OK, Json.toJson(desReturned).toString)
+        stubPutWithoutResponseBody(url, NO_CONTENT, Json.toJson(desReturned).toString)
         val result = await(connector.createOrAmendSavings(nino, taxYear, model))
 
         result mustBe Right(true)
