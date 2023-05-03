@@ -18,13 +18,13 @@ package controllers
 
 
 import controllers.predicates.AuthorisedAction
-import javax.inject.Inject
 import models.{CreateOrAmendInterestModel, ErrorBodyModel, ErrorModel}
 import play.api.libs.json.JsSuccess
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.CreateOrAmendInterestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 class CreateOrAmendInterestController @Inject()(createOrAmendInterestService: CreateOrAmendInterestService,
@@ -38,7 +38,8 @@ class CreateOrAmendInterestController @Inject()(createOrAmendInterestService: Cr
         createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model).map(response =>
 
           if (response.exists(_.isLeft)) {
-            val error: ErrorModel = response.filter(_.isLeft).map(_.left.get).headOption
+            val error: ErrorModel =
+              response.filter(_.isLeft).map(_.fold(error => error, _ => ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))).headOption
               .getOrElse(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))
 
             Status(error.status)(error.toJson)

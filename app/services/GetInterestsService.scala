@@ -27,7 +27,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourceListConnector,
                                     getIncomeSourceDetailsConnector: GetIncomeSourceDetailsConnector,
-                                    getAnnualIncomeSourcePeriodConnector: GetAnnualIncomeSourcePeriodConnector)(implicit ec: ExecutionContext) {
+                                    getAnnualIncomeSourcePeriodConnector: GetAnnualIncomeSourcePeriodConnector) {
 
 
   def getInterestsList(nino: String, taxYear: String)
@@ -50,9 +50,8 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
           listOfResponses =>
 
             if (listOfResponses.exists(_.isLeft)) {
-
-              val error: Option[ErrorModel] = listOfResponses.filter(_.isLeft).map(_.left.get).headOption
-              Left(error.getOrElse(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)))
+              Left(listOfResponses.filter(_.isLeft).map(_.fold(error => error, _ => ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))).headOption
+                .getOrElse(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)))
             } else {
               Right(listOfResponses.filter(_.isRight).flatMap(_.right.get))
             }

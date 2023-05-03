@@ -16,18 +16,18 @@
 
 package services
 
-import connectors.httpParsers.CreateOrAmendSavingsHttpParser.CreateOrAmendSavingsResponse
 import connectors.CreateOrAmendSavingsConnector
+import connectors.httpParsers.CreateOrAmendSavingsHttpParser.CreateOrAmendSavingsResponse
 import models.CreateOrAmendSavingsModel
 import play.api.Logging
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
 
 @Singleton
-class CreateOrAmendSavingsService @Inject()(createOrAmendSavingsConnector: CreateOrAmendSavingsConnector)(implicit ec: ExecutionContext) extends Logging {
+class CreateOrAmendSavingsService @Inject()(createOrAmendSavingsConnector: CreateOrAmendSavingsConnector) extends Logging {
 
 
   def createOrAmendSavings(nino: String, taxYear: Int, savingsModel: CreateOrAmendSavingsModel)
