@@ -1,3 +1,4 @@
+
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 
 val appName = "income-tax-interest"
@@ -22,22 +23,23 @@ lazy val coverageSettings: Seq[Setting[_]] = {
 
   Seq(
     ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
-    ScoverageKeys. coverageMinimumStmtTotal := 95,
+    ScoverageKeys.coverageMinimumStmtTotal := 95,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )
 }
 
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
+  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .settings(
     // To resolve a bug with version 2.x.x of the scoverage plugin - https://github.com/sbt/sbt/issues/6997
     libraryDependencySchemes ++= Seq("org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always)
   )
   .settings(
-    majorVersion                     := 0,
-    scalaVersion                     := "2.13.10",
-    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test
+    majorVersion := 0,
+    scalaVersion := "2.13.10",
+    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
+    scalacOptions += s"-Wconf:src=${target.value}/.*:s"
   )
   .configs(IntegrationTest)
   .settings(PlayKeys.playDefaultPort := 9309)
@@ -46,4 +48,3 @@ lazy val microservice = Project(appName, file("."))
   .settings(coverageSettings: _*)
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
-

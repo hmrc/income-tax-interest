@@ -34,6 +34,7 @@ class DeleteSavingsIncomeDataController @Inject()(deleteSavingsIncomeDataService
       deleteSavingsIncomeDataService.deleteSavingsIncomeData(nino, taxYear).map {
         case Right(true) => NoContent
         case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
+        case _ => InternalServerError
       }
   }
 }

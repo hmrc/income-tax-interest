@@ -35,14 +35,11 @@ class CreateOrAmendInterestService @Inject()(
                                               createIncomeSourceConnector: CreateIncomeSourceConnector)(implicit ec: ExecutionContext) extends Logging {
 
 
+  private val specificTaxYear: Int = 2024
   def createOrAmendInterest(nino: String, taxYear: Int, submittedInterest: InterestDetailsModel, attempt: Int = 0
                            )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
-    if (taxYear.equals(2024)) {
-      createOrAmendAnnualIncomeSourcePeriodConnector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, submittedInterest).flatMap {
-        case Right(true) => Future.successful(Right(true))
-        case Left(errorResponse) if isServerError(errorResponse.status) && attempt < 2 => createOrAmendInterest(nino, taxYear, submittedInterest, attempt + 1)
-        case Left(errorResponse) => logAndReturn(errorResponse, "[CreateOrAmendInterestService][createOrAmendInterest]")
-      }
+    if (taxYear.equals(specificTaxYear)) {
+      taxYearSpecificCreateInterest(nino, taxYear, submittedInterest, attempt)
     }
     else {
       createOrAmendInterestConnector.createOrAmendInterest(nino, taxYear, submittedInterest).flatMap {
@@ -50,6 +47,16 @@ class CreateOrAmendInterestService @Inject()(
         case Left(errorResponse) if isServerError(errorResponse.status) && attempt < 2 => createOrAmendInterest(nino, taxYear, submittedInterest, attempt + 1)
         case Left(errorResponse) => logAndReturn(errorResponse, "[CreateOrAmendInterestService][createOrAmendInterest]")
       }
+    }
+  }
+
+
+  private def taxYearSpecificCreateInterest(nino: String, taxYear: Int, submittedInterest: InterestDetailsModel, attempt: Int
+                                   )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
+    createOrAmendAnnualIncomeSourcePeriodConnector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, submittedInterest).flatMap {
+      case Right(true) => Future.successful(Right(true))
+      case Left(errorResponse) if isServerError(errorResponse.status) && attempt < 2 => createOrAmendInterest(nino, taxYear, submittedInterest, attempt + 1)
+      case Left(errorResponse) => logAndReturn(errorResponse, "[CreateOrAmendInterestService][createOrAmendInterest]")
     }
   }
 
