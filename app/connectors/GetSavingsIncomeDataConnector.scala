@@ -32,7 +32,8 @@ class GetSavingsIncomeDataConnector @Inject()(http: HttpClient, val appConfig: A
       s"/income-tax/income/savings/$nino/$taxYearParameter"
 
     def desCall(implicit hc: HeaderCarrier): Future[SavingsIncomeDataResponse] = {
-      http.GET[SavingsIncomeDataResponse](savingsIncomeDataUrl)
+      http.GET[SavingsIncomeDataResponse](savingsIncomeDataUrl)(IncomeSourceHttpReads,
+        desHeaderCarrier(savingsIncomeDataUrl, appConfig.desAuthorisationTokenFor("1606")), ec)
     }
 
     desCall(desHeaderCarrier(savingsIncomeDataUrl))
