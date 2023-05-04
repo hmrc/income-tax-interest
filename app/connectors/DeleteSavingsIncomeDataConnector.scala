@@ -29,7 +29,8 @@ class DeleteSavingsIncomeDataConnector @Inject()(http: HttpClient, val appConfig
     val savingsIncomeDataUrl: String = appConfig.desBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
 
     def desCall(implicit hc: HeaderCarrier): Future[DeleteSavingsIncomeDataResponse] = {
-      http.DELETE[DeleteSavingsIncomeDataResponse](savingsIncomeDataUrl)(DeleteSavingsIncomeDataHttpReads, hc, ec)
+      http.DELETE[DeleteSavingsIncomeDataResponse](savingsIncomeDataUrl)(DeleteSavingsIncomeDataHttpReads,
+        desHeaderCarrier(savingsIncomeDataUrl, appConfig.desAuthorisationTokenFor("1607")), ec)
     }
 
     desCall(desHeaderCarrier(savingsIncomeDataUrl))

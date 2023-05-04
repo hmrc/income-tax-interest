@@ -18,8 +18,11 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.CreateOrAmendSavingsHttpParser._
+
 import javax.inject.Inject
 import models.CreateOrAmendSavingsModel
+import play.api.libs.json.Writes
+import play.mvc.BodyParser.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +35,9 @@ class CreateOrAmendSavingsConnector @Inject()(http: HttpClient, val appConfig: A
     val createOrAmendSavingsUrl: String = appConfig.desBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
 
     def desCall(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
-      http.PUT[CreateOrAmendSavingsModel, CreateOrAmendSavingsResponse](createOrAmendSavingsUrl, savingsModel)
+      http.PUT[CreateOrAmendSavingsModel, CreateOrAmendSavingsResponse](createOrAmendSavingsUrl, savingsModel)(
+        CreateOrAmendSavingsModel.formats.writes, CreateOrAmendSavingsHttpReads,
+        desHeaderCarrier(createOrAmendSavingsUrl, appConfig.desAuthorisationTokenFor("1605")), ec)
     }
 
     desCall(desHeaderCarrier(createOrAmendSavingsUrl))

@@ -30,11 +30,11 @@ trait DesConnector {
 
   val headerCarrierConfig: Config = HeaderCarrier.Config.fromConfig(ConfigFactory.load())
 
-  private[connectors] def desHeaderCarrier(url: String)(implicit hc: HeaderCarrier): HeaderCarrier = {
+  private[connectors] def desHeaderCarrier(url: String, authToken: String = appConfig.authorisationToken)(implicit hc: HeaderCarrier): HeaderCarrier = {
 
     val isInternalHost = headerCarrierConfig.internalHostPatterns.exists(_.pattern.matcher(new URL(url).getHost).matches())
 
-    val hcWithAuth = hc.copy(authorization = Some(Authorization(s"Bearer ${appConfig.authorisationToken}")))
+    val hcWithAuth = hc.copy(authorization = Some(Authorization(s"Bearer ${authToken}")))
 
     val extraHeaders = Seq("Environment" -> appConfig.desEnvironment)
 

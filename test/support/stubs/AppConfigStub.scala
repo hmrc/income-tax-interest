@@ -38,5 +38,7 @@ class AppConfigStub extends MockFactory {
     override lazy val ifEnvironment: String = environment
 
     override def authorisationTokenFor(apiVersion: String): String = ifAuthorisationToken + s".$apiVersion"
+
+    override def desAuthorisationTokenFor(apiVersion: String): String = ""
   }
 }

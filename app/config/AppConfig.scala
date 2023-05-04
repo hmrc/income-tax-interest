@@ -40,6 +40,7 @@ trait AppConfig {
   val ifEnvironment: String
 
   def authorisationTokenFor(apiVersion: String): String
+  def desAuthorisationTokenFor(apiVersion: String): String
 }
 
 
@@ -61,4 +62,5 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   lazy val ifEnvironment: String = servicesConfig.getString(key = "microservice.services.integration-framework.environment")
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
+  def desAuthorisationTokenFor(api: String): String = config.get[String](s"microservice.services.des.authorisation-token-des.$api")
 }
