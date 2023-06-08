@@ -23,6 +23,7 @@ import play.api.Logging
 import play.api.http.Status.isServerError
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.PagerDutyHelper.{getPagerKeyFromInt, pagerDutyLog}
+import utils.TaxYearUtils.specificTaxYear
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,10 +36,9 @@ class CreateOrAmendInterestService @Inject()(
                                               createIncomeSourceConnector: CreateIncomeSourceConnector)(implicit ec: ExecutionContext) extends Logging {
 
 
-  private val specificTaxYear: Int = 2024
   def createOrAmendInterest(nino: String, taxYear: Int, submittedInterest: InterestDetailsModel, attempt: Int = 0
                            )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
-    if (taxYear.equals(specificTaxYear)) {
+    if (taxYear >= specificTaxYear) {
       taxYearSpecificCreateInterest(nino, taxYear, submittedInterest, attempt)
     }
     else {

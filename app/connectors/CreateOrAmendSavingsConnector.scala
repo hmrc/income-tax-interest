@@ -21,8 +21,6 @@ import connectors.httpParsers.CreateOrAmendSavingsHttpParser._
 
 import javax.inject.Inject
 import models.CreateOrAmendSavingsModel
-import play.api.libs.json.Writes
-import play.mvc.BodyParser.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
