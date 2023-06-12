@@ -25,6 +25,7 @@ import org.scalamock.handlers.{CallHandler, CallHandler4}
 import play.api.http.Status._
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.TaxYearUtils
 
 import scala.concurrent.Future
 
@@ -35,11 +36,13 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
   val createOrAmendAnnualIncomeSourcePeriodConnector: CreateOrAmendAnnualIncomeSourcePeriodConnector = mock[CreateOrAmendAnnualIncomeSourcePeriodConnector]
   val createOrAmendInterestConnector: CreateOrAmendInterestConnector = mock[CreateOrAmendInterestConnector]
 
-  val service: CreateOrAmendInterestService = new CreateOrAmendInterestService(createOrAmendInterestConnector, createOrAmendAnnualIncomeSourcePeriodConnector, createIncomeSourceConnector)
+  val service: CreateOrAmendInterestService = new CreateOrAmendInterestService(createOrAmendInterestConnector,
+    createOrAmendAnnualIncomeSourcePeriodConnector, createIncomeSourceConnector)
 
   val nino = "nino"
   val taxYear = 2021
-  val taxYear2024 = 2024
+  val specificTaxYear: Int = TaxYearUtils.specificTaxYear
+  val specificTaxYearPlusOne: Int = specificTaxYear + 1
   val incomeSourceName = "incomeSourceNameTest"
   val incomeSourceId = "incomeSourceIdTest"
 
@@ -62,14 +65,16 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
     .expects(nino, taxYear, interestDetailsModel,  *)
     .returning(Future.successful(Left(expectedErrorModel)))
 
-  def createOrAmendAnnualIncomeSourcePeriodMockSuccess: CallHandler4[String, Int, InterestDetailsModel, HeaderCarrier, Future[CreateOrAmendAnnualIncomeSourcePeriodResponse]] =
+  def createOrAmendAnnualIncomeSourcePeriodMockSuccess(taxYear:Int): CallHandler4[String,
+    Int, InterestDetailsModel, HeaderCarrier, Future[CreateOrAmendAnnualIncomeSourcePeriodResponse]] =
     (createOrAmendAnnualIncomeSourcePeriodConnector.createOrAmendAnnualIncomeSourcePeriod(_: String, _: Int, _: InterestDetailsModel)(_: HeaderCarrier))
-      .expects(nino, taxYear2024, interestDetailsModel, *)
+      .expects(nino, taxYear, interestDetailsModel, *)
       .returning(Future.successful(Right(true)))
 
-  def createOrAmendAnnualIncomeSourcePeriodMockFailure(expectedErrorModel: ErrorModel): CallHandler[Future[CreateOrAmendAnnualIncomeSourcePeriodResponse]] =
+  def createOrAmendAnnualIncomeSourcePeriodMockFailure(expectedErrorModel: ErrorModel, taxYear:Int):
+  CallHandler[Future[CreateOrAmendAnnualIncomeSourcePeriodResponse]] =
     (createOrAmendAnnualIncomeSourcePeriodConnector.createOrAmendAnnualIncomeSourcePeriod(_: String, _: Int, _: InterestDetailsModel)(_: HeaderCarrier))
-      .expects(nino, taxYear2024, interestDetailsModel, *)
+      .expects(nino, taxYear, interestDetailsModel, *)
       .returning(Future.successful(Left(expectedErrorModel)))
 
   def createIncomeSourceConnectorMockSuccess: CallHandler[Future[CreateIncomeSourcesResponse]] =
@@ -124,9 +129,9 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
       val expectedResult = Right(true)
 
-      createOrAmendAnnualIncomeSourcePeriodMockSuccess
+      createOrAmendAnnualIncomeSourcePeriodMockSuccess(specificTaxYear)
 
-      val result = await(service.createOrAmendInterest(nino, taxYear2024, interestDetailsModel))
+      val result = await(service.createOrAmendInterest(nino, specificTaxYear, interestDetailsModel))
 
       result mustBe expectedResult
     }
@@ -135,9 +140,9 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
       val expectedResult = Left(notFoundModel)
 
-      createOrAmendAnnualIncomeSourcePeriodMockFailure(notFoundModel)
+      createOrAmendAnnualIncomeSourcePeriodMockFailure(notFoundModel, specificTaxYear)
 
-      val result = await(service.createOrAmendInterest(nino, taxYear2024, interestDetailsModel))
+      val result = await(service.createOrAmendInterest(nino, specificTaxYear, interestDetailsModel))
 
       result mustBe expectedResult
     }
@@ -146,9 +151,45 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
       val expectedResult = Left(internalServerErrorModel)
 
-      createOrAmendAnnualIncomeSourcePeriodMockFailure(internalServerErrorModel).repeat(3)
+      createOrAmendAnnualIncomeSourcePeriodMockFailure(internalServerErrorModel, specificTaxYear).repeat(3)
 
-      val result = await(service.createOrAmendInterest(nino, taxYear2024, interestDetailsModel))
+      val result = await(service.createOrAmendInterest(nino, specificTaxYear, interestDetailsModel))
+
+      result mustBe expectedResult
+    }
+  }
+
+  ".createOrAmendInterest with specific tax year plus one" should {
+
+    "return a Right(true) " in {
+
+      val expectedResult = Right(true)
+
+      createOrAmendAnnualIncomeSourcePeriodMockSuccess(specificTaxYearPlusOne)
+
+      val result = await(service.createOrAmendInterest(nino, specificTaxYearPlusOne, interestDetailsModel))
+
+      result mustBe expectedResult
+    }
+
+    "return a Left(notFoundError) and not retry call to createOrAmendInterest" in {
+
+      val expectedResult = Left(notFoundModel)
+
+      createOrAmendAnnualIncomeSourcePeriodMockFailure(notFoundModel, specificTaxYearPlusOne)
+
+      val result = await(service.createOrAmendInterest(nino, specificTaxYearPlusOne, interestDetailsModel))
+
+      result mustBe expectedResult
+    }
+
+    "return a Left(internalServerError) and retry call to createOrAmendInterest 3 times" in {
+
+      val expectedResult = Left(internalServerErrorModel)
+
+      createOrAmendAnnualIncomeSourcePeriodMockFailure(internalServerErrorModel, specificTaxYearPlusOne).repeat(3)
+
+      val result = await(service.createOrAmendInterest(nino, specificTaxYearPlusOne, interestDetailsModel))
 
       result mustBe expectedResult
     }

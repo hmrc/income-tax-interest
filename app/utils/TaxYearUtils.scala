@@ -20,6 +20,8 @@ import play.api.Logging
 
 object TaxYearUtils extends Logging {
 
+  val specificTaxYear: Int = 2024
+
   def convertStringTaxYear(taxYear: String): Int = {
     //2021-22 -> 2022
     taxYear.take(4).toInt + 1

@@ -17,10 +17,11 @@
 package services
 
 import connectors.httpParsers.IncomeSourcesDetailsParser.IncomeSourcesDetailsResponse
-import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector, GetAnnualIncomeSourcePeriodConnector}
+import connectors.{GetAnnualIncomeSourcePeriodConnector, GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector}
 import models.{ErrorBodyModel, ErrorModel, IncomeSourceModel, NamedInterestDetailsModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.TaxYearUtils.specificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -28,7 +29,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourceListConnector,
                                     getIncomeSourceDetailsConnector: GetIncomeSourceDetailsConnector,
                                     getAnnualIncomeSourcePeriodConnector: GetAnnualIncomeSourcePeriodConnector) {
-
 
   def getInterestsList(nino: String, taxYear: String)
                       (implicit hc: HeaderCarrier, ec: ExecutionContext): Future[Either[ErrorModel, List[NamedInterestDetailsModel]]] = {
@@ -53,7 +53,7 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
               Left(listOfResponses.filter(_.isLeft).map(_.fold(error => error, _ => ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))).headOption
                 .getOrElse(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)))
             } else {
-              Right(listOfResponses.filter(_.isRight).flatMap(_.right.get))
+              Right(listOfResponses.filter(_.isRight).flatMap(_.toOption.get))
             }
         }
       case Left(error) => Future.successful(Left(error))
@@ -61,7 +61,7 @@ class GetInterestsService @Inject()(getIncomeSourceListConnector: GetIncomeSourc
   }
 
   def getIncomeSourceDetails(nino: String, taxYear: String, incomeSourceId: String)(implicit hc: HeaderCarrier): Future[IncomeSourcesDetailsResponse] = {
-    if (taxYear.equals("2024")) {
+    if (taxYear.toInt >= specificTaxYear) {
       getAnnualIncomeSourcePeriodConnector.getAnnualIncomeSourcePeriod(nino, taxYear, incomeSourceId, Some(false))
     }
     else {

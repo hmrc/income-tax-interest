@@ -26,6 +26,7 @@ import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import utils.TaxYearUtils
 import utils.TaxYearUtils.convertSpecificTaxYear
 
 class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with WiremockSpec{
@@ -33,10 +34,12 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
   lazy val connector: CreateOrAmendAnnualIncomeSourcePeriodConnector = app.injector.instanceOf[CreateOrAmendAnnualIncomeSourcePeriodConnector]
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino = "nino"
-  val taxYear:Int = 2024
-  val taxYearParameter: String = convertSpecificTaxYear(taxYear)
+  val specificTaxYear: Int = TaxYearUtils.specificTaxYear
+  val specificTaxYearPlusOne: Int = specificTaxYear + 1
+  val taxYearParameter: String = convertSpecificTaxYear(specificTaxYear)
+  val taxYearParameterPlusOne: String = convertSpecificTaxYear(specificTaxYearPlusOne)
   val url = s"/income-tax/$taxYearParameter/$nino/income-source/savings/annual"
-
+  val urlTaxYearPlusOne = s"/income-tax/$taxYearParameterPlusOne/$nino/income-source/savings/annual"
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
   val model: InterestDetailsModel = InterestDetailsModel("incomeSourceId", Some(100.00), Some(100.00))
@@ -63,7 +66,7 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
 
         stubPostWithoutResponseBody(url, OK, requestBody, headersSentToIF)
 
-        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
         result mustBe Right(expectedResult)
       }
@@ -76,20 +79,30 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
 
         stubPostWithoutResponseBody(url, OK, requestBody,headersSentToIF)
 
-        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
         result mustBe Right(expectedResult)
       }
     }
 
     "return a success result" when {
-      "IF Returns a 200" in {
+      "IF Returns a 200 for specific tax year" in {
         val expectedResult = true
 
         stubPostWithoutResponseBody(url, OK, Json.toJson(model).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
+
+        result mustBe Right(expectedResult)
+      }
+      "IF Returns a 200 for specific tax year plus one" in {
+        val expectedResult = true
+
+        stubPostWithoutResponseBody(urlTaxYearPlusOne, OK, Json.toJson(model).toString())
+
+        implicit val hc: HeaderCarrier = HeaderCarrier()
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYearPlusOne, model)(hc))
 
         result mustBe Right(expectedResult)
       }
@@ -104,7 +117,7 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
 
       stubPostWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(model).toString(), invalidJson.toString)
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+      val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -119,7 +132,7 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
         stubPostWithResponseBody(url, BAD_REQUEST, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
@@ -140,7 +153,7 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
         stubPostWithResponseBody(url, BAD_REQUEST, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino,specificTaxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
@@ -155,7 +168,7 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
         stubPostWithResponseBody(url, SERVICE_UNAVAILABLE, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
@@ -170,13 +183,14 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
         stubPostWithResponseBody(url, NOT_FOUND, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
 
       "IF Returns a UNPROCESSABLE_ENTITY" in {
-        val expectedResult = ErrorModel(UNPROCESSABLE_ENTITY, ErrorBodyModel("UNPROCESSABLE_ENTITY", "The remote endpoint has indicated that for given income source type, message payload is incorrect."))
+        val expectedResult = ErrorModel(UNPROCESSABLE_ENTITY, ErrorBodyModel("UNPROCESSABLE_ENTITY",
+          "The remote endpoint has indicated that for given income source type, message payload is incorrect."))
 
         val responseBody = Json.obj(
           "code" -> "UNPROCESSABLE_ENTITY",
@@ -185,7 +199,7 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
         stubPostWithResponseBody(url, UNPROCESSABLE_ENTITY, Json.toJson(model).toString(), responseBody.toString)
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
@@ -200,7 +214,7 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
         stubPostWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(model).toString(), responseBody.toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }
@@ -211,7 +225,7 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
         stubPostWithoutResponseBody(url, GONE, Json.toJson(model).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
-        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, model)(hc))
+        val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
         result mustBe Left(expectedResult)
       }

@@ -18,11 +18,12 @@ package services
 
 import connectors.httpParsers.GetSubmittedInterestIfHttpParser.GetAnnualIncomeSourcePeriod
 import connectors.httpParsers.IncomeSourceListParser.IncomeSourceListResponse
-import connectors.{GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector, GetAnnualIncomeSourcePeriodConnector}
+import connectors.{GetAnnualIncomeSourcePeriodConnector, GetIncomeSourceDetailsConnector, GetIncomeSourceListConnector}
 import models._
 import play.api.http.Status._
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.TaxYearUtils
 
 import scala.concurrent.Future
 
@@ -32,6 +33,8 @@ class GetInterestsServiceSpec extends TestSuite {
   val detailsConnector: GetIncomeSourceDetailsConnector = mock[GetIncomeSourceDetailsConnector]
   val interestConnector: GetAnnualIncomeSourcePeriodConnector = mock[GetAnnualIncomeSourcePeriodConnector]
   val service = new GetInterestsService(listConnector, detailsConnector, interestConnector)
+  val specificTaxYear: String = TaxYearUtils.specificTaxYear.toString
+  val specificTaxYearPlusOne: String = (TaxYearUtils.specificTaxYear + 1).toString
 
   ".getInterests" should {
 
@@ -121,7 +124,7 @@ class GetInterestsServiceSpec extends TestSuite {
 
   ".getSubmittedIfInterests" should {
 
-    "return the id and name if no details exist for 2024" in {
+    "return the id and name if no details exist for specific tax year" in {
       val expectedResult = Right(List(NamedInterestDetailsModel("incomeSourceName", "incomeSourceId", None, None)))
       val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
       val expectedInterestDetails: GetAnnualIncomeSourcePeriod = Right(InterestDetailsModel("incomeSourceId", None, None, Some(false)))
@@ -131,15 +134,15 @@ class GetInterestsServiceSpec extends TestSuite {
         .returning(Future.successful(expectedList))
 
       (interestConnector.getAnnualIncomeSourcePeriod(_: String, _: String, _: String, _: Option[Boolean])(_: HeaderCarrier))
-        .expects("nino", "2024", "incomeSourceId", Some(false), *)
+        .expects("nino", specificTaxYear, "incomeSourceId", Some(false), *)
         .returning(Future.successful(expectedInterestDetails))
 
-      val result = await(service.getInterestsList("nino", "2024"))
+      val result = await(service.getInterestsList("nino", specificTaxYear))
 
       result mustBe expectedResult
     }
 
-    "return the correct response when all calls succeed" in {
+    "return the correct response when all calls succeed for specific tax year" in {
       val expectedResult: GetAnnualIncomeSourcePeriod = Left(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("InternalServerError", "Server Error")))
       val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
       val expectedInterestDetails: GetAnnualIncomeSourcePeriod = Left(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("InternalServerError", "Server Error")))
@@ -149,10 +152,28 @@ class GetInterestsServiceSpec extends TestSuite {
         .returning(Future.successful(expectedList))
 
       (interestConnector.getAnnualIncomeSourcePeriod(_: String, _: String, _: String, _: Option[Boolean])(_: HeaderCarrier))
-        .expects("nino", "2024", "incomeSourceId", Some(false), *)
+        .expects("nino", specificTaxYear, "incomeSourceId", Some(false), *)
         .returning(Future.successful(expectedInterestDetails))
 
-      val result = await(service.getInterestsList("nino", "2024"))
+      val result = await(service.getInterestsList("nino", specificTaxYear))
+
+      result mustBe expectedResult
+    }
+
+    "return the correct response when all calls succeed for specific tax year plus one" in {
+      val expectedResult: GetAnnualIncomeSourcePeriod = Left(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("InternalServerError", "Server Error")))
+      val expectedList: IncomeSourceListResponse = Right(List(IncomeSourceModel("incomeSourceId", "incomeSourceType", "incomeSourceName")))
+      val expectedInterestDetails: GetAnnualIncomeSourcePeriod = Left(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("InternalServerError", "Server Error")))
+
+      (listConnector.getIncomeSourceList(_: String)(_: HeaderCarrier))
+        .expects("nino", *)
+        .returning(Future.successful(expectedList))
+
+      (interestConnector.getAnnualIncomeSourcePeriod(_: String, _: String, _: String, _: Option[Boolean])(_: HeaderCarrier))
+        .expects("nino", specificTaxYearPlusOne, "incomeSourceId", Some(false), *)
+        .returning(Future.successful(expectedInterestDetails))
+
+      val result = await(service.getInterestsList("nino", specificTaxYearPlusOne))
 
       result mustBe expectedResult
     }
