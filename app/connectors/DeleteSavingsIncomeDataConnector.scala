@@ -23,16 +23,14 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
-class DeleteSavingsIncomeDataConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+class DeleteSavingsIncomeDataConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+
+  val apiNumber = "1607"
   def deleteSavingsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeleteSavingsIncomeDataResponse] = {
     val taxYearParameter = s"${taxYear - 1}-${taxYear.toString takeRight 2}"
     val savingsIncomeDataUrl: String = appConfig.desBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
 
-    def desCall(implicit hc: HeaderCarrier): Future[DeleteSavingsIncomeDataResponse] = {
-      http.DELETE[DeleteSavingsIncomeDataResponse](savingsIncomeDataUrl)(DeleteSavingsIncomeDataHttpReads,
-        desHeaderCarrier(savingsIncomeDataUrl, appConfig.desAuthorisationTokenFor("1607")), ec)
-    }
+    http.DELETE[DeleteSavingsIncomeDataResponse](savingsIncomeDataUrl)(DeleteSavingsIncomeDataHttpReads, ifHeaderCarrier(savingsIncomeDataUrl, apiNumber), ec)
 
-    desCall(desHeaderCarrier(savingsIncomeDataUrl))
   }
 }

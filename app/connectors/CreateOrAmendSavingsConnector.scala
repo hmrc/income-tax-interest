@@ -25,20 +25,19 @@ import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateOrAmendSavingsConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+class CreateOrAmendSavingsConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
+  val apiNumber = "1605"
   def createOrAmendSavings(nino: String, taxYear: Int, savingsModel: CreateOrAmendSavingsModel
                           )(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
     val taxYearParameter = s"${taxYear - 1}-${taxYear.toString takeRight 2}"
     val createOrAmendSavingsUrl: String = appConfig.desBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
 
-    def desCall(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
-      http.PUT[CreateOrAmendSavingsModel, CreateOrAmendSavingsResponse](createOrAmendSavingsUrl, savingsModel)(
-        CreateOrAmendSavingsModel.formats.writes, CreateOrAmendSavingsHttpReads,
-        desHeaderCarrier(createOrAmendSavingsUrl, appConfig.desAuthorisationTokenFor("1605")), ec)
+    def iFCall(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
+      http.PUT[CreateOrAmendSavingsModel, CreateOrAmendSavingsResponse](createOrAmendSavingsUrl, savingsModel)
     }
 
-    desCall(desHeaderCarrier(createOrAmendSavingsUrl))
+    iFCall(ifHeaderCarrier(createOrAmendSavingsUrl, apiNumber))
   }
 }
 
