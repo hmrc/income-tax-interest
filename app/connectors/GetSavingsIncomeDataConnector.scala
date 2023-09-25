@@ -17,25 +17,24 @@
 package connectors
 
 import config.AppConfig
+import connectors.httpParsers.CreateOrAmendAnnualIncomeSourcePeriodHttpParser.CreateOrAmendAnnualIncomeSourcePeriodResponse
 import connectors.httpParsers.SavingsIncomeDataParser.{IncomeSourceHttpReads, SavingsIncomeDataResponse}
+import models.InterestDetailsModel
 
 import javax.inject.Inject
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetSavingsIncomeDataConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+class GetSavingsIncomeDataConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
+  val apiNumber = "1606"
   def getSavingsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[SavingsIncomeDataResponse] = {
     val taxYearParameter = s"${taxYear - 1}-${taxYear.toString takeRight 2}"
     val savingsIncomeDataUrl = appConfig.desBaseUrl +
       s"/income-tax/income/savings/$nino/$taxYearParameter"
 
-    def desCall(implicit hc: HeaderCarrier): Future[SavingsIncomeDataResponse] = {
-      http.GET[SavingsIncomeDataResponse](savingsIncomeDataUrl)(IncomeSourceHttpReads,
-        desHeaderCarrier(savingsIncomeDataUrl, appConfig.desAuthorisationTokenFor("1606")), ec)
-    }
+    http.GET[SavingsIncomeDataResponse](savingsIncomeDataUrl)(IncomeSourceHttpReads, ifHeaderCarrier(savingsIncomeDataUrl, apiNumber), ec)
 
-    desCall(desHeaderCarrier(savingsIncomeDataUrl))
   }
 }
