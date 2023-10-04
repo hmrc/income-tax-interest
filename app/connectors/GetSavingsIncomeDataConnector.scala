@@ -31,7 +31,7 @@ class GetSavingsIncomeDataConnector @Inject()(http: HttpClient, val appConfig: A
   val apiNumber = "1606"
   def getSavingsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[SavingsIncomeDataResponse] = {
     val taxYearParameter = s"${taxYear - 1}-${taxYear.toString takeRight 2}"
-    val savingsIncomeDataUrl = appConfig.desBaseUrl +
+    val savingsIncomeDataUrl = appConfig.ifBaseUrl +
       s"/income-tax/income/savings/$nino/$taxYearParameter"
 
     http.GET[SavingsIncomeDataResponse](savingsIncomeDataUrl)(IncomeSourceHttpReads, ifHeaderCarrier(savingsIncomeDataUrl, apiNumber), ec)

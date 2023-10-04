@@ -31,7 +31,7 @@ class CreateOrAmendSavingsConnector @Inject()(http: HttpClient, val appConfig: A
   def createOrAmendSavings(nino: String, taxYear: Int, savingsModel: CreateOrAmendSavingsModel
                           )(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
     val taxYearParameter = s"${taxYear - 1}-${taxYear.toString takeRight 2}"
-    val createOrAmendSavingsUrl: String = appConfig.desBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
+    val createOrAmendSavingsUrl: String = appConfig.ifBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
 
     def iFCall(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
       http.PUT[CreateOrAmendSavingsModel, CreateOrAmendSavingsResponse](createOrAmendSavingsUrl, savingsModel)
