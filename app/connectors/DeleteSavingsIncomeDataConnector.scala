@@ -28,7 +28,7 @@ class DeleteSavingsIncomeDataConnector @Inject()(http: HttpClient, val appConfig
   val apiNumber = "1607"
   def deleteSavingsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeleteSavingsIncomeDataResponse] = {
     val taxYearParameter = s"${taxYear - 1}-${taxYear.toString takeRight 2}"
-    val savingsIncomeDataUrl: String = appConfig.desBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
+    val savingsIncomeDataUrl: String = appConfig.ifBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
 
     http.DELETE[DeleteSavingsIncomeDataResponse](savingsIncomeDataUrl)(DeleteSavingsIncomeDataHttpReads, ifHeaderCarrier(savingsIncomeDataUrl, apiNumber), ec)
 
