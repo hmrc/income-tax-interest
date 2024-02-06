@@ -16,21 +16,30 @@
 
 package services
 
-import connectors.CreateOrAmendSavingsConnector
+import connectors.{CreateOrAmendSavingsConnector, CreateOrAmendSavingsTysConnector}
 import connectors.httpParsers.CreateOrAmendSavingsHttpParser.CreateOrAmendSavingsResponse
 import models.CreateOrAmendSavingsModel
 import play.api.Logging
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.TaxYearUtils.specificTaxYear
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.Future
 
 
 @Singleton
-class CreateOrAmendSavingsService @Inject()(createOrAmendSavingsConnector: CreateOrAmendSavingsConnector) extends Logging {
-
+class CreateOrAmendSavingsService @Inject()(
+   createOrAmendSavingsConnector: CreateOrAmendSavingsConnector,
+   createOrAmendSavingsTysConnector: CreateOrAmendSavingsTysConnector
+) extends Logging {
 
   def createOrAmendSavings(nino: String, taxYear: Int, savingsModel: CreateOrAmendSavingsModel)
-                          (implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] =
-    createOrAmendSavingsConnector.createOrAmendSavings(nino, taxYear, savingsModel)
+                          (implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
+
+    if(taxYear < specificTaxYear) {
+      createOrAmendSavingsConnector.createOrAmendSavings(nino, taxYear, savingsModel)
+    } else {
+      createOrAmendSavingsTysConnector.createOrAmendSavings(nino, taxYear, savingsModel)
+    }
+  }
 }
