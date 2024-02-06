@@ -16,7 +16,7 @@
 
 package services
 
-import connectors.GetSavingsIncomeDataConnector
+import connectors.{GetSavingsIncomeDataConnector, GetSavingsIncomeDataTysConnector}
 import connectors.httpParsers.SavingsIncomeDataParser.SavingsIncomeDataResponse
 import models.{ForeignInterestModel, SavingsIncomeDataModel, SecuritiesModel}
 import testUtils.TestSuite
@@ -27,9 +27,10 @@ import scala.concurrent.Future
 class GetSavingsIncomeDataServiceSpec extends TestSuite {
 
   val connector: GetSavingsIncomeDataConnector = mock[GetSavingsIncomeDataConnector]
-  val service: GetSavingsIncomeDataService = new GetSavingsIncomeDataService(connector)
+  val tysConnector: GetSavingsIncomeDataTysConnector = mock[GetSavingsIncomeDataTysConnector]
+  val service: GetSavingsIncomeDataService = new GetSavingsIncomeDataService(connector, tysConnector)
 
-  ".getSavingsIncomeData" should {
+  "GetSavingsIncomeDataConnector.getSavingsIncomeData" should {
 
     "return the connector response" in {
 
@@ -44,6 +45,27 @@ class GetSavingsIncomeDataServiceSpec extends TestSuite {
         .returning(Future.successful(expectedResult))
 
       val result = await(service.getSavingsIncomeData("12345678", 1234))
+
+      result mustBe expectedResult
+
+    }
+  }
+
+  "GetSavingsIncomeDataTysConnector.getSavingsIncomeData" should {
+
+    "return the connector response" in {
+
+      val expectedResult: SavingsIncomeDataResponse = Right(SavingsIncomeDataModel(
+        submittedOn = Some("2020-01-04T05:01:01Z"),
+        securities = SecuritiesModel(Some(800.67), 7455.99, Some(6123.2)),
+        foreignInterest = Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92))
+      ))
+
+      (tysConnector.getSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
+        .expects("12345678", 2024, *)
+        .returning(Future.successful(expectedResult))
+
+      val result = await(service.getSavingsIncomeData("12345678", 2024))
 
       result mustBe expectedResult
 

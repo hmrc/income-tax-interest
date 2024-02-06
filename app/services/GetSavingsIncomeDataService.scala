@@ -16,15 +16,21 @@
 
 package services
 
-import connectors.GetSavingsIncomeDataConnector
+import connectors.{GetSavingsIncomeDataConnector, GetSavingsIncomeDataTysConnector}
 import connectors.httpParsers.SavingsIncomeDataParser.SavingsIncomeDataResponse
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.TaxYearUtils.specificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class GetSavingsIncomeDataService @Inject()(getSavingsIncomeDataConnector: GetSavingsIncomeDataConnector){
+class GetSavingsIncomeDataService @Inject()(getSavingsIncomeDataConnector: GetSavingsIncomeDataConnector,
+                                            getSavingsIncomeDataTysConnector: GetSavingsIncomeDataTysConnector){
   def getSavingsIncomeData(nino: String, taxYear: Int)(implicit headerCarrier: HeaderCarrier): Future[SavingsIncomeDataResponse] = {
-    getSavingsIncomeDataConnector.getSavingsIncomeData(nino, taxYear)
+    if (taxYear < specificTaxYear) {
+      getSavingsIncomeDataConnector.getSavingsIncomeData(nino, taxYear)
+    } else {
+      getSavingsIncomeDataTysConnector.getSavingsIncomeData(nino, taxYear)
+    }
   }
 }

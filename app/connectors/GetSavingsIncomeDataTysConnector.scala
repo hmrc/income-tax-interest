@@ -19,16 +19,16 @@ package connectors
 import config.AppConfig
 import connectors.httpParsers.SavingsIncomeDataParser.{IncomeSourceHttpReads, SavingsIncomeDataResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import utils.TaxYearUtils.convertSpecificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetSavingsIncomeDataConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+class GetSavingsIncomeDataTysConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
-  private val API_NUMBER: String = "1606"
+  private val API_NUMBER = "1904"
   def getSavingsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[SavingsIncomeDataResponse] = {
-    val taxYearParameter = s"${taxYear - 1}-${taxYear.toString takeRight 2}"
-    val savingsIncomeDataUrl = appConfig.ifBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
+    val savingsIncomeDataUrl = appConfig.ifBaseUrl + s"/income-tax/income/savings/${convertSpecificTaxYear(taxYear)}/$nino"
 
     http.GET[SavingsIncomeDataResponse](savingsIncomeDataUrl)(IncomeSourceHttpReads, ifHeaderCarrier(savingsIncomeDataUrl, API_NUMBER), ec)
   }
