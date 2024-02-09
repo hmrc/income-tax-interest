@@ -27,10 +27,10 @@ import scala.concurrent.Future
 class GetSavingsIncomeDataService @Inject()(getSavingsIncomeDataConnector: GetSavingsIncomeDataConnector,
                                             getSavingsIncomeDataTysConnector: GetSavingsIncomeDataTysConnector){
   def getSavingsIncomeData(nino: String, taxYear: Int)(implicit headerCarrier: HeaderCarrier): Future[SavingsIncomeDataResponse] = {
-    if (taxYear < specificTaxYear) {
-      getSavingsIncomeDataConnector.getSavingsIncomeData(nino, taxYear)
-    } else {
+    if (taxYear >= specificTaxYear) {
       getSavingsIncomeDataTysConnector.getSavingsIncomeData(nino, taxYear)
+    } else {
+      getSavingsIncomeDataConnector.getSavingsIncomeData(nino, taxYear)
     }
   }
 }

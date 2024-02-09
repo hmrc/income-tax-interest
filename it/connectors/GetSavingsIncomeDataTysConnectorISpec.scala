@@ -26,16 +26,15 @@ import play.api.http.Status._
 import play.api.libs.json.{JsObject, Json}
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import utils.TaxYearUtils.convertSpecificTaxYear
+import utils.TaxYearUtils.{convertSpecificTaxYear, specificTaxYear}
 
 class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
 
   lazy val connector: GetSavingsIncomeDataTysConnector = app.injector.instanceOf[GetSavingsIncomeDataTysConnector]
   implicit val hc: HeaderCarrier = HeaderCarrier()
   private val nino = "nino"
-  private val taxYear = 2024
 
-  private val url = s"/income-tax/income/savings/${convertSpecificTaxYear(taxYear)}/$nino"
+  private val url = s"/income-tax/income/savings/${convertSpecificTaxYear(specificTaxYear)}/$nino"
 
   private lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
@@ -67,7 +66,7 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
 
         stubGetWithResponseBody(url, OK, Json.toJson(returned).toString)
 
-        val result = await(connector.getSavingsIncomeData(nino, taxYear)(hc))
+        val result = await(connector.getSavingsIncomeData(nino, specificTaxYear)(hc))
 
         result mustBe Right(returned)
       }
@@ -79,7 +78,7 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
 
         val connector = new GetSavingsIncomeDataTysConnector(httpClient, appConfig(externalHost))
 
-        val result = await(connector.getSavingsIncomeData(nino, taxYear)(hc))
+        val result = await(connector.getSavingsIncomeData(nino, specificTaxYear)(hc))
 
         result mustBe Right(returned)
       }
@@ -89,7 +88,7 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
 
       "DES returns a 200" in {
         stubGetWithResponseBody(url, OK, Json.toJson(returned).toString)
-        val result = await(connector.getSavingsIncomeData(nino, taxYear))
+        val result = await(connector.getSavingsIncomeData(nino, specificTaxYear))
 
         result mustBe Right(returned)
 
@@ -100,7 +99,7 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
 
       "DES returns an empty 200" in {
         stubGetWithResponseBody(url, OK, returnedEmpty.toString())
-        val result = await(connector.getSavingsIncomeData(nino, taxYear))
+        val result = await(connector.getSavingsIncomeData(nino, specificTaxYear))
         val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
         result mustBe Left(expectedResult)
@@ -114,7 +113,7 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
       stubGetWithResponseBody(url, NO_CONTENT, "{}")
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSavingsIncomeData(nino, taxYear)(hc))
+      val result = await(connector.getSavingsIncomeData(nino, specificTaxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -129,7 +128,7 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
       stubGetWithResponseBody(url, BAD_REQUEST, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSavingsIncomeData(nino, taxYear)(hc))
+      val result = await(connector.getSavingsIncomeData(nino, specificTaxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -144,7 +143,7 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
       stubGetWithResponseBody(url, NOT_FOUND, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSavingsIncomeData(nino, taxYear)(hc))
+      val result = await(connector.getSavingsIncomeData(nino, specificTaxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -159,7 +158,7 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
       stubGetWithResponseBody(url, INTERNAL_SERVER_ERROR, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSavingsIncomeData(nino, taxYear)(hc))
+      val result = await(connector.getSavingsIncomeData(nino, specificTaxYear)(hc))
 
       result mustBe Left(expectedResult)
     }
@@ -174,7 +173,7 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
       stubGetWithResponseBody(url, SERVICE_UNAVAILABLE, responseBody.toString())
 
       implicit val hc: HeaderCarrier = HeaderCarrier()
-      val result = await(connector.getSavingsIncomeData(nino, taxYear)(hc))
+      val result = await(connector.getSavingsIncomeData(nino, specificTaxYear)(hc))
 
       result mustBe Left(expectedResult)
     }

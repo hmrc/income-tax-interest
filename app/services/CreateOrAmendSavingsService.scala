@@ -36,10 +36,10 @@ class CreateOrAmendSavingsService @Inject()(
   def createOrAmendSavings(nino: String, taxYear: Int, savingsModel: CreateOrAmendSavingsModel)
                           (implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
 
-    if(taxYear < specificTaxYear) {
-      createOrAmendSavingsConnector.createOrAmendSavings(nino, taxYear, savingsModel)
-    } else {
+    if (taxYear >= specificTaxYear) {
       createOrAmendSavingsTysConnector.createOrAmendSavings(nino, taxYear, savingsModel)
+    } else {
+      createOrAmendSavingsConnector.createOrAmendSavings(nino, taxYear, savingsModel)
     }
   }
 }
