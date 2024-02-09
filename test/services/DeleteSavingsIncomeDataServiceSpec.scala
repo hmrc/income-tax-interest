@@ -16,30 +16,42 @@
 
 package services
 
-import connectors.DeleteSavingsIncomeDataConnector
+import connectors.{DeleteSavingsIncomeDataConnector, DeleteSavingsIncomeDataTysConnector}
 import connectors.httpParsers.DeleteSavingsIncomeDataParser.DeleteSavingsIncomeDataResponse
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
-class DeleteSavingsIncomeDataSpec extends TestSuite{
+class DeleteSavingsIncomeDataServiceSpec extends TestSuite {
+
   val connector: DeleteSavingsIncomeDataConnector = mock[DeleteSavingsIncomeDataConnector]
-  val service: DeleteSavingsIncomeDataService = new DeleteSavingsIncomeDataService(connector)
+  val tysConnector: DeleteSavingsIncomeDataTysConnector = mock[DeleteSavingsIncomeDataTysConnector]
+  val service: DeleteSavingsIncomeDataService = new DeleteSavingsIncomeDataService(connector, tysConnector)
 
   "DeleteSavingsIncomeData" should {
 
     "return the connector response" in {
-
       val expectedResult: DeleteSavingsIncomeDataResponse = Right(true)
 
       (connector.deleteSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
-        .expects("12345678", 1234, *)
+        .expects("12345678", 2023, *)
         .returning(Future.successful(expectedResult))
 
-      val result = await(service.deleteSavingsIncomeData("12345678", 1234))
-
+      val result = await(service.deleteSavingsIncomeData("12345678", 2023))
       result mustBe expectedResult
-
     }
+
+    "return the TYS connector response" in {
+      val expectedResult: DeleteSavingsIncomeDataResponse = Right(true)
+
+      (tysConnector.deleteSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
+        .expects("12345678", 2024, *)
+        .returning(Future.successful(expectedResult))
+
+      val result = await(service.deleteSavingsIncomeData("12345678", 2024))
+      result mustBe expectedResult
+    }
+
   }
+
 }
