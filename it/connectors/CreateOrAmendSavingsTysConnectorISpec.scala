@@ -39,8 +39,6 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
   lazy val connector: CreateOrAmendSavingsTysConnector = app.injector.instanceOf[CreateOrAmendSavingsTysConnector]
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
-  def mkTaxYear(taxYear: Int): String = s"${taxYear - 1}-${taxYear.toString takeRight 2}"
-
   val nino = "nino"
   val url = s"/income-tax/income/savings/$nino/${convertSpecificTaxYear(specificTaxYear)}"
 
