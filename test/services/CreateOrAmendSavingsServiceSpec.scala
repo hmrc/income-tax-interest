@@ -17,7 +17,7 @@
 package services
 
 import connectors.httpParsers.CreateOrAmendSavingsHttpParser.CreateOrAmendSavingsResponse
-import connectors.CreateOrAmendSavingsConnector
+import connectors.{CreateOrAmendSavingsConnector, CreateOrAmendSavingsTysConnector}
 import models._
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
@@ -27,7 +27,8 @@ import scala.concurrent.Future
 class CreateOrAmendSavingsServiceSpec extends TestSuite {
 
   val connector: CreateOrAmendSavingsConnector = mock[CreateOrAmendSavingsConnector]
-  val service: CreateOrAmendSavingsService = new CreateOrAmendSavingsService(connector)
+  val tysConnector: CreateOrAmendSavingsTysConnector = mock[CreateOrAmendSavingsTysConnector]
+  val service: CreateOrAmendSavingsService = new CreateOrAmendSavingsService(connector, tysConnector)
 
   val model: CreateOrAmendSavingsModel = CreateOrAmendSavingsModel(
     securities = SecuritiesModel(Some(800.67), 7455.99, Some(6123.2)),
@@ -37,17 +38,30 @@ class CreateOrAmendSavingsServiceSpec extends TestSuite {
   ".createOrAmendSavings" should {
 
     "return the connector response" in {
-
       val expectedResult: CreateOrAmendSavingsResponse = Right(true)
 
       (connector.createOrAmendSavings(_: String, _: Int, _: CreateOrAmendSavingsModel)(_: HeaderCarrier))
-        .expects("12345678", 1234, model, *)
+        .expects("12345678", 2023, model, *)
         .returning(Future.successful(expectedResult))
 
-      val result = await(service.createOrAmendSavings("12345678", 1234, model))
+      val result = await(service.createOrAmendSavings("12345678", 2023, model))
 
       result mustBe expectedResult
 
     }
+
+    "return the tysConnector response" in {
+      val expectedResult: CreateOrAmendSavingsResponse = Right(true)
+
+      (tysConnector.createOrAmendSavings(_: String, _: Int, _: CreateOrAmendSavingsModel)(_: HeaderCarrier))
+        .expects("12345678", 2024, model, *)
+        .returning(Future.successful(expectedResult))
+
+      val result = await(service.createOrAmendSavings("12345678", 2024, model))
+
+      result mustBe expectedResult
+
+    }
+
   }
 }

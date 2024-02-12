@@ -55,9 +55,7 @@ class CreateOrAmendSavingsControllerSpec extends TestSuite {
   ".createOrAmendSavings" should {
 
     "Return a 204 NO Content response with valid CreateOrAmendSavings" in {
-
       val serviceResult = Right(true)
-      val finalResult = Json.toJson(model).toString()
 
       def serviceCallMock(): CallHandler4[String, Int, CreateOrAmendSavingsModel, HeaderCarrier, Future[CreateOrAmendSavingsResponse]] =
         (serviceMock.createOrAmendSavings(_: String, _: Int, _: CreateOrAmendSavingsModel)(_: HeaderCarrier))
@@ -73,8 +71,8 @@ class CreateOrAmendSavingsControllerSpec extends TestSuite {
     }
 
     "return a Left response" when {
-
-      def mockCreateOrAmendSavingsWithError(errorModel: ErrorModel): CallHandler4[String, Int, CreateOrAmendSavingsModel, HeaderCarrier, Future[CreateOrAmendSavingsResponse]] = {
+      def mockCreateOrAmendSavingsWithError(errorModel: ErrorModel):
+        CallHandler4[String, Int, CreateOrAmendSavingsModel, HeaderCarrier, Future[CreateOrAmendSavingsResponse]] = {
         (serviceMock.createOrAmendSavings(_: String, _: Int, _: CreateOrAmendSavingsModel)(_: HeaderCarrier))
           .expects(nino, taxYear, *, *)
           .returning(Future.successful(Left(errorModel)))

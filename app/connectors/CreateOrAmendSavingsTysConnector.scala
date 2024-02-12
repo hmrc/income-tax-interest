@@ -18,24 +18,24 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.CreateOrAmendSavingsHttpParser._
-
-import javax.inject.Inject
 import models.CreateOrAmendSavingsModel
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import utils.TaxYearUtils.convertSpecificTaxYear
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateOrAmendSavingsConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+class CreateOrAmendSavingsTysConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
-  private val apiNumber = "1605"
+  private val apiNumber = "1903"
   def createOrAmendSavings(nino: String, taxYear: Int, savingsModel: CreateOrAmendSavingsModel
                           )(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
-    val taxYearParameter = s"${taxYear - 1}-${taxYear.toString takeRight 2}"
-    val createOrAmendSavingsUrl: String = appConfig.ifBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
 
-    def iFCall(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
+    val createOrAmendSavingsUrl: String =
+      appConfig.ifBaseUrl + s"/income-tax/income/savings/$nino/${convertSpecificTaxYear(taxYear)}"
+
+    def iFCall(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] =
       http.PUT[CreateOrAmendSavingsModel, CreateOrAmendSavingsResponse](createOrAmendSavingsUrl, savingsModel)
-    }
 
     iFCall(ifHeaderCarrier(createOrAmendSavingsUrl, apiNumber))
   }
