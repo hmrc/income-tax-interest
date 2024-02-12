@@ -39,7 +39,8 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
   lazy val connector: CreateOrAmendSavingsTysConnector = app.injector.instanceOf[CreateOrAmendSavingsTysConnector]
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
-  val url = s"/income-tax/income/savings/${convertSpecificTaxYear(specificTaxYear)}/nino"
+  val nino = "nino"
+  val url = s"/income-tax/income/savings/${convertSpecificTaxYear(specificTaxYear)}/$nino"
 
   def appConfig(desHost: String): AppConfig =
     new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
@@ -69,7 +70,7 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
       "the host for DES is 'Internal'" in {
         stubPutWithoutResponseBody(url, Json.toJson(desReturned).toString, NO_CONTENT)
 
-        val result = await(connector.createOrAmendSavings("nino", specificTaxYear, model)(hc))
+        val result = await(connector.createOrAmendSavings(nino, specificTaxYear, model)(hc))
         result mustBe Right(true)
       }
 
@@ -78,7 +79,7 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
 
         stubPutWithoutResponseBody(url, NO_CONTENT, Json.toJson(desReturned).toString, headersSentToDes)
 
-        val result = await(connector.createOrAmendSavings("nino", specificTaxYear, model)(hc))
+        val result = await(connector.createOrAmendSavings(nino, specificTaxYear, model)(hc))
         result mustBe Right(true)
       }
     }
@@ -87,7 +88,7 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
       "DES returns a 200" in {
         stubPutWithoutResponseBody(url, NO_CONTENT, Json.toJson(desReturned).toString)
 
-        val result = await(connector.createOrAmendSavings("nino", specificTaxYear, model))
+        val result = await(connector.createOrAmendSavings(nino, specificTaxYear, model))
         result mustBe Right(true)
       }
     }
@@ -98,7 +99,7 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
 
       stubPutWithResponseBody(url, BAD_REQUEST, Json.toJson(desReturned).toString(), responseBody.toString())
 
-      val result = await(connector.createOrAmendSavings("nino", specificTaxYear, model)(hc))
+      val result = await(connector.createOrAmendSavings(nino, specificTaxYear, model)(hc))
       result mustBe Left(expectedResult)
     }
 
@@ -108,7 +109,7 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
 
       stubPutWithResponseBody(url, INTERNAL_SERVER_ERROR, Json.toJson(desReturned).toString(), responseBody.toString())
 
-      val result = await(connector.createOrAmendSavings("nino", specificTaxYear, model)(hc))
+      val result = await(connector.createOrAmendSavings(nino, specificTaxYear, model)(hc))
       result mustBe Left(expectedResult)
     }
 
@@ -118,7 +119,7 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
 
       stubPutWithResponseBody(url, SERVICE_UNAVAILABLE, Json.toJson(desReturned).toString(), responseBody.toString())
 
-      val result = await(connector.createOrAmendSavings("nino", specificTaxYear, model)(hc))
+      val result = await(connector.createOrAmendSavings(nino, specificTaxYear, model)(hc))
       result mustBe Left(expectedResult)
     }
   }
