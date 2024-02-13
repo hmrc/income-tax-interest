@@ -44,6 +44,9 @@ object DeleteSavingsIncomeDataParser extends APIParser with Logging {
         case BAD_REQUEST | NOT_FOUND =>
           pagerDutyLog(FOURXX_RESPONSE_FROM_API, logMessage(response))
           handleAPIError(response)
+        case UNPROCESSABLE_ENTITY =>
+          pagerDutyLog(UNPROCESSABLE_ENTITY_FROM_API, logMessage(response))
+          handleAPIError(response)
         case _ =>
           pagerDutyLog(UNEXPECTED_RESPONSE_FROM_API, logMessage(response))
           handleAPIError(response, Some(INTERNAL_SERVER_ERROR))

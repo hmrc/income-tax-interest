@@ -33,7 +33,7 @@ class DeleteSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpe
   implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino = "nino"
 
-  val desUrl = s"/income-tax/income/savings/$nino/${convertSpecificTaxYear(specificTaxYear)}"
+  val desUrl = s"/income-tax/income/savings/${convertSpecificTaxYear(specificTaxYear)}/$nino"
 
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
@@ -77,7 +77,7 @@ class DeleteSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpe
     "handle error" when {
       val errorBodyModel = ErrorBodyModel("DES_CODE", "DES_REASON")
 
-      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST).foreach { status =>
+      Seq(INTERNAL_SERVER_ERROR, SERVICE_UNAVAILABLE, NOT_FOUND, BAD_REQUEST, UNPROCESSABLE_ENTITY).foreach { status =>
         s"Des returns $status" in {
           val desError = ErrorModel(status, errorBodyModel)
           implicit val hc: HeaderCarrier = HeaderCarrier()
