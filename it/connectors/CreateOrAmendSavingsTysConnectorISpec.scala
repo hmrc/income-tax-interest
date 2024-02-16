@@ -40,7 +40,7 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
   lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
 
   val nino = "nino"
-  val url = s"/income-tax/income/savings/$nino/${convertSpecificTaxYear(specificTaxYear)}"
+  val url = s"/income-tax/income/savings/${convertSpecificTaxYear(specificTaxYear)}/$nino"
 
   def appConfig(desHost: String): AppConfig =
     new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {

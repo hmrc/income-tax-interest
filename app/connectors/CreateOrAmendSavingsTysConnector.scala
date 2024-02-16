@@ -32,7 +32,7 @@ class CreateOrAmendSavingsTysConnector @Inject()(http: HttpClient, val appConfig
                           )(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
 
     val createOrAmendSavingsUrl: String =
-      appConfig.ifBaseUrl + s"/income-tax/income/savings/$nino/${convertSpecificTaxYear(taxYear)}"
+      appConfig.ifBaseUrl + s"/income-tax/income/savings/${convertSpecificTaxYear(taxYear)}/$nino"
 
     def iFCall(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] =
       http.PUT[CreateOrAmendSavingsModel, CreateOrAmendSavingsResponse](createOrAmendSavingsUrl, savingsModel)
@@ -40,4 +40,3 @@ class CreateOrAmendSavingsTysConnector @Inject()(http: HttpClient, val appConfig
     iFCall(ifHeaderCarrier(createOrAmendSavingsUrl, apiNumber))
   }
 }
-
