@@ -40,8 +40,8 @@ class CreateOrAmendSavingsControllerSpec extends TestSuite {
   val internalServerErrorModel: ErrorModel = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("INTERNAL_SERVER_ERROR", "There has been an unexpected error"))
 
   val model: CreateOrAmendSavingsModel = CreateOrAmendSavingsModel(
-    securities = SecuritiesModel(Some(800.67), 7455.99, Some(6123.2)),
-    foreignInterest = Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92))
+    securities = Some(SecuritiesModel(Some(800.67), 7455.99, Some(6123.2))),
+    foreignInterest = Some(Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92)))
   )
 
   val nino = "nino"
