@@ -67,14 +67,14 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
         new HttpHeader(HeaderNames.xSessionId, "sessionIdValue")
       )
 
-      "the host for DES is 'Internal'" in {
+      "the host for IF is 'Internal'" in {
         stubPutWithoutResponseBody(url, Json.toJson(desReturned).toString, NO_CONTENT)
 
         val result = await(connector.createOrAmendSavings(nino, specificTaxYear, model)(hc))
         result mustBe Right(true)
       }
 
-      "the host for DES is 'External'" in {
+      "the host for IF is 'External'" in {
         val connector = new CreateOrAmendSavingsTysConnector(httpClient, appConfig(externalHost))
 
         stubPutWithoutResponseBody(url, NO_CONTENT, Json.toJson(desReturned).toString, headersSentToDes)
@@ -85,7 +85,7 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
     }
 
     "return a success result" when {
-      "DES returns a 200" in {
+      "IF returns a 200" in {
         stubPutWithoutResponseBody(url, NO_CONTENT, Json.toJson(desReturned).toString)
 
         val result = await(connector.createOrAmendSavings(nino, specificTaxYear, model))

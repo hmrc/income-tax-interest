@@ -53,7 +53,7 @@ class DeleteSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpe
       val externalHost = "127.0.0.1"
       implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
 
-      "the host for DES is 'Internal'" in {
+      "the host for IF is 'Internal'" in {
         val connector = new DeleteSavingsIncomeDataTysConnector(httpClient, appConfig(internalHost))
 
         stubDeleteWithoutResponseBody(desUrl, NO_CONTENT, headersSentToDes)
@@ -63,7 +63,7 @@ class DeleteSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpe
         result mustBe Right(true)
       }
 
-      "the host for DES is 'External'" in {
+      "the host for IF is 'External'" in {
         val connector = new DeleteSavingsIncomeDataTysConnector(httpClient, appConfig(externalHost))
 
         stubDeleteWithoutResponseBody(desUrl, NO_CONTENT, headersSentToDes)
@@ -90,7 +90,7 @@ class DeleteSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpe
         }
       }
 
-      "DES returns an unexpected error code - 502 BadGateway" in {
+      "IF returns an unexpected error code - 502 BadGateway" in {
         val desError = ErrorModel(INTERNAL_SERVER_ERROR, errorBodyModel)
         implicit val hc: HeaderCarrier = HeaderCarrier()
 
