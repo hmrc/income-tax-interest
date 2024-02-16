@@ -101,7 +101,6 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
         stubGetWithResponseBody(url, OK, returnedEmpty.toString())
         val result = await(connector.getSavingsIncomeData(nino, specificTaxYear))
         val expectedResult = Right(SavingsIncomeDataModel(None, None, None))
-          //ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
 
         result mustBe expectedResult
 
