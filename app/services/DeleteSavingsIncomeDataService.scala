@@ -16,15 +16,23 @@
 
 package services
 
-import connectors.DeleteSavingsIncomeDataConnector
+import connectors.{DeleteSavingsIncomeDataConnector, DeleteSavingsIncomeDataTysConnector}
 import connectors.httpParsers.DeleteSavingsIncomeDataParser.DeleteSavingsIncomeDataResponse
 import uk.gov.hmrc.http.HeaderCarrier
+import utils.TaxYearUtils.specificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.Future
 
-class DeleteSavingsIncomeDataService @Inject()(deleteSavingsIncomeDataConnector:DeleteSavingsIncomeDataConnector){
+class DeleteSavingsIncomeDataService @Inject()(
+  deleteSavingsIncomeDataConnector: DeleteSavingsIncomeDataConnector,
+  deleteSavingsIncomeDataTysConnector: DeleteSavingsIncomeDataTysConnector
+){
   def deleteSavingsIncomeData (nino: String, taxYear: Int) (implicit hc: HeaderCarrier): Future[DeleteSavingsIncomeDataResponse] = {
-    deleteSavingsIncomeDataConnector.deleteSavingsIncomeData(nino, taxYear)
+    if (taxYear >= specificTaxYear) {
+      deleteSavingsIncomeDataTysConnector.deleteSavingsIncomeData(nino, taxYear)
+    } else {
+      deleteSavingsIncomeDataConnector.deleteSavingsIncomeData(nino, taxYear)
+    }
   }
 }
