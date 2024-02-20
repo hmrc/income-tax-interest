@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class SavingsIncomeDataModel(submittedOn: Option[String], securities: SecuritiesModel, foreignInterest: Seq[ForeignInterestModel])
+case class SavingsIncomeDataModel(submittedOn: Option[String], securities: Option[SecuritiesModel], foreignInterest: Option[Seq[ForeignInterestModel]])
 
 object SavingsIncomeDataModel{
   implicit val formats: OFormat[SavingsIncomeDataModel] = Json.format[SavingsIncomeDataModel]

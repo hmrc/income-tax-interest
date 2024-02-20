@@ -18,7 +18,7 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class CreateOrAmendSavingsModel(securities: SecuritiesModel, foreignInterest: Seq[ForeignInterestModel])
+case class CreateOrAmendSavingsModel(securities: Option[SecuritiesModel], foreignInterest: Option[Seq[ForeignInterestModel]])
 
 
 object CreateOrAmendSavingsModel {

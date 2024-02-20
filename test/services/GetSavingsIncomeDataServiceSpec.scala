@@ -36,8 +36,8 @@ class GetSavingsIncomeDataServiceSpec extends TestSuite {
 
       val expectedResult: SavingsIncomeDataResponse = Right(SavingsIncomeDataModel(
         submittedOn = Some("2020-01-04T05:01:01Z"),
-        securities = SecuritiesModel(Some(800.67), 7455.99, Some(6123.2)),
-        foreignInterest = Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92))
+        securities = Some(SecuritiesModel(Some(800.67), 7455.99, Some(6123.2))),
+        foreignInterest = Some(Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92)))
       ))
 
       (connector.getSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
@@ -57,8 +57,8 @@ class GetSavingsIncomeDataServiceSpec extends TestSuite {
 
       val expectedResult: SavingsIncomeDataResponse = Right(SavingsIncomeDataModel(
         submittedOn = Some("2020-01-04T05:01:01Z"),
-        securities = SecuritiesModel(Some(800.67), 7455.99, Some(6123.2)),
-        foreignInterest = Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92))
+        securities = Some(SecuritiesModel(Some(800.67), 7455.99, Some(6123.2))),
+        foreignInterest = Some(Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92)))
       ))
 
       (tysConnector.getSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))

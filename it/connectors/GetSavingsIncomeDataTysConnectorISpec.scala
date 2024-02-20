@@ -44,8 +44,8 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
   
   private val returned: SavingsIncomeDataModel = SavingsIncomeDataModel(
     submittedOn = Some("2020-01-04T05:01:01Z"),
-    securities = SecuritiesModel(Some(800.67), 7455.99, Some(6123.2)),
-    foreignInterest = Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92))
+    securities = Some(SecuritiesModel(Some(800.67), 7455.99, Some(6123.2))),
+    foreignInterest = Some(Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92)))
   )
 
   private val returnedEmpty: JsObject = Json.obj()
@@ -100,9 +100,9 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
       "DES returns an empty 200" in {
         stubGetWithResponseBody(url, OK, returnedEmpty.toString())
         val result = await(connector.getSavingsIncomeData(nino, specificTaxYear))
-        val expectedResult = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError)
+        val expectedResult = Right(SavingsIncomeDataModel(None, None, None))
 
-        result mustBe Left(expectedResult)
+        result mustBe expectedResult
 
       }
     }

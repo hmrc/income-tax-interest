@@ -30,8 +30,13 @@ import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec {
 
   val model: CreateOrAmendSavingsModel = CreateOrAmendSavingsModel(
-    securities = SecuritiesModel(Some(800.67), 7455.99, Some(6123.2)),
-    foreignInterest = Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92))
+    securities = Some(SecuritiesModel(Some(800.67), 7455.99, Some(6123.2))),
+    foreignInterest = Some(Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92)))
+  )
+
+  val modelNoForeign: CreateOrAmendSavingsModel = CreateOrAmendSavingsModel(
+    securities = Some(SecuritiesModel(Some(800.67), 7455.99, Some(6123.2))),
+    foreignInterest = None
   )
 
   lazy val connector: CreateOrAmendSavingsConnector = app.injector.instanceOf[CreateOrAmendSavingsConnector]
@@ -52,8 +57,13 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec {
   }
 
   val desReturned: CreateOrAmendSavingsModel = CreateOrAmendSavingsModel(
-    securities = SecuritiesModel(Some(800.67), 7455.99, Some(6123.2)),
-    foreignInterest = Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92))
+    securities = Some(SecuritiesModel(Some(800.67), 7455.99, Some(6123.2))),
+    foreignInterest = Some(Seq(ForeignInterestModel("BES", Some(1232.56), Some(3422.22), Some(5622.67), Some(true), 2821.92)))
+  )
+
+  val desReturnedNoForeign: CreateOrAmendSavingsModel = CreateOrAmendSavingsModel(
+    securities = Some(SecuritiesModel(Some(800.67), 7455.99, Some(6123.2))),
+    foreignInterest = None
   )
 
   val desReturnedEmpty: JsObject = Json.obj()
@@ -97,6 +107,14 @@ class CreateOrAmendSavingsConnectorISpec extends PlaySpec with WiremockSpec {
       "DES returns a 200" in {
         stubPutWithoutResponseBody(url, NO_CONTENT, Json.toJson(desReturned).toString)
         val result = await(connector.createOrAmendSavings(nino, taxYear, model))
+
+        result mustBe Right(true)
+
+      }
+
+      "DES returns a 200 with no foreign interest" in {
+        stubPutWithoutResponseBody(url, NO_CONTENT, Json.toJson(desReturnedNoForeign).toString)
+        val result = await(connector.createOrAmendSavings(nino, taxYear, modelNoForeign))
 
         result mustBe Right(true)
 
