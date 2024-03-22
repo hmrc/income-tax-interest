@@ -20,9 +20,9 @@ import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
 import helpers.WiremockSpec
 import models.{ErrorBodyModel, ErrorModel}
+import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.http.Status._
-import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 

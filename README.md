@@ -6,17 +6,24 @@ This is where we make API calls from users for creating, viewing and making chan
 ## Running the service locally
 
 You will need to have the following:
-- Installed/configured [service manager](https://github.com/hmrc/service-manager).
+- Installed/configured [service manager V2](https://github.com/hmrc/sm2).
 
 The service manager profile for this service is:
 
-    sm --start INCOME_TAX_INTEREST
+    sm2 --start INCOME_TAX_INTEREST
 Run the following command to start the remaining services locally:
 
     sudo mongod (If not already running)
-    sm --start INCOME_TAX_SUBMISSION_ALL -r
+    sm2 --start INCOME_TAX_SUBMISSION_ALL -r
 
 This service runs on port: `localhost:9309`
+
+### Running Tests
+- Run Unit Tests:  `sbt test`
+- Run Integration Tests: `sbt it/test`
+- Run Unit and Integration Tests: `sbt test it/test`
+- Run Unit and Integration Tests with coverage report: `sbt runAllChecks`<br/>
+  which runs `clean compile scalastyle coverage test it/test coverageReport`
 
 ### Interest endpoints:
 
@@ -66,11 +73,11 @@ All interest data is retrieved/updated via the downstream system.
 
 ## Ninos with stubbed data for interest
 
-| Nino | Interest data |
-| ---  | --- |
-| AA123459A | User with multiple interest accounts |
+| Nino      | Interest data                           |
+|-----------|-----------------------------------------|
+| AA123459A | User with multiple interest accounts    |
 | AA000002A | User with interest accounts end of year |
-| AA000003A | User with multiple interest accounts |
+| AA000003A | User with multiple interest accounts    |
 
 ### License
 

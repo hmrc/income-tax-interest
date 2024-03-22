@@ -16,8 +16,8 @@
 
 package testUtils
 
-import akka.actor.ActorSystem
-import akka.stream.SystemMaterializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.SystemMaterializer
 import com.codahale.metrics.SharedMetricRegistries
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.AppConfig
