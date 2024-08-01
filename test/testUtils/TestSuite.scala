@@ -16,12 +16,12 @@
 
 package testUtils
 
-import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko.stream.SystemMaterializer
 import com.codahale.metrics.SharedMetricRegistries
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.AppConfig
 import controllers.predicates.AuthorisedAction
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.SystemMaterializer
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers

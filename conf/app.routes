@@ -7,3 +7,5 @@ POST       /income-tax/nino/:nino/sources   controllers.CreateOrAmendInterestCon
 GET        /income-tax/nino/:nino/savings   controllers.GetSavingsIncomeDataController.getSavingsIncomeData(nino: String, taxYear: Int)
 PUT        /income-tax/nino/:nino/savings   controllers.CreateOrAmendSavingsController.createOrAmendSavings(nino: String, taxYear: Int)
 DELETE     /income-tax/nino/:nino/savings   controllers.DeleteSavingsIncomeDataController.deleteSavingsIncomeData(nino: String, taxYear: Int)
+
+GET        /:taxYear/tasks/:nino            controllers.CommonTaskListController.getCommonTaskList(taxYear: Int, nino: String)

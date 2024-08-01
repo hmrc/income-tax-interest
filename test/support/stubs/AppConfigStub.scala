@@ -37,6 +37,8 @@ class AppConfigStub extends MockFactory {
     override lazy val ifBaseUrl: String = s"http://localhost:$wireMockPort"
     override lazy val ifEnvironment: String = environment
 
+    override lazy val personalFrontendBaseUrl: String = s"http://localhost:$wireMockPort"
+
     override def authorisationTokenFor(apiVersion: String): String = ifAuthorisationToken + s".$apiVersion"
 
     override def desAuthorisationTokenFor(apiVersion: String): String = ""
