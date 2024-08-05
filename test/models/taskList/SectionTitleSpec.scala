@@ -24,7 +24,7 @@ import play.api.libs.json.{JsPath, JsSuccess, Json}
 
 class SectionTitleSpec extends AnyFreeSpec with Matchers {
 
-  "DividendsTitle" - {
+  "InterestTitle" - {
 
     "must parse to and from json" in {
       val underTest = Json.toJson(InterestTitle)

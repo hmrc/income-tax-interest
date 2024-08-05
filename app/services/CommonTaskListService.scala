@@ -41,14 +41,17 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
       case Right(value) => value
     }
 
+
     val allInterest: Future[AllInterest] = for {
-      taxedUkInterest <- interest.map(_.map(_.taxedUkInterest))
-      untaxedUkInterest <- interest.map(_.map(_.untaxedUkInterest))
+      taxedUkInterest <- interest.map(_.find(_.taxedUkInterest.isDefined).flatMap(_.taxedUkInterest))
+      untaxedUkInterest <- interest.map(_.find(_.untaxedUkInterest.isDefined).flatMap(_.untaxedUkInterest))
       giftedEdgeOrAccrued <- savings.map(_.securities)
-    } yield AllInterest(
-      NamedInterestDetailsModel("", "", taxedUkInterest.head, untaxedUkInterest.head),
-      SavingsIncomeDataModel(None, giftedEdgeOrAccrued, None)
-    )
+    } yield {
+      AllInterest(
+        NamedInterestDetailsModel("", "", taxedUkInterest, untaxedUkInterest),
+        SavingsIncomeDataModel(None, giftedEdgeOrAccrued, None)
+      )
+    }
 
     allInterest.map { i =>
       val tasks: Option[Seq[TaskListSectionItem]] = {
@@ -66,9 +69,12 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
   private def getTasks(interest: NamedInterestDetailsModel, savings: SavingsIncomeDataModel, taxYear: Int): Seq[TaskListSectionItem] = {
 
     // TODO: these will be links to the new individual CYA pages when they are made
-    val bankAndBuildingUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/interest/add-untaxed-uk-interest-account/id"
-    val trustFundUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/interest/add-taxed-uk-interest-account/id"
-    val giltEdgeUrl: String = s"${appConfig.personalFrontendBaseUrl}/$taxYear/interest/interest-amount"
+    val bankAndBuildingUrl: String =
+      s"${appConfig.personalFrontendBaseUrl}/update-and-submit-income-tax-return/personal-income/$taxYear/interest/check-interest"
+    val trustFundUrl: String =
+      s"${appConfig.personalFrontendBaseUrl}/update-and-submit-income-tax-return/personal-income/$taxYear/interest/check-interest"
+    val giltEdgeUrl: String =
+      s"${appConfig.personalFrontendBaseUrl}/update-and-submit-income-tax-return/personal-income/$taxYear/interest/check-interest-from-securities"
 
     val bankAndBuildingSocieties: Option[TaskListSectionItem] = if (interest.untaxedUkInterest.isDefined) {
       Some(TaskListSectionItem(TaskTitle.BankAndBuildingSocieties, TaskStatus.Completed, Some(bankAndBuildingUrl)))

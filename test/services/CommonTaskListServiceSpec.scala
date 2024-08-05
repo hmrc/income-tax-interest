@@ -35,8 +35,10 @@ class CommonTaskListServiceSpec extends TestSuite {
   val nino: String = "12345678"
   val taxYear: Int = 1234
 
-  val fullInterestResult = Right(List[NamedInterestDetailsModel]{NamedInterestDetailsModel("AccountID", "IncomeSourceID", Some(20.00), Some(20.00))})
-  val emptyInterestResult = Left(ErrorModel(NOT_FOUND, ErrorBodyModel("SOME_CODE", "reason")))
+  val fullInterestResult: Right[ErrorModel, List[NamedInterestDetailsModel]] =
+    Right(List[NamedInterestDetailsModel]{NamedInterestDetailsModel("AccountID", "IncomeSourceID", Some(20.00), Some(20.00))})
+
+  val emptyInterestResult: Left[ErrorModel, List[NamedInterestDetailsModel]] = Left(ErrorModel(NOT_FOUND, ErrorBodyModel("SOME_CODE", "reason")))
 
   val fullGiltedEdgeOrAccruedResult: SavingsIncomeDataResponse = Right(SavingsIncomeDataModel(
     submittedOn = Some("2020-06-17T10:53:38Z"),
@@ -50,17 +52,18 @@ class CommonTaskListServiceSpec extends TestSuite {
       taxableAmount = 20.00
     )))
   ))
-  val emptyStockDividendsResult: SavingsIncomeDataResponse = Left(ErrorModel(NOT_FOUND, ErrorBodyModel("SOME_CODE", "reason")))
+
+  val emptyGiltedEdgeResult: SavingsIncomeDataResponse = Left(ErrorModel(NOT_FOUND, ErrorBodyModel("SOME_CODE", "reason")))
 
   val fullTaskSection: TaskListSection =
     TaskListSection(SectionTitle.InterestTitle,
       Some(List(
         TaskListSectionItem(TaskTitle.BankAndBuildingSocieties, TaskStatus.Completed,
-          Some("http://localhost:9308/1234/interest/add-untaxed-uk-interest-account/id")),
+          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/interest/check-interest")),
         TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.Completed,
-          Some("http://localhost:9308/1234/interest/add-taxed-uk-interest-account/id")),
+          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/interest/check-interest")),
         TaskListSectionItem(TaskTitle.GiltEdgedOrAccrued, TaskStatus.Completed,
-          Some("http://localhost:9308/1234/interest/interest-amount")),
+          Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/interest/check-interest-from-securities")),
       ))
     )
 
@@ -89,13 +92,14 @@ class CommonTaskListServiceSpec extends TestSuite {
 
       (savingsIncomeDataService.getSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
-        .returning(Future.successful(emptyStockDividendsResult))
+        .returning(Future.successful(emptyGiltedEdgeResult))
 
       val underTest = service.get(taxYear, nino)
 
       await(underTest) mustBe fullTaskSection.copy(
         taskItems = Some(List(
-          TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.Completed, Some("http://localhost:9308/1234/interest/add-taxed-uk-interest-account/id"))
+          TaskListSectionItem(
+            TaskTitle.TrustFundBond, TaskStatus.Completed, Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/interest/check-interest"))
         ))
       )
     }
@@ -108,7 +112,7 @@ class CommonTaskListServiceSpec extends TestSuite {
 
       (savingsIncomeDataService.getSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
         .expects(nino, taxYear, *)
-        .returning(Future.successful(emptyStockDividendsResult))
+        .returning(Future.successful(emptyGiltedEdgeResult))
 
       val underTest = service.get(taxYear, nino)
 
