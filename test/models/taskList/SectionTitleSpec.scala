@@ -29,7 +29,7 @@ class SectionTitleSpec extends AnyFreeSpec with Matchers {
     "must parse to and from json" in {
       val underTest = Json.toJson(InterestTitle)
 
-      underTest.toString() mustBe s"\"${InterestTitle.toString}\""
+      underTest.toString() mustBe s"\"$InterestTitle\""
       underTest.validate[SectionTitle] mustBe JsSuccess(InterestTitle, JsPath())
     }
   }

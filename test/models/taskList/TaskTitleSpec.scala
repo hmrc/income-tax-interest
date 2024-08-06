@@ -45,7 +45,7 @@ class TaskTitleSpec extends AnyFreeSpec with Matchers {
     "must parse to and from json" in {
       val underTest = Json.toJson(BankAndBuildingSocieties)
 
-      underTest.toString() mustBe s"\"${BankAndBuildingSocieties.toString}\""
+      underTest.toString() mustBe s"\"$BankAndBuildingSocieties\""
       underTest.validate[TaskTitle] mustBe JsSuccess(BankAndBuildingSocieties, JsPath())
     }
   }
@@ -55,7 +55,7 @@ class TaskTitleSpec extends AnyFreeSpec with Matchers {
     "must parse to and from json" in {
       val underTest = Json.toJson(TrustFundBond)
 
-      underTest.toString() mustBe s"\"${TrustFundBond.toString}\""
+      underTest.toString() mustBe s"\"$TrustFundBond\""
       underTest.validate[TaskTitle] mustBe JsSuccess(TrustFundBond, JsPath())
     }
   }
@@ -65,7 +65,7 @@ class TaskTitleSpec extends AnyFreeSpec with Matchers {
     "must parse to and from json" in {
       val underTest = Json.toJson(GiltEdgedOrAccrued)
 
-      underTest.toString() mustBe s"\"${GiltEdgedOrAccrued.toString}\""
+      underTest.toString() mustBe s"\"$GiltEdgedOrAccrued\""
       underTest.validate[TaskTitle] mustBe JsSuccess(GiltEdgedOrAccrued, JsPath())
     }
   }
