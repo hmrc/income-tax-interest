@@ -36,6 +36,8 @@ class MockAppConfig extends AppConfig with MockFactory {
   override val ifBaseUrl: String = ""
   override val ifEnvironment: String = ""
 
+  override val personalFrontendBaseUrl: String = "http://localhost:9308"
+
   override def authorisationTokenFor(apiVersion: String): String = "someToken"
 
   override def desAuthorisationTokenFor(apiVersion: String): String = "someToken"

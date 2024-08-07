@@ -39,6 +39,8 @@ trait AppConfig {
   val ifBaseUrl: String
   val ifEnvironment: String
 
+  val personalFrontendBaseUrl: String
+
   def authorisationTokenFor(apiVersion: String): String
   def desAuthorisationTokenFor(apiVersion: String): String
 }
@@ -60,6 +62,8 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   lazy val ifAuthorisationToken: String = config.get[String]("microservice.services.integration-framework.authorisation-token")
   lazy val ifBaseUrl: String = servicesConfig.baseUrl(serviceName = "integration-framework")
   lazy val ifEnvironment: String = servicesConfig.getString(key = "microservice.services.integration-framework.environment")
+
+  val personalFrontendBaseUrl: String = config.get[String]("microservice.services.personal-income-tax-submission-frontend.url")
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
   def desAuthorisationTokenFor(api: String): String = config.get[String](s"microservice.services.des.authorisation-token-des.$api")
