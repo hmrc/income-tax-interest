@@ -76,23 +76,14 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
     val giltEdgeUrl: String =
       s"${appConfig.personalFrontendBaseUrl}/update-and-submit-income-tax-return/personal-income/$taxYear/interest/check-interest-from-securities"
 
-    val bankAndBuildingSocieties: Option[TaskListSectionItem] = if (interest.untaxedUkInterest.isDefined) {
-      Some(TaskListSectionItem(TaskTitle.BankAndBuildingSocieties, TaskStatus.Completed, Some(bankAndBuildingUrl)))
-    } else {
-      None
-    }
+    val bankAndBuildingSocieties: Option[TaskListSectionItem] = interest.untaxedUkInterest.map(_ =>
+      TaskListSectionItem(TaskTitle.BankAndBuildingSocieties, TaskStatus.Completed, Some(bankAndBuildingUrl)))
 
-    val trustFundBond: Option[TaskListSectionItem] = if (interest.taxedUkInterest.isDefined) {
-      Some(TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.Completed, Some(trustFundUrl)))
-    } else {
-      None
-    }
+    val trustFundBond: Option[TaskListSectionItem] = interest.taxedUkInterest.map(_ =>
+      TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.Completed, Some(trustFundUrl)))
 
-    val giltEdgedOrAccrued: Option[TaskListSectionItem] = if (savings.securities.isDefined) {
-      Some(TaskListSectionItem(TaskTitle.GiltEdgedOrAccrued, TaskStatus.Completed, Some(giltEdgeUrl)))
-    } else {
-      None
-    }
+    val giltEdgedOrAccrued: Option[TaskListSectionItem] = savings.securities.map(_ =>
+      TaskListSectionItem(TaskTitle.GiltEdgedOrAccrued, TaskStatus.Completed, Some(giltEdgeUrl)))
 
     Seq[Option[TaskListSectionItem]](bankAndBuildingSocieties, trustFundBond, giltEdgedOrAccrued).flatten
   }
