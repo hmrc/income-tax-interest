@@ -30,7 +30,7 @@ class TaskTitleSpec extends AnyFreeSpec with Matchers {
       TaskTitle.values mustEqual Seq[TaskTitle](
         BanksAndBuilding,
         TrustFundBond,
-        GiltEdgedOrAccrued
+        GiltEdged
       )
     }
 
@@ -63,10 +63,10 @@ class TaskTitleSpec extends AnyFreeSpec with Matchers {
   "GiltEdgedOrAccrued" - {
 
     "must parse to and from json" in {
-      val underTest = Json.toJson(GiltEdgedOrAccrued)
+      val underTest = Json.toJson(GiltEdged)
 
-      underTest.toString() mustBe s"\"$GiltEdgedOrAccrued\""
-      underTest.validate[TaskTitle] mustBe JsSuccess(GiltEdgedOrAccrued, JsPath())
+      underTest.toString() mustBe s"\"$GiltEdged\""
+      underTest.validate[TaskTitle] mustBe JsSuccess(GiltEdged, JsPath())
     }
   }
 }

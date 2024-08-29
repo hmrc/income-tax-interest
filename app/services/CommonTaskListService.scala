@@ -83,7 +83,7 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
       TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.Completed, Some(trustFundUrl)))
 
     val giltEdgedOrAccrued: Option[TaskListSectionItem] = savings.securities.map(_ =>
-      TaskListSectionItem(TaskTitle.GiltEdgedOrAccrued, TaskStatus.Completed, Some(giltEdgeUrl)))
+      TaskListSectionItem(TaskTitle.GiltEdged, TaskStatus.Completed, Some(giltEdgeUrl)))
 
     Seq[Option[TaskListSectionItem]](bankAndBuildingSocieties, trustFundBond, giltEdgedOrAccrued).flatten
   }

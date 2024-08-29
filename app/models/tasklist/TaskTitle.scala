@@ -31,5 +31,5 @@ object TaskTitle extends Enum[TaskTitle] with PlayJsonEnum[TaskTitle] {
 
   case object TrustFundBond extends TaskTitle("TrustFundBondTitle")
 
-  case object GiltEdgedOrAccrued extends TaskTitle("GiltEdgedOrAccruedTitle")
+  case object GiltEdged extends TaskTitle("GiltEdgedTitle")
 }

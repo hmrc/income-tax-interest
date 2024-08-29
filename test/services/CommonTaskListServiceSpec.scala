@@ -62,7 +62,7 @@ class CommonTaskListServiceSpec extends TestSuite {
           Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/interest/check-interest")),
         TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.Completed,
           Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/interest/check-interest")),
-        TaskListSectionItem(TaskTitle.GiltEdgedOrAccrued, TaskStatus.Completed,
+        TaskListSectionItem(TaskTitle.GiltEdged, TaskStatus.Completed,
           Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/interest/check-interest-from-securities")),
       ))
     )
