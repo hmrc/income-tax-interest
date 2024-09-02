@@ -77,13 +77,13 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
       s"${appConfig.personalFrontendBaseUrl}/update-and-submit-income-tax-return/personal-income/$taxYear/interest/check-interest-from-securities"
 
     val bankAndBuildingSocieties: Option[TaskListSectionItem] = interest.untaxedUkInterest.map(_ =>
-      TaskListSectionItem(TaskTitle.BankAndBuildingSocieties, TaskStatus.Completed, Some(bankAndBuildingUrl)))
+      TaskListSectionItem(TaskTitle.BanksAndBuilding, TaskStatus.Completed, Some(bankAndBuildingUrl)))
 
     val trustFundBond: Option[TaskListSectionItem] = interest.taxedUkInterest.map(_ =>
       TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.Completed, Some(trustFundUrl)))
 
     val giltEdgedOrAccrued: Option[TaskListSectionItem] = savings.securities.map(_ =>
-      TaskListSectionItem(TaskTitle.GiltEdgedOrAccrued, TaskStatus.Completed, Some(giltEdgeUrl)))
+      TaskListSectionItem(TaskTitle.GiltEdged, TaskStatus.Completed, Some(giltEdgeUrl)))
 
     Seq[Option[TaskListSectionItem]](bankAndBuildingSocieties, trustFundBond, giltEdgedOrAccrued).flatten
   }

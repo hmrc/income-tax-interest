@@ -58,11 +58,11 @@ class CommonTaskListServiceSpec extends TestSuite {
   val fullTaskSection: TaskListSection =
     TaskListSection(SectionTitle.InterestTitle,
       Some(List(
-        TaskListSectionItem(TaskTitle.BankAndBuildingSocieties, TaskStatus.Completed,
+        TaskListSectionItem(TaskTitle.BanksAndBuilding, TaskStatus.Completed,
           Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/interest/check-interest")),
         TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.Completed,
           Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/interest/check-interest")),
-        TaskListSectionItem(TaskTitle.GiltEdgedOrAccrued, TaskStatus.Completed,
+        TaskListSectionItem(TaskTitle.GiltEdged, TaskStatus.Completed,
           Some("http://localhost:9308/update-and-submit-income-tax-return/personal-income/1234/interest/check-interest-from-securities")),
       ))
     )
