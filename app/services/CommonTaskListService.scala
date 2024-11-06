@@ -19,6 +19,8 @@ package services
 import config.AppConfig
 import models.tasklist._
 import models.{AllInterest, NamedInterestDetailsModel, SavingsIncomeDataModel}
+import play.api.Logging
+import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
@@ -26,10 +28,11 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class CommonTaskListService @Inject()(appConfig: AppConfig,
                                       interestsService: GetInterestsService,
-                                      savingsIncomeDataService: GetSavingsIncomeDataService
-                                     ) {
+                                      savingsIncomeDataService: GetSavingsIncomeDataService,
+                                      journeyAnswersRepository: JourneyAnswersRepository) extends Logging {
 
-  def get(taxYear: Int, nino: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[TaskListSection] = {
+  def get(taxYear: Int, nino: String, mtdItId: String)
+         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[TaskListSection] = {
 
     val interest = interestsService.getInterestsList(nino, taxYear.toString).map {
       case Left(_) => List[NamedInterestDetailsModel](NamedInterestDetailsModel("", "", None, None))

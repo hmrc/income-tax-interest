@@ -20,20 +20,26 @@ import connectors.httpParsers.SavingsIncomeDataParser.SavingsIncomeDataResponse
 import models.{NamedInterestDetailsModel, _}
 import models.tasklist._
 import play.api.http.Status.NOT_FOUND
+import support.mocks.MockJourneyAnswersRepository
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class CommonTaskListServiceSpec extends TestSuite {
-
+class CommonTaskListServiceSpec extends TestSuite with MockJourneyAnswersRepository {
   val interestsService: GetInterestsService = mock[GetInterestsService]
   val savingsIncomeDataService: GetSavingsIncomeDataService = mock[GetSavingsIncomeDataService]
 
-  val service: CommonTaskListService = new CommonTaskListService(mockAppConfig, interestsService, savingsIncomeDataService)
+  val service: CommonTaskListService = new CommonTaskListService(
+    appConfig = mockAppConfig,
+    interestsService = interestsService,
+    savingsIncomeDataService = savingsIncomeDataService,
+    journeyAnswersRepository = mockJourneyAnswersRepo
+  )
 
   val nino: String = "12345678"
   val taxYear: Int = 1234
+  val mtdItId: String = "1234567890"
 
   val fullInterestResult: Right[ErrorModel, List[NamedInterestDetailsModel]] =
     Right(List[NamedInterestDetailsModel]{NamedInterestDetailsModel("AccountID", "IncomeSourceID", Some(20.00), Some(20.00))})
@@ -79,7 +85,7 @@ class CommonTaskListServiceSpec extends TestSuite {
         .expects(nino, taxYear, *)
         .returning(Future.successful(fullGiltedEdgeOrAccruedResult))
 
-      val underTest = service.get(taxYear, nino)
+      val underTest = service.get(taxYear, nino, mtdItId)
 
       await(underTest) mustBe fullTaskSection
     }
@@ -94,7 +100,7 @@ class CommonTaskListServiceSpec extends TestSuite {
         .expects(nino, taxYear, *)
         .returning(Future.successful(emptyGiltedEdgeResult))
 
-      val underTest = service.get(taxYear, nino)
+      val underTest = service.get(taxYear, nino, mtdItId)
 
       await(underTest) mustBe fullTaskSection.copy(
         taskItems = Some(List(
@@ -114,7 +120,7 @@ class CommonTaskListServiceSpec extends TestSuite {
         .expects(nino, taxYear, *)
         .returning(Future.successful(emptyGiltedEdgeResult))
 
-      val underTest = service.get(taxYear, nino)
+      val underTest = service.get(taxYear, nino, mtdItId)
 
       await(underTest) mustBe TaskListSection(SectionTitle.InterestTitle, None)
     }
