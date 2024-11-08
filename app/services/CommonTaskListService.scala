@@ -18,10 +18,11 @@ package services
 
 import cats.data.EitherT
 import config.AppConfig
+import models.ErrorModel
 import models.mongo.JourneyAnswers
-import models.tasklist.TaskStatus.{Completed, InProgress, NotStarted}
-import models.tasklist.TaskTitle
-import models.tasklist._
+import models.taskList.TaskStatus.{Completed, InProgress, NotStarted}
+import models.taskList.TaskTitle
+import models.taskList._
 import play.api.Logging
 import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
@@ -64,7 +65,7 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
     val banksAndBuildingsJourneyName: String = "banks-and-buildings"
     val trustFundBondJourneyName: String = "trust-fund-bond"
 
-    val result: Future[Seq[TaskListSectionItem]] = {
+    val result: EitherT[Future, ErrorModel, Seq[TaskListSectionItem]] = {
       for {
         interestsList <- EitherT(interestsService.getInterestsList(nino, taxYear.toString))
         taxedJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, banksAndBuildingsJourneyName))
@@ -75,27 +76,27 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
         getTaskForItem(TaskTitle.BanksAndBuilding, bankAndBuildingUrl, taxedJourneyAnswers, taxedUkInterestExists),
         getTaskForItem(TaskTitle.TrustFundBond, trustFundUrl, untaxedJourneyAnswers, untaxedUkInterestExists)
       ).flatten
-    }.leftMap(_ => Nil).merge
+    }
 
-    result
+    result.leftMap(_ => Nil).merge
   }
 
   private def getSavingsTasks(taxYear: Int, nino: String, mtdItId: String)
                               (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[TaskListSectionItem]] = {
     lazy val giltEdgeUrl: String = s"$baseUrl/$taxYear/interest/check-interest-from-securities"
-    val guiltEdgedJourneyName: String = "gild-edged"
+    val giltEdgedJourneyName: String = "gilt-edged"
 
-    val result: Future[Seq[TaskListSectionItem]] = {
+    val result: EitherT[Future, ErrorModel, Seq[TaskListSectionItem]] = {
       for {
         savings <- EitherT(savingsIncomeDataService.getSavingsIncomeData(nino, taxYear))
-        journeyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, guiltEdgedJourneyName))
+        journeyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, giltEdgedJourneyName))
         securitiesIsDefined = savings.securities.isDefined
       } yield Seq(
         getTaskForItem(TaskTitle.GiltEdged, giltEdgeUrl, journeyAnswers, securitiesIsDefined)
       ).flatten
-    }.leftMap(_ => Nil).merge
+    }
 
-    result
+    result.leftMap(_ => Nil).merge
   }
 
   def get(taxYear: Int, nino: String, mtdItId: String)

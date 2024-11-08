@@ -16,7 +16,7 @@
 
 package controllers
 
-import models.tasklist.{SectionTitle, TaskListSection}
+import models.taskList.{SectionTitle, TaskListSection}
 import play.api.http.Status.OK
 import services.CommonTaskListService
 import testUtils.TestSuite

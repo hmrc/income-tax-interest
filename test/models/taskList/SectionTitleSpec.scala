@@ -16,8 +16,8 @@
 
 package models.taskList
 
-import models.tasklist.SectionTitle
-import models.tasklist.SectionTitle.InterestTitle
+import models.taskList.SectionTitle
+import models.taskList.SectionTitle.InterestTitle
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.{JsPath, JsSuccess, Json}

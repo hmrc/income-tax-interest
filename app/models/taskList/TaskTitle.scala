@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package models.tasklist
+package models.taskList
 
 import enumeratum._
 
-sealed abstract class SectionTitle(override val entryName: String) extends EnumEntry {
+sealed abstract class TaskTitle(override val entryName: String) extends EnumEntry {
   override def toString: String = entryName
 }
 
-object SectionTitle extends Enum[SectionTitle] with PlayJsonEnum[SectionTitle] {
+object TaskTitle extends Enum[TaskTitle] with PlayJsonEnum[TaskTitle] {
 
-  val values: IndexedSeq[SectionTitle] = findValues
+  val values: IndexedSeq[TaskTitle] = findValues
 
-  case object InterestTitle extends SectionTitle("Interest")
+  // UK Interest
+  case object BanksAndBuilding extends TaskTitle("BanksAndBuildingTitle")
 
+  case object TrustFundBond extends TaskTitle("TrustFundBondTitle")
+
+  case object GiltEdged extends TaskTitle("GiltEdgedTitle")
 }

@@ -16,8 +16,8 @@
 
 package models.taskList
 
-import models.tasklist.TaskStatus
-import models.tasklist.TaskStatus._
+import models.taskList.TaskStatus
+import models.taskList.TaskStatus._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
 import play.api.libs.json.{JsPath, JsSuccess, Json}
