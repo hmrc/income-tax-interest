@@ -43,7 +43,7 @@ class JourneyAnswersRepository @Inject()(mongoComponent: MongoComponent,
     collectionName = "journeyAnswers",
     mongoComponent = mongoComponent,
     domainFormat = JourneyAnswers.encryptedFormat,
-    indexes = JourneyAnswersRepositoryIndexes.indexes()(appConfig),
+    indexes = JourneyAnswersRepositoryIndexes.indexes()(backendAppConfig),
     replaceIndexes = backendAppConfig.replaceJourneyAnswersIndexes
   ) with Logging {
 

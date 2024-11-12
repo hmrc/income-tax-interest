@@ -68,6 +68,11 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   val personalFrontendBaseUrl: String = config.get[String]("microservice.services.personal-income-tax-submission-frontend.url")
 
+  //User data Mongo config
+  lazy val mongoTTL: Int = Duration(servicesConfig.getString("mongodb.timeToLive")).toMinutes.toInt
+  lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
+  lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
+
   //Journey answers Mongo config
   lazy val mongoJourneyAnswersTTL: Int = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays.toInt
   lazy val replaceJourneyAnswersIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceJourneyAnswersIndexes")
