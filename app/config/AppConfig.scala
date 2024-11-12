@@ -17,9 +17,12 @@
 package config
 
 import com.google.inject.ImplementedBy
+
 import javax.inject.Inject
 import play.api.Configuration
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import scala.concurrent.duration.Duration
 
 
 @ImplementedBy(classOf[BackendAppConfig])
@@ -64,6 +67,10 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   lazy val ifEnvironment: String = servicesConfig.getString(key = "microservice.services.integration-framework.environment")
 
   val personalFrontendBaseUrl: String = config.get[String]("microservice.services.personal-income-tax-submission-frontend.url")
+
+  //Journey answers Mongo config
+  lazy val mongoJourneyAnswersTTL: Int = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays.toInt
+  lazy val replaceJourneyAnswersIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceJourneyAnswersIndexes")
 
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
   def desAuthorisationTokenFor(api: String): String = config.get[String](s"microservice.services.des.authorisation-token-des.$api")
