@@ -62,8 +62,8 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
     lazy val bankAndBuildingUrl: String = s"$baseUrl/$taxYear/interest/check-interest"
     lazy val trustFundUrl: String = s"$baseUrl/$taxYear/interest/check-interest"
 
-    val banksAndBuildingsJourneyName: String = "banks-and-buildings"
-    val trustFundBondJourneyName: String = "trust-fund-bond"
+    val banksAndBuildingsJourneyName: String = "uk-interest" //"banks-and-buildings"
+    val trustFundBondJourneyName: String = "uk-interest" //"trust-fund-bond"
 
     val result: EitherT[Future, ErrorModel, Seq[TaskListSectionItem]] = {
       for {

@@ -124,7 +124,7 @@ class CommonTaskListServiceSpec extends TestSuite
     "an error occurs while attempting to retrieve Journey Answers from the Journey Answers repository" should {
       "handle appropriately for Banks and Buildings Journey Answers" in new Test {
         mockGetInterestsList(nino, taxYear.toString, fullInterestResult)
-        mockGetJourneyAnswersException(mtdItId, taxYear, "banks-and-buildings", new RuntimeException("Dummy Error"))
+        mockGetJourneyAnswersException(mtdItId, taxYear, "uk-interest", new RuntimeException("Dummy Error"))
 
         def result: TaskListSection = await(service.get(taxYear, nino, mtdItId))
         assertThrows[RuntimeException](result)
@@ -132,8 +132,8 @@ class CommonTaskListServiceSpec extends TestSuite
 
       "handle appropriately for Trust Fund Bond Journey Answers" in new Test {
         mockGetInterestsList(nino, taxYear.toString, fullInterestResult)
-        mockGetJourneyAnswers(mtdItId, taxYear, "banks-and-buildings", None)
-        mockGetJourneyAnswersException(mtdItId, taxYear, "trust-fund-bond", new RuntimeException("Dummy Error"))
+        mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", None)
+        mockGetJourneyAnswersException(mtdItId, taxYear, "uk-interest", new RuntimeException("Dummy Error"))
 
         def result: TaskListSection = await(service.get(taxYear, nino, mtdItId))
         assertThrows[RuntimeException](result)
@@ -153,8 +153,8 @@ class CommonTaskListServiceSpec extends TestSuite
       "return empty task list" in new Test {
         mockGetInterestsList(nino, taxYear.toString, Right(Nil))
         mockGetSavingsIncomeData(nino, taxYear, Right(SavingsIncomeDataModel(None, None, None)))
-        mockGetJourneyAnswers(mtdItId, taxYear, "banks-and-buildings", None)
-        mockGetJourneyAnswers(mtdItId, taxYear, "trust-fund-bond", None)
+        mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", None)
+        mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", None)
         mockGetJourneyAnswers(mtdItId, taxYear, "gilt-edged", None)
 
         def result: TaskListSection = await(service.get(taxYear, nino, mtdItId))
@@ -166,8 +166,8 @@ class CommonTaskListServiceSpec extends TestSuite
       "populate task list based on Journey Answers statuses when Journey Answers are defined" in new Test {
         mockGetInterestsList(nino, taxYear.toString, fullInterestResult)
         mockGetSavingsIncomeData(nino, taxYear, fullGiltEdgeOrAccruedResult)
-        mockGetJourneyAnswers(mtdItId, taxYear, "banks-and-buildings", Some(journeyAnswers("banks-and-buildings", "completed")))
-        mockGetJourneyAnswers(mtdItId, taxYear, "trust-fund-bond", Some(journeyAnswers("trust-fund-bond", "inProgress")))
+        mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", Some(journeyAnswers("uk-interest", "completed")))
+        mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", Some(journeyAnswers("uk-interest", "inProgress")))
         mockGetJourneyAnswers(mtdItId, taxYear, "gilt-edged", Some(journeyAnswers("gilt-edged", "inProgress")))
 
         def result: TaskListSection = await(service.get(taxYear, nino, mtdItId))
@@ -181,8 +181,8 @@ class CommonTaskListServiceSpec extends TestSuite
       "return 'Completed' status when Journey Answers are not defined" in new Test {
         mockGetInterestsList(nino, taxYear.toString, fullInterestResult)
         mockGetSavingsIncomeData(nino, taxYear, fullGiltEdgeOrAccruedResult)
-        mockGetJourneyAnswers(mtdItId, taxYear, "banks-and-buildings", None)
-        mockGetJourneyAnswers(mtdItId, taxYear, "trust-fund-bond", None)
+        mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", None)
+        mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", None)
         mockGetJourneyAnswers(mtdItId, taxYear, "gilt-edged", None)
 
         def result: TaskListSection = await(service.get(taxYear, nino, mtdItId))
@@ -196,15 +196,15 @@ class CommonTaskListServiceSpec extends TestSuite
         mockGetJourneyAnswers(
           mtdItId,
           taxYear,
-          "banks-and-buildings",
-          Some(journeyAnswers("banks-and-buildings", ""))
+          "uk-interest",
+          Some(journeyAnswers("uk-interest", ""))
         )
 
         mockGetJourneyAnswers(
           mtdItId,
           taxYear,
-          "trust-fund-bond",
-          Some(journeyAnswers("trust-fund-bond", "somethingRandom"))
+          "uk-interest",
+          Some(journeyAnswers("uk-interest", "somethingRandom"))
         )
 
         mockGetJourneyAnswers(
@@ -235,11 +235,11 @@ class CommonTaskListServiceSpec extends TestSuite
         mockGetJourneyAnswers(
           mtdItId,
           taxYear,
-          "banks-and-buildings",
-          Some(journeyAnswers("banks-and-buildings", "").copy(data = JsObject.empty))
+          "uk-interest",
+          Some(journeyAnswers("uk-interest", "").copy(data = JsObject.empty))
         )
 
-        mockGetJourneyAnswers(mtdItId, taxYear, "trust-fund-bond", None)
+        mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", None)
 
         def result: TaskListSection = await(service.get(taxYear, nino, mtdItId))
         assertThrows[NoSuchElementException](result)
