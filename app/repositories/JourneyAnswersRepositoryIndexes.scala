@@ -16,7 +16,7 @@
 
 package repositories
 
-import config.AppConfig
+import config.{AppConfig, BackendAppConfig}
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Indexes.{ascending, compoundIndex}
 import org.mongodb.scala.model.{IndexModel, IndexOptions}
@@ -31,7 +31,7 @@ object JourneyAnswersRepositoryIndexes {
     ascending("journey")
   )
 
-  def indexes()(implicit appConfig: AppConfig): Seq[IndexModel] = Seq(
+  def indexes()(implicit appConfig: BackendAppConfig): Seq[IndexModel] = Seq(
     IndexModel(lookUpIndex, IndexOptions().name("mtdItId-taxYear-journey")),
     IndexModel(
       ascending("lastUpdated"),

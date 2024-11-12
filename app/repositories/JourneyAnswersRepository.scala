@@ -16,7 +16,7 @@
 
 package repositories
 
-import config.AppConfig
+import config.{AppConfig, BackendAppConfig}
 import models.Done
 import models.mongo.JourneyAnswers
 import org.mongodb.scala.bson.conversions.Bson
@@ -37,13 +37,14 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class JourneyAnswersRepository @Inject()(mongoComponent: MongoComponent,
                                          appConfig: AppConfig,
+                                         backendAppConfig: BackendAppConfig,
                                          clock: Clock)(implicit ec: ExecutionContext, crypto: Encrypter with Decrypter)
   extends PlayMongoRepository[JourneyAnswers](
     collectionName = "journeyAnswers",
     mongoComponent = mongoComponent,
     domainFormat = JourneyAnswers.encryptedFormat,
     indexes = JourneyAnswersRepositoryIndexes.indexes()(appConfig),
-    replaceIndexes = appConfig.replaceJourneyAnswersIndexes
+    replaceIndexes = backendAppConfig.replaceJourneyAnswersIndexes
   ) with Logging {
 
   implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
