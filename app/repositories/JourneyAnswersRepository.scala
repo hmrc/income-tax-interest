@@ -16,19 +16,17 @@
 
 package repositories
 
-import config.{AppConfig, BackendAppConfig}
+import config.AppConfig
 import models.Done
 import models.mongo.JourneyAnswers
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters.{and, equal}
 import org.mongodb.scala.model._
 import play.api.Logging
-import play.api.libs.json.Format
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.Codecs.toBson
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
-import uk.gov.hmrc.mongo.play.json.formats.MongoJavatimeFormats
 
 import java.time.{Clock, Instant}
 import javax.inject.{Inject, Singleton}
@@ -37,17 +35,14 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class JourneyAnswersRepository @Inject()(mongoComponent: MongoComponent,
                                          appConfig: AppConfig,
-                                         backendAppConfig: BackendAppConfig,
                                          clock: Clock)(implicit ec: ExecutionContext, crypto: Encrypter with Decrypter)
   extends PlayMongoRepository[JourneyAnswers](
     collectionName = "journeyAnswers",
     mongoComponent = mongoComponent,
     domainFormat = JourneyAnswers.encryptedFormat,
-    indexes = JourneyAnswersRepositoryIndexes.indexes()(backendAppConfig),
-    replaceIndexes = backendAppConfig.replaceJourneyAnswersIndexes
+    indexes = JourneyAnswersRepositoryIndexes.indexes()(appConfig),
+    replaceIndexes = appConfig.replaceJourneyAnswersIndexes
   ) with Logging {
-
-  implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
   private def filterByMtdItIdYear(mtdItId: String, taxYear: Int, journey: String): Bson = and(
     equal("mtdItId", toBson(mtdItId)),

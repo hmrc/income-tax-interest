@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
-package models.requests
+package config
 
-import models.User
-import play.api.mvc.{Request, WrappedRequest}
+import play.api.inject.Binding
+import play.api.{Configuration, Environment}
+import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
+import utils.AesGcmCryptoProvider
 
-case class AuthorisationRequest[T](user: User, request: Request[T]) extends WrappedRequest[T](request)
+import java.time.Clock
+
+class Module extends play.api.inject.Module {
+  override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[_]] = {
+    Seq(
+      bind[Encrypter with Decrypter].toProvider[AesGcmCryptoProvider],
+      bind[AppConfig].to[BackendAppConfig].eagerly(),
+      bind[Clock].toInstance(Clock.systemUTC())
+    )
+  }
+}

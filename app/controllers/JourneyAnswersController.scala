@@ -16,7 +16,7 @@
 
 package controllers
 
-import actions.AuthorisedAction
+import controllers.predicates.AuthorisedAction
 import models.TaxYearPathBindable.TaxYear
 import models.mongo.JourneyAnswers
 import play.api.Logging
@@ -38,7 +38,7 @@ class JourneyAnswersController @Inject()(
 
   def get(journey: String, taxYear: TaxYear): Action[AnyContent] = authorisedAction.async { request =>
     repository
-      .get(request.user.mtditid, taxYear.taxYear, journey)
+      .get(request.mtditid, taxYear.taxYear, journey)
       .map {
         case Some(value) => Ok(Json.toJson(value))
         case None =>
@@ -66,13 +66,13 @@ class JourneyAnswersController @Inject()(
   def keepAlive(journey: String, taxYear: TaxYear): Action[AnyContent] = authorisedAction.async {
     request =>
       repository
-        .keepAlive(request.user.mtditid, taxYear.taxYear, journey)
+        .keepAlive(request.mtditid, taxYear.taxYear, journey)
         .map(_ => NoContent)
   }
 
   def clear(journey: String, taxYear: TaxYear): Action[AnyContent] = authorisedAction.async { request =>
     repository
-      .clear(request.user.mtditid, taxYear.taxYear, journey)
+      .clear(request.mtditid, taxYear.taxYear, journey)
       .map(_ => NoContent)
   }
 }
