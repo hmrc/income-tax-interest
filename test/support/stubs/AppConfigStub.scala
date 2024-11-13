@@ -42,5 +42,9 @@ class AppConfigStub extends MockFactory {
     override def authorisationTokenFor(apiVersion: String): String = ifAuthorisationToken + s".$apiVersion"
 
     override def desAuthorisationTokenFor(apiVersion: String): String = ""
+
+    override val encryptionKey: String = "someKey"
+    override val mongoJourneyAnswersTTL: Int = 0
+    override val replaceJourneyAnswersIndexes: Boolean = false
   }
 }

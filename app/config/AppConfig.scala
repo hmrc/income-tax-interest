@@ -44,6 +44,13 @@ trait AppConfig {
 
   val personalFrontendBaseUrl: String
 
+  //User data Mongo config
+  val encryptionKey: String
+
+  //Journey answers Mongo config
+  val mongoJourneyAnswersTTL: Int
+  val replaceJourneyAnswersIndexes: Boolean
+
   def authorisationTokenFor(apiVersion: String): String
   def desAuthorisationTokenFor(apiVersion: String): String
 }
@@ -69,9 +76,7 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   val personalFrontendBaseUrl: String = config.get[String]("microservice.services.personal-income-tax-submission-frontend.url")
 
   //User data Mongo config
-  lazy val mongoTTL: Int = Duration(servicesConfig.getString("mongodb.timeToLive")).toMinutes.toInt
   lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
-  lazy val useEncryption: Boolean = servicesConfig.getBoolean("useEncryption")
 
   //Journey answers Mongo config
   lazy val mongoJourneyAnswersTTL: Int = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays.toInt

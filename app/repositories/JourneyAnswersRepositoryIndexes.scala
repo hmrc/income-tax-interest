@@ -31,7 +31,7 @@ object JourneyAnswersRepositoryIndexes {
     ascending("journey")
   )
 
-  def indexes()(implicit appConfig: BackendAppConfig): Seq[IndexModel] = Seq(
+  def indexes()(implicit appConfig: AppConfig): Seq[IndexModel] = Seq(
     IndexModel(lookUpIndex, IndexOptions().name("mtdItId-taxYear-journey")),
     IndexModel(
       ascending("lastUpdated"),

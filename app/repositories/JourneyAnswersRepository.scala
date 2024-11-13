@@ -37,14 +37,13 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class JourneyAnswersRepository @Inject()(mongoComponent: MongoComponent,
                                          appConfig: AppConfig,
-                                         backendAppConfig: BackendAppConfig,
                                          clock: Clock)(implicit ec: ExecutionContext, crypto: Encrypter with Decrypter)
   extends PlayMongoRepository[JourneyAnswers](
     collectionName = "journeyAnswers",
     mongoComponent = mongoComponent,
     domainFormat = JourneyAnswers.encryptedFormat,
-    indexes = JourneyAnswersRepositoryIndexes.indexes()(backendAppConfig),
-    replaceIndexes = backendAppConfig.replaceJourneyAnswersIndexes
+    indexes = JourneyAnswersRepositoryIndexes.indexes()(appConfig),
+    replaceIndexes = appConfig.replaceJourneyAnswersIndexes
   ) with Logging {
 
   implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
