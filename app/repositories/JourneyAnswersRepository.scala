@@ -16,7 +16,7 @@
 
 package repositories
 
-import config.{AppConfig, BackendAppConfig}
+import config.AppConfig
 import models.Done
 import models.mongo.JourneyAnswers
 import org.mongodb.scala.bson.conversions.Bson

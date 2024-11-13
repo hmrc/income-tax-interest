@@ -16,7 +16,7 @@
 
 package repositories
 
-import config.{AppConfig, BackendAppConfig}
+import config.AppConfig
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Indexes.{ascending, compoundIndex}
 import org.mongodb.scala.model.{IndexModel, IndexOptions}

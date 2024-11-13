@@ -16,7 +16,7 @@
 
 package utils
 
-import config.{AppConfig, BackendAppConfig}
+import config.AppConfig
 import uk.gov.hmrc.crypto.{Decrypter, Encrypter, SymmetricCryptoFactory}
 
 import javax.inject.{Inject, Provider, Singleton}
@@ -26,6 +26,6 @@ import javax.inject.{Inject, Provider, Singleton}
 // This is used to create an implicit binding in config.Module
 // The implicit binding is used to provide an encryption/ decryption implementation to the JourneyAnswersRepository
 @Singleton
-class AesGcmCryptoProvider @Inject()(backendAppConfig: BackendAppConfig) extends Provider[Encrypter with Decrypter] {
-  override def get(): Encrypter with Decrypter = SymmetricCryptoFactory.aesGcmCrypto(backendAppConfig.encryptionKey)
+class AesGcmCryptoProvider @Inject()(appConfig: AppConfig) extends Provider[Encrypter with Decrypter] {
+  override def get(): Encrypter with Decrypter = SymmetricCryptoFactory.aesGcmCrypto(appConfig.encryptionKey)
 }
