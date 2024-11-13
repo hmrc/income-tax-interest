@@ -46,13 +46,13 @@ class JourneyAnswersRepository @Inject()(mongoComponent: MongoComponent,
     replaceIndexes = appConfig.replaceJourneyAnswersIndexes
   ) with Logging {
 
-  implicit val instantFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
   private def filterByMtdItIdYear(mtdItId: String, taxYear: Int, journey: String): Bson = and(
     equal("mtdItId", toBson(mtdItId)),
     equal("taxYear", toBson(taxYear)),
     equal("journey", toBson(journey))
   )
+
 
   def keepAlive(mtdItId: String, taxYear: Int, journey: String): Future[Done] =
     collection
