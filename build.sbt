@@ -1,4 +1,6 @@
 
+
+import play.sbt.routes.RoutesKeys
 import uk.gov.hmrc.DefaultBuildSettings
 
 val appName = "income-tax-interest"
@@ -39,6 +41,7 @@ lazy val microservice = Project(appName, file("."))
     scalacOptions += s"-Wconf:src=${target.value}/.*:s"
   )
   .settings(PlayKeys.playDefaultPort := 9309)
+  .settings(RoutesKeys.routesImport ++= Seq("models.TaxYearPathBindable._", "models.TaxYearPathBindable.TaxYear"))
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(coverageSettings *)
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)

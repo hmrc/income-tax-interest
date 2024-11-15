@@ -9,3 +9,9 @@ PUT        /income-tax/nino/:nino/savings   controllers.CreateOrAmendSavingsCont
 DELETE     /income-tax/nino/:nino/savings   controllers.DeleteSavingsIncomeDataController.deleteSavingsIncomeData(nino: String, taxYear: Int)
 
 GET        /:taxYear/tasks/:nino            controllers.CommonTaskListController.getCommonTaskList(taxYear: Int, nino: String)
+
+# Journey answers endpoints
+GET         /journey-answers/:journeyKey/:taxYear                   controllers.JourneyAnswersController.get(journeyKey: String, taxYear: TaxYear)
+POST        /journey-answers                                        controllers.JourneyAnswersController.set
+DELETE	    /journey-answers/:journeyKey/:taxYear                   controllers.JourneyAnswersController.clear(journeyKey: String, taxYear: TaxYear)
+POST        /journey-answers/keep-alive/:journeyKey/:taxYear        controllers.JourneyAnswersController.keepAlive(journeyKey: String, taxYear: TaxYear)

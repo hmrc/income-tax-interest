@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,16 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.bind
 import play.api.libs.ws.{WSClient, WSRequest}
 import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.test.MongoSupport
 
 import scala.concurrent.ExecutionContext
 
 trait WiremockSpec extends BeforeAndAfterEach with BeforeAndAfterAll with GuiceOneServerPerSuite
-  with FutureAwaits with DefaultAwaitTimeout with WiremockStubHelpers {
+  with FutureAwaits with DefaultAwaitTimeout with WiremockStubHelpers with MongoSupport{
   self: PlaySpec =>
 
   val wireMockPort = 11111
@@ -47,6 +50,9 @@ trait WiremockSpec extends BeforeAndAfterEach with BeforeAndAfterAll with GuiceO
     .flatMap(service => Seq(s"microservice.services.$service.host" -> s"localhost", s"microservice.services.$service.port" -> wireMockPort.toString))
 
   override implicit lazy val app = GuiceApplicationBuilder()
+    .overrides(
+      bind[MongoComponent].toInstance(mongoComponent)
+    )
     .configure(
       ("auditing.consumer.baseUri.port" -> wireMockPort) +:
         servicesToUrlConfig: _*
