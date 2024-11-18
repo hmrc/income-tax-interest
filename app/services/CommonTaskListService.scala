@@ -16,9 +16,15 @@
 
 package services
 
+import cats.data.EitherT
 import config.AppConfig
-import models.tasklist._
-import models.{AllInterest, NamedInterestDetailsModel, SavingsIncomeDataModel}
+import models.ErrorModel
+import models.mongo.JourneyAnswers
+import models.taskList.TaskStatus.{Completed, InProgress, NotStarted}
+import models.taskList.TaskTitle
+import models.taskList._
+import play.api.Logging
+import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
@@ -26,65 +32,86 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class CommonTaskListService @Inject()(appConfig: AppConfig,
                                       interestsService: GetInterestsService,
-                                      savingsIncomeDataService: GetSavingsIncomeDataService
-                                     ) {
+                                      savingsIncomeDataService: GetSavingsIncomeDataService,
+                                      journeyAnswersRepository: JourneyAnswersRepository) extends Logging {
 
-  def get(taxYear: Int, nino: String)(implicit ec: ExecutionContext, hc: HeaderCarrier): Future[TaskListSection] = {
+  // TODO: these will be links to the new individual CYA pages when they are made
+  private lazy val baseUrl = s"${appConfig.personalFrontendBaseUrl}/update-and-submit-income-tax-return/personal-income"
 
-    val interest = interestsService.getInterestsList(nino, taxYear.toString).map {
-      case Left(_) => List[NamedInterestDetailsModel](NamedInterestDetailsModel("", "", None, None))
-      case Right(value) => value
-    }
-
-    val savings: Future[SavingsIncomeDataModel] = savingsIncomeDataService.getSavingsIncomeData(nino, taxYear).map {
-      case Left(_) => SavingsIncomeDataModel(None, None, None)
-      case Right(value) => value
-    }
-
-
-    val allInterest: Future[AllInterest] = for {
-      taxedUkInterest <- interest.map(_.find(_.taxedUkInterest.isDefined).flatMap(_.taxedUkInterest))
-      untaxedUkInterest <- interest.map(_.find(_.untaxedUkInterest.isDefined).flatMap(_.untaxedUkInterest))
-      giftedEdgeOrAccrued <- savings.map(_.securities)
-    } yield {
-      AllInterest(
-        NamedInterestDetailsModel("", "", taxedUkInterest, untaxedUkInterest),
-        SavingsIncomeDataModel(None, giftedEdgeOrAccrued, None)
-      )
-    }
-
-    allInterest.map { i =>
-      val tasks: Option[Seq[TaskListSectionItem]] = {
-        val optionalTasks: Seq[TaskListSectionItem] = getTasks(i.interestDetails, i.savingsIncomeData, taxYear)
-        if (optionalTasks.nonEmpty) {
-          Some(optionalTasks)
-        } else {
-          None
+  private def getTaskForItem(taskTitle: TaskTitle,
+                             taskUrl: String,
+                             journeyAnswers: Option[JourneyAnswers],
+                             isDataDefined: Boolean): Option[TaskListSectionItem] =
+    (journeyAnswers, isDataDefined) match {
+      case (Some(ja), _) =>
+        val status: TaskStatus = ja.data.value("status").validate[TaskStatus].asOpt match {
+          case Some(TaskStatus.Completed) => Completed
+          case Some(TaskStatus.InProgress) => InProgress
+          case _ =>
+            logger.info("[CommonTaskListService][getStatus] status stored in an invalid format, setting as 'Not yet started'.")
+            NotStarted
         }
-      }
-      TaskListSection(SectionTitle.InterestTitle, tasks)
+
+        Some(TaskListSectionItem(taskTitle, status, Some(taskUrl)))
+      case (_, true) =>
+        Some(TaskListSectionItem(taskTitle, if(appConfig.hyfJourneyEnabled) InProgress else Completed, Some(taskUrl)))
+      case _ => None
     }
+
+  private def getInterestTasks(taxYear: Int, nino: String, mtdItId: String)
+                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[TaskListSectionItem]] = {
+    lazy val bankAndBuildingUrl: String = s"$baseUrl/$taxYear/interest/check-interest"
+    lazy val trustFundUrl: String = s"$baseUrl/$taxYear/interest/check-interest"
+
+    val banksAndBuildingsJourneyName: String = "uk-interest" //"banks-and-buildings"
+    val trustFundBondJourneyName: String = "uk-interest" //"trust-fund-bond"
+
+    val result: EitherT[Future, ErrorModel, Seq[TaskListSectionItem]] = {
+      for {
+        interestsList <- EitherT(interestsService.getInterestsList(nino, taxYear.toString))
+        taxedJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, banksAndBuildingsJourneyName))
+        untaxedJourneyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, trustFundBondJourneyName))
+        taxedUkInterestExists = interestsList.exists(_.taxedUkInterest.isDefined)
+        untaxedUkInterestExists = interestsList.exists(_.untaxedUkInterest.isDefined)
+      } yield Seq(
+        getTaskForItem(TaskTitle.BanksAndBuilding, bankAndBuildingUrl, taxedJourneyAnswers, taxedUkInterestExists),
+        getTaskForItem(TaskTitle.TrustFundBond, trustFundUrl, untaxedJourneyAnswers, untaxedUkInterestExists)
+      ).flatten
+    }
+
+    result.leftMap(_ => Nil).merge
   }
 
-  private def getTasks(interest: NamedInterestDetailsModel, savings: SavingsIncomeDataModel, taxYear: Int): Seq[TaskListSectionItem] = {
+  private def getSavingsTasks(taxYear: Int, nino: String, mtdItId: String)
+                              (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[Seq[TaskListSectionItem]] = {
+    lazy val giltEdgeUrl: String = s"$baseUrl/$taxYear/interest/check-interest-from-securities"
+    val giltEdgedJourneyName: String = "gilt-edged"
 
-    // TODO: these will be links to the new individual CYA pages when they are made
-    val bankAndBuildingUrl: String =
-      s"${appConfig.personalFrontendBaseUrl}/update-and-submit-income-tax-return/personal-income/$taxYear/interest/check-interest"
-    val trustFundUrl: String =
-      s"${appConfig.personalFrontendBaseUrl}/update-and-submit-income-tax-return/personal-income/$taxYear/interest/check-interest"
-    val giltEdgeUrl: String =
-      s"${appConfig.personalFrontendBaseUrl}/update-and-submit-income-tax-return/personal-income/$taxYear/interest/check-interest-from-securities"
+    val result: EitherT[Future, ErrorModel, Seq[TaskListSectionItem]] = {
+      for {
+        savings <- EitherT(savingsIncomeDataService.getSavingsIncomeData(nino, taxYear))
+        journeyAnswers <- EitherT.right(journeyAnswersRepository.get(mtdItId, taxYear, giltEdgedJourneyName))
+        securitiesIsDefined = savings.securities.isDefined
+      } yield Seq(
+        getTaskForItem(TaskTitle.GiltEdged, giltEdgeUrl, journeyAnswers, securitiesIsDefined)
+      ).flatten
+    }
 
-    val bankAndBuildingSocieties: Option[TaskListSectionItem] = interest.untaxedUkInterest.map(_ =>
-      TaskListSectionItem(TaskTitle.BanksAndBuilding, TaskStatus.Completed, Some(bankAndBuildingUrl)))
+    result.leftMap(_ => Nil).merge
+  }
 
-    val trustFundBond: Option[TaskListSectionItem] = interest.taxedUkInterest.map(_ =>
-      TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.Completed, Some(trustFundUrl)))
+  def get(taxYear: Int, nino: String, mtdItId: String)
+         (implicit ec: ExecutionContext, hc: HeaderCarrier): Future[TaskListSection] = {
 
-    val giltEdgedOrAccrued: Option[TaskListSectionItem] = savings.securities.map(_ =>
-      TaskListSectionItem(TaskTitle.GiltEdged, TaskStatus.Completed, Some(giltEdgeUrl)))
+    val result = for {
+      interestTasks <- getInterestTasks(taxYear, nino, mtdItId)
+      savingsTasks <- getSavingsTasks(taxYear, nino, mtdItId)
+      allTasks = interestTasks ++ savingsTasks
+    } yield {
+      val tasks = if (allTasks.nonEmpty) Some(allTasks) else None
+      TaskListSection(SectionTitle.InterestTitle, tasks)
+    }
 
-    Seq[Option[TaskListSectionItem]](bankAndBuildingSocieties, trustFundBond, giltEdgedOrAccrued).flatten
+    result
   }
 }

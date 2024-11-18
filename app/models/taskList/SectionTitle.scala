@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package config
+package models.taskList
 
-import play.api.inject.Binding
-import play.api.{Configuration, Environment}
-import uk.gov.hmrc.crypto.{Decrypter, Encrypter}
-import utils.AesGcmCryptoProvider
+import enumeratum._
 
-import java.time.Clock
+sealed abstract class SectionTitle(override val entryName: String) extends EnumEntry {
+  override def toString: String = entryName
+}
 
-class Module extends play.api.inject.Module {
-  override def bindings(environment: Environment, configuration: Configuration): collection.Seq[Binding[_]] = {
-    Seq(
-      bind[Encrypter with Decrypter].toProvider[AesGcmCryptoProvider],
-      bind[AppConfig].to[BackendAppConfig].eagerly(),
-      bind[Clock].toInstance(Clock.systemUTC())
-    )
-  }
+object SectionTitle extends Enum[SectionTitle] with PlayJsonEnum[SectionTitle] {
+
+  val values: IndexedSeq[SectionTitle] = findValues
+
+  case object InterestTitle extends SectionTitle("Interest")
+
 }

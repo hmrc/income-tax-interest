@@ -16,8 +16,7 @@
 
 package controllers
 
-import models.tasklist.{SectionTitle, TaskListSection}
-import org.scalamock.handlers.CallHandler4
+import models.taskList.{SectionTitle, TaskListSection}
 import play.api.http.Status.OK
 import services.CommonTaskListService
 import testUtils.TestSuite
@@ -27,25 +26,26 @@ import utils.TaxYearUtils
 import scala.concurrent.{ExecutionContext, Future}
 
 class CommonTaskListControllerSpec extends TestSuite {
-
   val nino :String = "123456789"
   val mtdItId :String = "1234567890"
   val specificTaxYear: Int = TaxYearUtils.specificTaxYear
 
   val commonTaskListService: CommonTaskListService = mock[CommonTaskListService]
 
-  val controller = new CommonTaskListController(commonTaskListService, authorisedAction, mockControllerComponents)
+  val controller = new CommonTaskListController(
+    service = commonTaskListService,
+    auth = authorisedAction,
+    cc = mockControllerComponents
+  )
 
-  def mockInterestService(): CallHandler4[Int, String, ExecutionContext, HeaderCarrier, Future[TaskListSection]] = {
-    (commonTaskListService.get(_: Int, _: String)(_: ExecutionContext, _: HeaderCarrier))
-      .expects(*, *, *, *)
+  private def mockInterestService() = {
+    (commonTaskListService.get(_: Int, _: String, _: String)(_: ExecutionContext, _: HeaderCarrier))
+      .expects(*, *, *, *, *)
       .returning(Future.successful(TaskListSection(SectionTitle.InterestTitle, None)))
   }
 
   ".getCommonTaskList" should {
-
     "return a task list section model" in {
-
       val result = {
         mockAuth()
         mockInterestService()

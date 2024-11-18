@@ -25,7 +25,6 @@ import org.mongodb.scala.bson.BsonDocument
 import org.mongodb.scala.bson.conversions.Bson
 import org.mongodb.scala.model.Filters
 import org.scalatest.OptionValues
-import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
@@ -38,7 +37,6 @@ import java.security.SecureRandom
 import java.time.temporal.ChronoUnit
 import java.time.{Clock, Instant, ZoneId}
 import java.util.Base64
-import scala.Console.in
 
 class JourneyAnswersRepositorySpec
   extends IntegrationTest
@@ -67,7 +65,7 @@ class JourneyAnswersRepositorySpec
 
   override implicit lazy val appConfig: AppConfig = mock[AppConfig]
 
-  protected override val repository = new JourneyAnswersRepository(
+  protected override val repository = new JourneyAnswersRepositoryImpl(
     mongoComponent = mongoComponent,
     appConfig = appConfig,
     clock = stubClock

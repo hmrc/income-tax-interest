@@ -30,12 +30,13 @@ object AppDependencies {
   )
 
   val compile: Seq[ModuleID] = Seq(
-    "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"  % bootstrapVersion,
+    "uk.gov.hmrc" %% "bootstrap-backend-play-30" % bootstrapVersion,
+    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.17.0",
     "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % hmrcMongoPlay30Version,
-    "uk.gov.hmrc"                   %% "crypto-json-play-30"        % "7.6.0",
-    "com.fasterxml.jackson.module"  %% "jackson-module-scala"       % "2.17.0",
-    "com.beachape"                  %% "enumeratum"                 % "1.7.3",
-    "com.beachape"                  %% "enumeratum-play-json"       % "1.7.3" excludeAll (jacksonAndPlayExclusions *)
+    "com.beachape" %% "enumeratum" % "1.7.3",
+    "uk.gov.hmrc"  %% "crypto-json-play-30" % "7.6.0",
+    "org.typelevel" %% "cats-core" % "2.12.0",
+    "com.beachape" %% "enumeratum-play-json" % "1.7.3" excludeAll (jacksonAndPlayExclusions *)
   )
 
   val test: Seq[ModuleID] = Seq(
