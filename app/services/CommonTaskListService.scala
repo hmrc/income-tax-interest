@@ -53,7 +53,8 @@ class CommonTaskListService @Inject()(appConfig: AppConfig,
         }
 
         Some(TaskListSectionItem(taskTitle, status, Some(taskUrl)))
-      case (_, true) => Some(TaskListSectionItem(taskTitle, Completed, Some(taskUrl)))
+      case (_, true) =>
+        Some(TaskListSectionItem(taskTitle, if(appConfig.hyfJourneyEnabled) InProgress else Completed, Some(taskUrl)))
       case _ => None
     }
 

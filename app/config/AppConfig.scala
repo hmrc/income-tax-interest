@@ -44,6 +44,8 @@ trait AppConfig {
 
   val personalFrontendBaseUrl: String
 
+  val hyfJourneyEnabled: Boolean
+
   //User data Mongo config
   val encryptionKey: String
 
@@ -74,6 +76,8 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   lazy val ifEnvironment: String = servicesConfig.getString(key = "microservice.services.integration-framework.environment")
 
   val personalFrontendBaseUrl: String = config.get[String]("microservice.services.personal-income-tax-submission-frontend.url")
+
+  lazy val hyfJourneyEnabled: Boolean = servicesConfig.getBoolean("feature-switch.hyfJourneyEnabled")
 
   //User data Mongo config
   lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")

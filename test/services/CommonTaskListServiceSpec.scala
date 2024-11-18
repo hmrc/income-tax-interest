@@ -25,7 +25,7 @@ import models.taskList._
 import play.api.http.Status.{IM_A_TEAPOT, NOT_FOUND}
 import play.api.libs.json.{JsArray, JsObject, JsString, Json}
 import support.mocks.{MockGetInterestsService, MockGetSavingsIncomeDataService, MockJourneyAnswersRepository}
-import testUtils.TestSuite
+import testUtils.{MockAppConfig, TestSuite}
 
 import java.time.Instant
 
@@ -83,6 +83,16 @@ class CommonTaskListServiceSpec extends TestSuite
           TaskListSectionItem(TaskTitle.BanksAndBuilding, TaskStatus.Completed, Some(banksAndBuildingsUrl)),
           TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.Completed, Some(trustFundBondUrl)),
           TaskListSectionItem(TaskTitle.GiltEdged, TaskStatus.Completed, Some(giltEdgedUrl)),
+        ))
+      )
+
+    val inProgressTaskSection: TaskListSection =
+      TaskListSection(
+        sectionTitle = SectionTitle.InterestTitle,
+        taskItems = Some(List(
+          TaskListSectionItem(TaskTitle.BanksAndBuilding, TaskStatus.InProgress, Some(banksAndBuildingsUrl)),
+          TaskListSectionItem(TaskTitle.TrustFundBond, TaskStatus.InProgress, Some(trustFundBondUrl)),
+          TaskListSectionItem(TaskTitle.GiltEdged, TaskStatus.InProgress, Some(giltEdgedUrl)),
         ))
       )
 
@@ -178,7 +188,18 @@ class CommonTaskListServiceSpec extends TestSuite
         )))
       }
 
-      "return 'Completed' status when Journey Answers are not defined" in new Test {
+      "return 'Completed' status when Journey Answers are not defined and hyfJourneyEnabled is false" in new Test {
+        val hyfDisabledAppConfig: MockAppConfig = new MockAppConfig{
+          override val hyfJourneyEnabled: Boolean = false
+        }
+
+        override val service: CommonTaskListService = new CommonTaskListService(
+          appConfig = hyfDisabledAppConfig,
+          interestsService = mockGetInterestsService,
+          savingsIncomeDataService = mockGetSavingsService,
+          journeyAnswersRepository = mockJourneyAnswersRepo
+        )
+
         mockGetInterestsList(nino, taxYear.toString, fullInterestResult)
         mockGetSavingsIncomeData(nino, taxYear, fullGiltEdgeOrAccruedResult)
         mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", None)
@@ -188,6 +209,29 @@ class CommonTaskListServiceSpec extends TestSuite
         def result: TaskListSection = await(service.get(taxYear, nino, mtdItId))
         result mustBe completedTaskSection
       }
+
+      "return 'InProgress' status when Journey Answers are not defined and hyfJourneyEnabled is true" in new Test {
+        val hyfDisabledAppConfig: MockAppConfig = new MockAppConfig{
+          override val hyfJourneyEnabled: Boolean = true
+        }
+
+        override val service: CommonTaskListService = new CommonTaskListService(
+          appConfig = hyfDisabledAppConfig,
+          interestsService = mockGetInterestsService,
+          savingsIncomeDataService = mockGetSavingsService,
+          journeyAnswersRepository = mockJourneyAnswersRepo
+        )
+
+        mockGetInterestsList(nino, taxYear.toString, fullInterestResult)
+        mockGetSavingsIncomeData(nino, taxYear, fullGiltEdgeOrAccruedResult)
+        mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", None)
+        mockGetJourneyAnswers(mtdItId, taxYear, "uk-interest", None)
+        mockGetJourneyAnswers(mtdItId, taxYear, "gilt-edged", None)
+
+        def result: TaskListSection = await(service.get(taxYear, nino, mtdItId))
+        result mustBe inProgressTaskSection
+      }
+
 
       "return 'Not Started' status when Journey Answers are defined but a status cannot be parsed" in new Test {
         mockGetInterestsList(nino, taxYear.toString, fullInterestResult)
