@@ -16,6 +16,7 @@
 
 package repositories
 
+import com.google.inject.ImplementedBy
 import config.AppConfig
 import models.Done
 import models.mongo.JourneyAnswers
@@ -32,25 +33,31 @@ import java.time.{Clock, Instant}
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
+@ImplementedBy(classOf[JourneyAnswersRepositoryImpl])
+trait JourneyAnswersRepository {
+  def keepAlive(mtdItId: String, taxYear: Int, journey: String): Future[Done]
+  def get(mtdItId: String, taxYear: Int, journey: String): Future[Option[JourneyAnswers]]
+  def set(userData: JourneyAnswers): Future[Done]
+  def clear(mtdItId: String, taxYear: Int, journey: String): Future[Done]
+}
+
 @Singleton
-class JourneyAnswersRepository @Inject()(mongoComponent: MongoComponent,
-                                         appConfig: AppConfig,
-                                         clock: Clock)(implicit ec: ExecutionContext, crypto: Encrypter with Decrypter)
+class JourneyAnswersRepositoryImpl @Inject()(mongoComponent: MongoComponent,
+                                             appConfig: AppConfig,
+                                             clock: Clock)(implicit ec: ExecutionContext, crypto: Encrypter with Decrypter)
   extends PlayMongoRepository[JourneyAnswers](
     collectionName = "journeyAnswers",
     mongoComponent = mongoComponent,
     domainFormat = JourneyAnswers.encryptedFormat,
     indexes = JourneyAnswersRepositoryIndexes.indexes()(appConfig),
     replaceIndexes = appConfig.replaceJourneyAnswersIndexes
-  ) with Logging {
-
+  ) with Logging with JourneyAnswersRepository {
 
   private def filterByMtdItIdYear(mtdItId: String, taxYear: Int, journey: String): Bson = and(
     equal("mtdItId", toBson(mtdItId)),
     equal("taxYear", toBson(taxYear)),
     equal("journey", toBson(journey))
   )
-
 
   def keepAlive(mtdItId: String, taxYear: Int, journey: String): Future[Done] =
     collection
@@ -71,7 +78,6 @@ class JourneyAnswersRepository @Inject()(mongoComponent: MongoComponent,
   }
 
   def set(userData: JourneyAnswers): Future[Done] = {
-
     val updatedUserData = userData copy (lastUpdated = Instant.now(clock))
 
     collection
