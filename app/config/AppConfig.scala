@@ -44,7 +44,7 @@ trait AppConfig {
 
   val personalFrontendBaseUrl: String
 
-  val hyfJourneyEnabled: Boolean
+  val sectionCompletedQuestionEnabled: Boolean
 
   //User data Mongo config
   val encryptionKey: String
@@ -77,7 +77,7 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
 
   val personalFrontendBaseUrl: String = config.get[String]("microservice.services.personal-income-tax-submission-frontend.url")
 
-  lazy val hyfJourneyEnabled: Boolean = servicesConfig.getBoolean("feature-switch.hyfJourneyEnabled")
+  lazy val sectionCompletedQuestionEnabled: Boolean = servicesConfig.getBoolean("feature-switch.sectionCompletedQuestionEnabled")
 
   //User data Mongo config
   lazy val encryptionKey: String = servicesConfig.getString("mongodb.encryption.key")
