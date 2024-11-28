@@ -190,7 +190,7 @@ class CommonTaskListServiceSpec extends TestSuite
 
       "return 'Completed' status when Journey Answers are not defined and hyfJourneyEnabled is false" in new Test {
         val hyfDisabledAppConfig: MockAppConfig = new MockAppConfig{
-          override val hyfJourneyEnabled: Boolean = false
+          override val sectionCompletedQuestionEnabled: Boolean = false
         }
 
         override val service: CommonTaskListService = new CommonTaskListService(
@@ -212,7 +212,7 @@ class CommonTaskListServiceSpec extends TestSuite
 
       "return 'InProgress' status when Journey Answers are not defined and hyfJourneyEnabled is true" in new Test {
         val hyfDisabledAppConfig: MockAppConfig = new MockAppConfig{
-          override val hyfJourneyEnabled: Boolean = true
+          override val sectionCompletedQuestionEnabled: Boolean = true
         }
 
         override val service: CommonTaskListService = new CommonTaskListService(

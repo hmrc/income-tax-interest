@@ -43,7 +43,7 @@ class AppConfigStub extends MockFactory {
 
     override def desAuthorisationTokenFor(apiVersion: String): String = ""
 
-    override val hyfJourneyEnabled: Boolean = true
+    override val sectionCompletedQuestionEnabled: Boolean = true
 
     override val encryptionKey: String = "someKey"
     override val mongoJourneyAnswersTTL: Int = 0
