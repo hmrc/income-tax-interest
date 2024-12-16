@@ -25,7 +25,7 @@ import play.api.mvc.AnyContentAsEmpty
 import play.api.test.FakeRequest
 import services.CreateOrAmendSavingsService
 import testUtils.TestSuite
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 
 import scala.concurrent.Future
 
@@ -49,7 +49,8 @@ class CreateOrAmendSavingsControllerSpec extends TestSuite {
   val mtditid = "1234567890"
 
 
-  override val fakeRequestWithMtditid: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("PUT", "/").withHeaders("MTDITID" -> mtditid)
+  override val fakeRequestWithMtditid: FakeRequest[AnyContentAsEmpty.type] = FakeRequest("PUT", "/").withHeaders("MTDITID" -> mtditid,
+    SessionKeys.sessionId -> "someSessionId")
 
 
   ".createOrAmendSavings" should {

@@ -37,11 +37,12 @@ import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.HeaderCarrier
+import support.providers.AppConfigStubProvider
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
 
-trait UnitTest extends AnyWordSpec with Matchers with MockFactory with BeforeAndAfterEach {
+trait UnitTest extends AnyWordSpec with Matchers with MockFactory with BeforeAndAfterEach with AppConfigStubProvider {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -66,7 +67,7 @@ trait UnitTest extends AnyWordSpec with Matchers with MockFactory with BeforeAnd
   implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]
   implicit val mockAuthService: AuthService = new AuthService(mockAuthConnector)
   val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(mockControllerComponents.parsers.default)
-  val authorisedAction = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockControllerComponents)
+  val authorisedAction = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, appConfigStub , mockControllerComponents)
 
 
   def status(awaitable: Future[Result]): Int = await(awaitable).header.status
