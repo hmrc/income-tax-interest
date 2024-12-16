@@ -35,6 +35,7 @@ import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
 import support.providers.AppConfigStubProvider
+import utils.HMRCHeaderNames
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
@@ -53,12 +54,12 @@ trait TestSuite extends AnyWordSpec with Matchers with MockFactory with BeforeAn
 
   implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest().
-    withHeaders("mtditid" -> "1234567890", SessionKeys.sessionId -> "someSessionId")
+    withHeaders("mtditid" -> "1234567890", SessionKeys.sessionId -> "someSessionId", HMRCHeaderNames.CorrelationId -> "someCorrelationId")
 
   val fakeRequestWithMtditid: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest().
       withSession("MTDITID" -> "1234567890").
-      withHeaders( SessionKeys.sessionId -> "someSessionId")
+      withHeaders( SessionKeys.sessionId -> "someSessionId", HMRCHeaderNames.CorrelationId -> "someCorrelationId")
 
   implicit val emptyHeaderCarrier: HeaderCarrier = HeaderCarrier()
 

@@ -189,7 +189,6 @@ private def agentRecovery[A](block: User[A] => Future[Result], mtdItId: String)
   private def sessionIdFrom(request: Request[_], hc: HeaderCarrier): Option[String] = hc.sessionId match {
     case Some(sessionId) => Some(sessionId.value)
     case _ => request.headers.get(SessionKeys.sessionId)
-
   }
 
 }
