@@ -36,6 +36,7 @@ import repositories.JourneyAnswersRepository
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals.{affinityGroup, allEnrolments, confidenceLevel}
 import uk.gov.hmrc.auth.core.retrieve.~
+import uk.gov.hmrc.http.SessionKeys
 
 import java.time.temporal.ChronoUnit
 import java.time.{Clock, Instant, ZoneId}
@@ -82,7 +83,17 @@ class JourneyAnswersControllerSpec
   private val userData = JourneyAnswers(mtdItId, validTaxYear, journey, Json.obj("bar" -> "baz"), Instant.now(stubClock))
   private val taxYear = TaxYear(userData.taxYear)
   private val invalidTaxYear = TaxYear(invalidTaxYearInt)
+  private def fakeGetRequest(taxYear: TaxYear) =
+    FakeRequest(GET, routes.JourneyAnswersController.get(journey, taxYear).url)
+      .withHeaders("mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "someSessionId")
 
+  private def fakeSetRequest(data : JourneyAnswers) =
+    FakeRequest(POST, routes.JourneyAnswersController.set.url)
+      .withHeaders(
+        "mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "someSessionId",
+        "Content-Type" -> "application/json"
+      )
+      .withBody(Json.toJson(data).toString)
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -106,11 +117,7 @@ class JourneyAnswersControllerSpec
 
       when(mockRepo.get(eqTo(userData.mtdItId), eqTo(userData.taxYear), eqTo(userData.journey))).thenReturn(Future.successful(Some(userData)))
 
-      val request =
-        FakeRequest(GET, routes.JourneyAnswersController.get(journey, taxYear).url)
-          .withHeaders("mtditid" -> userData.mtdItId)
-
-      val result = route(app, request).value
+      val result = route(app, fakeGetRequest(taxYear)).value
 
       status(result) shouldBe OK
       contentAsJson(result) shouldBe Json.toJson(userData)
@@ -120,11 +127,7 @@ class JourneyAnswersControllerSpec
 
       when(mockRepo.get(any(), any(), any())) thenReturn Future.successful(None)
 
-      val request =
-        FakeRequest(GET, routes.JourneyAnswersController.get(journey, taxYear).url)
-          .withHeaders("mtditid" -> userData.mtdItId)
-
-      val result = route(app, request).value
+      val result = route(app, fakeGetRequest(taxYear)).value
 
       status(result) shouldBe NOT_FOUND
     }
@@ -140,10 +143,7 @@ class JourneyAnswersControllerSpec
 
     "return BAD_REQUEST when the taxYear is not valid" in {
 
-      val request = FakeRequest(GET, routes.JourneyAnswersController.get(journey, invalidTaxYear).url)
-        .withHeaders("mtditid" -> userData.mtdItId)
-
-      val result = route(app, request).value
+      val result = route(app, fakeGetRequest(invalidTaxYear)).value
 
       status(result) shouldBe BAD_REQUEST
     }
@@ -152,11 +152,7 @@ class JourneyAnswersControllerSpec
 
       when(mockRepo.get(eqTo(userData.mtdItId), eqTo(userData.taxYear), eqTo(userData.journey))).thenReturn(Future.failed(new Throwable()))
 
-      val request =
-        FakeRequest(GET, routes.JourneyAnswersController.get(journey, taxYear).url)
-          .withHeaders("mtditid" -> userData.mtdItId)
-
-      val result = route(app, request).value
+      val result = route(app, fakeGetRequest(taxYear)).value
 
       status(result) shouldBe INTERNAL_SERVER_ERROR
     }
@@ -168,15 +164,7 @@ class JourneyAnswersControllerSpec
 
       when(mockRepo.set(any())) thenReturn Future.successful(Done)
 
-      val request =
-        FakeRequest(POST, routes.JourneyAnswersController.set.url)
-          .withHeaders(
-            "mtditid" -> userData.mtdItId,
-            "Content-Type" -> "application/json"
-          )
-          .withBody(Json.toJson(userData).toString)
-
-      val result = route(app, request).value
+      val result = route(app, fakeSetRequest(userData)).value
 
       status(result) shouldBe NO_CONTENT
       verify(mockRepo, times(1)).set(eqTo(userData))
@@ -186,15 +174,7 @@ class JourneyAnswersControllerSpec
 
       when(mockRepo.set(any())) thenReturn Future.successful(Done)
 
-      val request =
-        FakeRequest(POST, routes.JourneyAnswersController.set.url)
-          .withHeaders(
-            "mtditid" -> userData.mtdItId,
-            "Content-Type" -> "application/json"
-          )
-          .withBody(Json.toJson(userData.copy(taxYear = invalidTaxYearInt)).toString)
-
-      val result = route(app, request).value
+      val result = route(app, fakeSetRequest(userData.copy(taxYear = invalidTaxYearInt))).value
 
       status(result) shouldBe BAD_REQUEST
     }
@@ -218,7 +198,7 @@ class JourneyAnswersControllerSpec
       val request =
         FakeRequest(POST, routes.JourneyAnswersController.set.url)
           .withHeaders(
-            "mtditid" -> userData.mtdItId,
+            "mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "someSessionId",
             "Content-Type" -> "application/json"
           )
           .withBody(badPayload)
@@ -232,15 +212,7 @@ class JourneyAnswersControllerSpec
 
       when(mockRepo.set(any())) thenReturn Future.failed(new Throwable())
 
-      val request =
-        FakeRequest(POST, routes.JourneyAnswersController.set.url)
-          .withHeaders(
-            "mtditid" -> userData.mtdItId,
-            "Content-Type" -> "application/json"
-          )
-          .withBody(Json.toJson(userData).toString)
-
-      val result = route(app, request).value
+      val result = route(app, fakeSetRequest(userData)).value
 
       status(result) shouldBe INTERNAL_SERVER_ERROR
     }
@@ -254,7 +226,7 @@ class JourneyAnswersControllerSpec
 
       val request =
         FakeRequest(DELETE, routes.JourneyAnswersController.clear(journey, taxYear).url)
-          .withHeaders("mtditid" -> userData.mtdItId)
+          .withHeaders("mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "someSessionId")
 
       val result = route(app, request).value
 
@@ -293,7 +265,7 @@ class JourneyAnswersControllerSpec
 
       val request =
         FakeRequest(POST, routes.JourneyAnswersController.keepAlive(journey, taxYear).url)
-          .withHeaders("mtditid" -> userData.mtdItId)
+          .withHeaders("mtditid" -> userData.mtdItId, SessionKeys.sessionId -> "someSessionId")
 
       val result = route(app, request).value
 

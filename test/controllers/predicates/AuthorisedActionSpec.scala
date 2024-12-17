@@ -18,23 +18,33 @@ package controllers.predicates
 
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import models.User
+import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.mvc.Results._
-import play.api.mvc.{AnyContent, Result}
+import play.api.mvc.{AnyContent, AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
-import testUtils.TestSuite
+import testUtils.{MockAppConfig, TestSuite}
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments, _}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, SessionId}
 
 import scala.concurrent.{ExecutionContext, Future}
 
 class AuthorisedActionSpec extends TestSuite {
 
   val auth: AuthorisedAction = authorisedAction
+  val mtdItId = "1234567890"
+  val arn = "0987654321"
+
+  def mockAuthorisePredicates[A](predicate: Predicate,
+                                 returningResult: Future[A]): CallHandler4[Predicate, Retrieval[_], HeaderCarrier, ExecutionContext, Future[Any]] = {
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(predicate, *, *, *)
+      .returning(returningResult)
+  }
 
   ".enrolmentGetIdentifierValue" should {
 
@@ -143,6 +153,33 @@ class AuthorisedActionSpec extends TestSuite {
           }
         }
 
+        "return unauthorised when no sessionId exist" which {
+          val fakeRequestWithNoSessionId: FakeRequest[AnyContentAsEmpty.type] =
+            FakeRequest().
+              withHeaders("mtditid" -> "1234567890")
+
+          val block: User[AnyContent] => Future[Result] = user => Future.successful(Ok(user.mtditid))
+
+          val enrolments = Enrolments(Set(Enrolment(
+            EnrolmentKeys.Individual,
+            Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, mtdItId)), "Activated"),
+            Enrolment(
+              EnrolmentKeys.nino,
+              Seq(EnrolmentIdentifier(EnrolmentIdentifiers.nino, mtdItId)), "Activated")
+          ))
+
+          lazy val result: Future[Result] = {
+            (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
+              .expects(*, Retrievals.allEnrolments and Retrievals.confidenceLevel, *, *)
+              .returning(Future.successful(enrolments and ConfidenceLevel.L250))
+            auth.individualAuthentication(block, mtdItId)(fakeRequestWithNoSessionId, emptyHeaderCarrier)
+          }
+
+          "returns an 401 status" in {
+            status(result) mustBe UNAUTHORIZED
+          }
+        }
+
         "the correct enrolment exist but no nino" which {
           val block: User[AnyContent] => Future[Result] = user => Future.successful(Ok(user.mtditid))
           val mtditid = "AAAAAA"
@@ -204,6 +241,7 @@ class AuthorisedActionSpec extends TestSuite {
         }
       }
     }
+
     ".agentAuthenticated" should {
 
       val block: User[AnyContent] => Future[Result] = user => Future.successful(Ok(s"${user.mtditid} ${user.arn.get}"))
@@ -213,8 +251,8 @@ class AuthorisedActionSpec extends TestSuite {
         "the agent is authorised for the given user" which {
 
           val enrolments = Enrolments(Set(
-            Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated"),
-            Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, "0987654321")), "Activated")
+            Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, mtdItId)), "Activated"),
+            Enrolment(EnrolmentKeys.Agent, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.agentReference, arn)), "Activated")
           ))
 
           lazy val result = {
@@ -222,7 +260,7 @@ class AuthorisedActionSpec extends TestSuite {
               .expects(*, *, *, *)
               .returning(Future.successful(enrolments))
 
-            auth.agentAuthentication(block,"1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier)
+            auth.agentAuthentication(block,mtdItId)(fakeRequestWithMtditid, emptyHeaderCarrier)
           }
 
           "has a status of OK" in {
@@ -230,7 +268,7 @@ class AuthorisedActionSpec extends TestSuite {
           }
 
           "has the correct body" in {
-            bodyOf(result) mustBe "1234567890 0987654321"
+            bodyOf(result) mustBe mtdItId + " " + arn
           }
         }
       }
@@ -242,7 +280,7 @@ class AuthorisedActionSpec extends TestSuite {
 
           lazy val result = {
             mockAuthReturnException(AuthException)
-            auth.agentAuthentication(block,"1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier)
+            auth.agentAuthentication(block,mtdItId)(fakeRequestWithMtditid, emptyHeaderCarrier)
           }
           status(result) mustBe UNAUTHORIZED
         }
@@ -256,7 +294,7 @@ class AuthorisedActionSpec extends TestSuite {
 
           lazy val result = {
             mockAuthReturnException(NoActiveSession)
-            auth.agentAuthentication(block,"1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier)
+            auth.agentAuthentication(block,mtdItId)(fakeRequestWithMtditid, emptyHeaderCarrier)
           }
 
           status(result) mustBe UNAUTHORIZED
@@ -266,17 +304,120 @@ class AuthorisedActionSpec extends TestSuite {
 
         "the user does not have an enrolment for the agent" in {
           val enrolments = Enrolments(Set(
-            Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, "1234567890")), "Activated")
+            Enrolment(EnrolmentKeys.Individual, Seq(EnrolmentIdentifier(EnrolmentIdentifiers.individualId, mtdItId)), "Activated")
           ))
 
           lazy val result = {
             (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
               .expects(*, *, *, *)
               .returning(Future.successful(enrolments))
-            auth.agentAuthentication(block,"1234567890")(fakeRequestWithMtditid, emptyHeaderCarrier)
+            auth.agentAuthentication(block,mtdItId)(fakeRequestWithMtditid, emptyHeaderCarrier)
           }
 
           status(result) mustBe UNAUTHORIZED
+        }
+      }
+    }
+
+    ".agentAuthenticated as secondary agent" should {
+
+      val block: User[AnyContent] => Future[Result] = user => Future.successful(Ok(s"${user.mtditid} ${user.arn.get}"))
+
+      val secondaryAgentEnrolments = Enrolments(Set(
+        Enrolment("HMRC-MTD-IT-SUPP", Seq(EnrolmentIdentifier("MTDITID", mtdItId)), "Activated"),
+        Enrolment("HMRC-AS-AGENT", Seq(EnrolmentIdentifier("AgentReferenceNumber", arn)), "Activated")
+      ))
+      "perform the block action" when {
+
+        "primary fails and secondary agent is authroised " which {
+
+          lazy val result = {
+            mockAuthorisePredicates(auth.agentAuthPredicate(mtdItId), Future.failed(InsufficientEnrolments("Primary failed")))
+
+            mockAuthorisePredicates(auth.secondaryAgentPredicate(mtdItId), Future.successful(secondaryAgentEnrolments))
+
+            auth.agentAuthentication(block, mtdItId)(fakeRequestWithMtditid, emptyHeaderCarrier)
+          }
+
+          "has a status of OK" in {
+            status(result) mustBe OK
+          }
+
+          "has the correct body" in {
+            bodyOf(result) mustBe mtdItId + " " + arn
+          }
+
+
+          "not fallback to secondary agent if primary fails when supporting agents are disabled" which {
+            val mockAppConfig = new MockAppConfig{
+              override val emaSupportingAgentsEnabled: Boolean = false
+            }
+
+            val authorisedAction = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockAppConfig, mockControllerComponents)
+
+            lazy val result = {
+              mockAuthorisePredicates(authorisedAction.agentAuthPredicate(mtdItId), Future.failed(InsufficientEnrolments("Primary failed")))
+              authorisedAction.agentAuthentication(block, mtdItId)(fakeRequestWithMtditid, emptyHeaderCarrier)
+            }
+
+            "has a status of SEE_OTHER" in {
+              status(result) mustBe UNAUTHORIZED
+            }
+          }
+
+          "return error if sessionId is not present, when supporting agents are enabled" which {
+            val fakeRequestWithNoSessionId: FakeRequest[AnyContentAsEmpty.type] =
+              FakeRequest().
+                withSession("MTDITID" -> "1234567890")
+
+            lazy val result = {
+
+              mockAuthorisePredicates(auth.agentAuthPredicate(mtdItId), Future.failed(InsufficientEnrolments("Primary failed")))
+              mockAuthorisePredicates(auth.secondaryAgentPredicate(mtdItId), Future.successful(secondaryAgentEnrolments))
+
+              auth.agentAuthentication(block, mtdItId)(fakeRequestWithNoSessionId, emptyHeaderCarrier)
+            }
+
+            "has a status of SEE_OTHER" in {
+              status(result) mustBe UNAUTHORIZED
+            }
+          }
+
+          "return succeed if sessionId is present in HeaderCarrier" which {
+            val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
+            val fakeRequestWithNoSessionId: FakeRequest[AnyContentAsEmpty.type] =
+              FakeRequest().
+                withSession("MTDITID" -> "1234567890")
+
+            lazy val result = {
+
+              mockAuthorisePredicates(auth.agentAuthPredicate(mtdItId), Future.failed(InsufficientEnrolments("Primary failed")))
+              mockAuthorisePredicates(auth.secondaryAgentPredicate(mtdItId), Future.successful(secondaryAgentEnrolments))
+
+              auth.agentAuthentication(block, mtdItId)(fakeRequestWithNoSessionId, hc)
+            }
+
+            "has a status of SEE_OTHER" in {
+              status(result) mustBe OK
+            }
+          }
+
+
+
+          "return error if both primary and secondary fails when supporting agents are enabled" which {
+            lazy val result = {
+
+              mockAuthorisePredicates(auth.agentAuthPredicate(mtdItId), Future.failed(InsufficientEnrolments("Primary failed")))
+              mockAuthorisePredicates(auth.secondaryAgentPredicate(mtdItId), Future.failed(InsufficientEnrolments("Secondary failed")))
+
+
+              auth.agentAuthentication(block, mtdItId)(fakeRequestWithMtditid, emptyHeaderCarrier)
+            }
+
+            "has a status of SEE_OTHER" in {
+              status(result) mustBe UNAUTHORIZED
+            }
+          }
         }
       }
     }
@@ -297,7 +438,7 @@ class AuthorisedActionSpec extends TestSuite {
           "should return an OK(200) status" in {
 
             status(result) mustBe OK
-            bodyOf(result) mustBe "mtditid: 1234567890 arn: 0987654321"
+            bodyOf(result) mustBe "mtditid: " + mtdItId + " arn: " + arn
           }
         }
 
@@ -309,7 +450,7 @@ class AuthorisedActionSpec extends TestSuite {
           }
 
           status(result) mustBe OK
-          bodyOf(result) mustBe "mtditid: 1234567890"
+          bodyOf(result) mustBe "mtditid: " + mtdItId
         }
       }
 

@@ -33,12 +33,14 @@ import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
+import support.providers.AppConfigStubProvider
+import utils.HMRCHeaderNames
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
 
-trait TestSuite extends AnyWordSpec with Matchers with MockFactory with BeforeAndAfterEach{
+trait TestSuite extends AnyWordSpec with Matchers with MockFactory with BeforeAndAfterEach with AppConfigStubProvider {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -50,8 +52,15 @@ trait TestSuite extends AnyWordSpec with Matchers with MockFactory with BeforeAn
 
   def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, Duration.Inf)
 
-  implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withHeaders("mtditid" -> "1234567890")
-  val fakeRequestWithMtditid: FakeRequest[AnyContentAsEmpty.type] = FakeRequest().withSession("MTDITID" -> "1234567890")
+  implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest().
+    withHeaders("mtditid" -> "1234567890", SessionKeys.sessionId -> "someSessionId", HMRCHeaderNames.CorrelationId -> "someCorrelationId")
+
+  val fakeRequestWithMtditid: FakeRequest[AnyContentAsEmpty.type] =
+    FakeRequest().
+      withSession("MTDITID" -> "1234567890").
+      withHeaders( SessionKeys.sessionId -> "someSessionId", HMRCHeaderNames.CorrelationId -> "someCorrelationId")
+
   implicit val emptyHeaderCarrier: HeaderCarrier = HeaderCarrier()
 
   lazy val mockAppConfig: AppConfig = new MockAppConfig
@@ -59,7 +68,7 @@ trait TestSuite extends AnyWordSpec with Matchers with MockFactory with BeforeAn
   implicit val mockExecutionContext: ExecutionContext = ExecutionContext.Implicits.global
   implicit val mockAuthConnector: AuthConnector = mock[AuthConnector]
   val defaultActionBuilder: DefaultActionBuilder = DefaultActionBuilder(mockControllerComponents.parsers.default)
-  val authorisedAction = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, mockControllerComponents)
+  val authorisedAction = new AuthorisedAction()(mockAuthConnector, defaultActionBuilder, appConfigStub, mockControllerComponents)
 
 
   def status(awaitable: Future[Result]): Int = await(awaitable).header.status
@@ -78,11 +87,11 @@ trait TestSuite extends AnyWordSpec with Matchers with MockFactory with BeforeAn
 
     (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, Retrievals.affinityGroup, *, *)
-      .returning(Future.successful(Some(AffinityGroup.Individual)))
+      .returning(Future.successful(Some(AffinityGroup.Individual))).anyNumberOfTimes()
 
     (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, Retrievals.allEnrolments and Retrievals.confidenceLevel, *, *)
-      .returning(Future.successful(enrolments and ConfidenceLevel.L250))
+      .returning(Future.successful(enrolments and ConfidenceLevel.L250)).anyNumberOfTimes()
   }
 
   val agentEnrolments: Enrolments = Enrolments(Set(
@@ -106,7 +115,7 @@ trait TestSuite extends AnyWordSpec with Matchers with MockFactory with BeforeAn
   def mockAuthReturnException(exception: Exception) = {
     (mockAuthConnector.authorise(_: Predicate, _: Retrieval[_])(_: HeaderCarrier, _: ExecutionContext))
       .expects(*, *, *, *)
-      .returning(Future.failed(exception))
+      .returning(Future.failed(exception)).anyNumberOfTimes()
   }
 }
 
