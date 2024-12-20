@@ -64,6 +64,9 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
           case _: AuthorisationException =>
             logger.warn(s"[AuthorisedAction][async] - User failed to authenticate")
             Unauthorized
+          case e =>
+            logger.error(s"[AuthorisedAction][async] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
+            InternalServerError
         }
     )
   }
