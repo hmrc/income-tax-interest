@@ -127,17 +127,11 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
       .withIdentifier("MTDITID", mtdId)
       .withDelegatedAuthRule(DelegatedAuthRules.agentDelegatedAuthRule)
 
-  private[predicates] def secondaryAgentPredicate(mtdId: String): Predicate =
-    Enrolment(EnrolmentKeys.SupportingAgent)
-      .withIdentifier("MTDITID", mtdId)
-      .withDelegatedAuthRule(DelegatedAuthRules.supportingAgentDelegatedAuthRule)
-
-
   private[predicates] def agentAuthentication[A](block: User[A] => Future[Result], mtdItId: String)
                                                 (implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
     authorised(agentAuthPredicate(mtdItId))
       .retrieve(allEnrolments) { enrolments =>
-        populateAgent(block, mtdItId, None, enrolments,isSupportingAgent = false)
+        populateAgent(block, mtdItId, None, enrolments)
       }.recoverWith(agentRecovery(block, mtdItId))
   }
 
@@ -146,20 +140,8 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
     case _: NoActiveSession =>
       logger.info(s"[AuthorisedAction][agentAuthentication] - No active session.")
       unauthorized
-    case _: AuthorisationException if appConfig.emaSupportingAgentsEnabled =>
-      authorised(secondaryAgentPredicate(mtdItId))
-        .retrieve(allEnrolments) { enrolments =>
-          populateAgent(block, mtdItId, None, enrolments,isSupportingAgent = true)
-        }.recoverWith {
-          case _: AuthorisationException =>
-            logger.warn(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
-            unauthorized
-          case e =>
-            logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
-            Future(InternalServerError)
-        }
     case _: AuthorisationException =>
-      logger.warn(s"[AuthorisedAction][agentAuthentication] - Agent does not have secondary delegated authority for Client.")
+      logger.warn(s"[AuthorisedAction][agentAuthentication] - Agent does not have delegated authority for Client.")
       unauthorized
     case e =>
       logger.error(s"[AuthorisedAction][agentAuthentication] - Unexpected exception of type '${e.getClass.getSimpleName}' was caught.")
@@ -169,8 +151,7 @@ class AuthorisedAction @Inject()()(implicit val authConnector: AuthConnector,
   private def populateAgent[A](block: User[A] => Future[Result],
                                mtdItId: String,
                                nino: Option[String],
-                               enrolments: Enrolments,
-                               isSupportingAgent: Boolean)(implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
+                               enrolments: Enrolments)(implicit request: Request[A], hc: HeaderCarrier): Future[Result] = {
     enrolmentGetIdentifierValue(EnrolmentKeys.Agent, EnrolmentIdentifiers.agentReference, enrolments) match {
       case Some(arn) =>
         sessionIdFrom(request, hc).fold {

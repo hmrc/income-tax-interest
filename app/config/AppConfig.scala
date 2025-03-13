@@ -52,7 +52,6 @@ trait AppConfig {
   //Journey answers Mongo config
   val mongoJourneyAnswersTTL: Int
   val replaceJourneyAnswersIndexes: Boolean
-  val emaSupportingAgentsEnabled: Boolean
 
   def authorisationTokenFor(apiVersion: String): String
   def desAuthorisationTokenFor(apiVersion: String): String
