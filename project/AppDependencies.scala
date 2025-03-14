@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import sbt.*
+import sbt._
 
 object AppDependencies {
 
-  private val bootstrapVersion = "8.5.0"
-  private val hmrcMongoPlay30Version = "2.3.0"
+  private val bootstrapVersion = "8.6.0"
+  private val hmrcMongoPlay30Version = "2.5.0"
 
   private val jacksonAndPlayExclusions: Seq[InclusionRule] = Seq(
     ExclusionRule(organization = "com.fasterxml.jackson.core"),
