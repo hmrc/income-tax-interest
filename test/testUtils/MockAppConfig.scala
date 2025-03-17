@@ -43,7 +43,6 @@ class MockAppConfig extends AppConfig with MockFactory {
   override def desAuthorisationTokenFor(apiVersion: String): String = "someToken"
 
   override val sectionCompletedQuestionEnabled: Boolean = true
-  override val emaSupportingAgentsEnabled: Boolean = true
 
   override val encryptionKey: String = "someKey"
   override val mongoJourneyAnswersTTL: Int = 0

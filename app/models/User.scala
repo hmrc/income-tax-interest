@@ -18,6 +18,6 @@ package models
 
 import play.api.mvc.{Request, WrappedRequest}
 
-case class User[T](mtditid: String, arn: Option[String],isSupportingAgent: Boolean = false)(implicit val request: Request[T]) extends WrappedRequest[T](request) {
+case class User[T](mtditid: String, arn: Option[String])(implicit val request: Request[T]) extends WrappedRequest[T](request) {
   def isAgent: Boolean = arn.nonEmpty
 }

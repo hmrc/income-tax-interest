@@ -48,6 +48,5 @@ class AppConfigStub extends MockFactory {
     override val encryptionKey: String = "someKey"
     override val mongoJourneyAnswersTTL: Int = 0
     override val replaceJourneyAnswersIndexes: Boolean = false
-    override val emaSupportingAgentsEnabled: Boolean = true
   }
 }
