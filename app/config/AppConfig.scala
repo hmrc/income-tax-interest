@@ -86,7 +86,6 @@ class BackendAppConfig @Inject()(config: Configuration, servicesConfig: Services
   lazy val mongoJourneyAnswersTTL: Int = Duration(servicesConfig.getString("mongodb.journeyAnswersTimeToLive")).toDays.toInt
   lazy val replaceJourneyAnswersIndexes: Boolean = servicesConfig.getBoolean("mongodb.replaceJourneyAnswersIndexes")
 
-  lazy val emaSupportingAgentsEnabled: Boolean = config.get[Boolean]("feature-switch.ema-supporting-agents-enabled")
   def authorisationTokenFor(api: String): String = config.get[String](s"microservice.services.integration-framework.authorisation-token.$api")
   def desAuthorisationTokenFor(api: String): String = config.get[String](s"microservice.services.des.authorisation-token-des.$api")
 }
