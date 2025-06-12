@@ -19,7 +19,8 @@ package controllers
 
 import controllers.predicates.AuthorisedAction
 import models.{CreateOrAmendInterestModel, ErrorBodyModel, ErrorModel}
-import play.api.libs.json.JsSuccess
+import play.api.Logging
+import play.api.libs.json.{JsError, JsSuccess}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.CreateOrAmendInterestService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -30,24 +31,28 @@ import scala.concurrent.{ExecutionContext, Future}
 class CreateOrAmendInterestController @Inject()(createOrAmendInterestService: CreateOrAmendInterestService,
                                                 cc: ControllerComponents,
                                                 authorisedAction: AuthorisedAction)
-                                               (implicit ec: ExecutionContext) extends BackendController(cc) {
+                                               (implicit ec: ExecutionContext) extends BackendController(cc) with Logging {
 
   def createOrAmendInterest(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     user.request.body.asJson.map(_.validate[Seq[CreateOrAmendInterestModel]]) match {
       case Some(JsSuccess(model, _)) =>
         createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model).map(response =>
-
           if (response.exists(_.isLeft)) {
             val error: ErrorModel =
               response.filter(_.isLeft).map(_.fold(error => error, _ => ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))).headOption
-              .getOrElse(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))
+                .getOrElse(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))
 
             Status(error.status)(error.toJson)
           } else {
             NoContent
           }
         )
-      case _ => Future.successful(BadRequest)
+      case Some(JsError(errors)) =>
+        logger.info("Error in parsing request body. Errors: " + errors.mkString("\n"))
+        Future.successful(BadRequest)
+      case None =>
+        logger.info("Empty request body")
+        Future.successful(BadRequest)
     }
 
   }

@@ -57,18 +57,16 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
 
       "the host for DES is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val expectedResult = true
 
         stubPostWithoutResponseBody(url, OK, requestBody, headersSentToDes)
 
         val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
 
-        result mustBe Right(expectedResult)
+        result mustBe Right(Done)
       }
 
       "the host for DES is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val expectedResult = true
 
         val connector = new CreateOrAmendInterestConnector(httpClient, appConfig(externalHost))
 
@@ -76,20 +74,19 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
 
         val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
 
-        result mustBe Right(expectedResult)
+        result mustBe Right(Done)
       }
     }
 
     "return a success result" when {
       "DES Returns a 200" in {
-        val expectedResult = true
 
         stubPostWithoutResponseBody(url, OK, Json.toJson(model).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.createOrAmendInterest(nino, taxYear, model)(hc))
 
-        result mustBe Right(expectedResult)
+        result mustBe Right(Done)
       }
     }
     "return a InternalServerError parsing error when incorrectly parsed" in {

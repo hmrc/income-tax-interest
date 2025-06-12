@@ -22,22 +22,31 @@ import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInter
 import connectors.{CreateIncomeSourceConnector, CreateOrAmendAnnualIncomeSourcePeriodConnector, CreateOrAmendInterestConnector}
 import models._
 import org.scalamock.handlers.{CallHandler, CallHandler4}
+import org.scalamock.scalatest.MockFactory
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status._
+import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
+import support.providers.AppConfigStubProvider
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.TaxYearUtils
 
 import scala.concurrent.Future
 
 class CreateOrAmendInterestServiceSpec extends TestSuite {
 
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
-  val createIncomeSourceConnector: CreateIncomeSourceConnector = mock[CreateIncomeSourceConnector]
-  val createOrAmendAnnualIncomeSourcePeriodConnector: CreateOrAmendAnnualIncomeSourcePeriodConnector = mock[CreateOrAmendAnnualIncomeSourcePeriodConnector]
-  val createOrAmendInterestConnector: CreateOrAmendInterestConnector = mock[CreateOrAmendInterestConnector]
+  val createIncomeSourceConnector = mock[CreateIncomeSourceConnector]
+  val createOrAmendAnnualIncomeSourcePeriodConnector = mock[CreateOrAmendAnnualIncomeSourcePeriodConnector]
+  val createOrAmendInterestConnector = mock[CreateOrAmendInterestConnector]
 
-  val service: CreateOrAmendInterestService = new CreateOrAmendInterestService(createOrAmendInterestConnector,
-    createOrAmendAnnualIncomeSourcePeriodConnector, createIncomeSourceConnector)
+  val service = new CreateOrAmendInterestService(createOrAmendInterestConnector,
+                                     createOrAmendAnnualIncomeSourcePeriodConnector,
+                                     createIncomeSourceConnector)
 
   val nino = "nino"
   val taxYear = 2021
@@ -58,7 +67,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
   def createOrAmendInterestMockSuccess: CallHandler4[String, Int, InterestDetailsModel, HeaderCarrier, Future[CreateOrAmendInterestResponse]] =
     (createOrAmendInterestConnector.createOrAmendInterest(_: String, _: Int, _: InterestDetailsModel)(_: HeaderCarrier))
     .expects(nino, taxYear, interestDetailsModel,  *)
-    .returning(Future.successful(Right(true)))
+    .returning(Future.successful(Right(Done)))
 
   def createOrAmendInterestMockFailure(expectedErrorModel: ErrorModel): CallHandler[Future[CreateOrAmendInterestResponse]] =
     (createOrAmendInterestConnector.createOrAmendInterest(_: String, _: Int, _: InterestDetailsModel)(_: HeaderCarrier))
@@ -69,7 +78,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
     Int, InterestDetailsModel, HeaderCarrier, Future[CreateOrAmendAnnualIncomeSourcePeriodResponse]] =
     (createOrAmendAnnualIncomeSourcePeriodConnector.createOrAmendAnnualIncomeSourcePeriod(_: String, _: Int, _: InterestDetailsModel)(_: HeaderCarrier))
       .expects(nino, taxYear, interestDetailsModel, *)
-      .returning(Future.successful(Right(true)))
+      .returning(Future.successful(Right(Done)))
 
   def createOrAmendAnnualIncomeSourcePeriodMockFailure(expectedErrorModel: ErrorModel, taxYear:Int):
   CallHandler[Future[CreateOrAmendAnnualIncomeSourcePeriodResponse]] =
@@ -89,9 +98,9 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
   ".createOrAmendInterest" should {
 
-    "return a Right(true) " in {
+    "return a Right(Done) " in {
 
-      val expectedResult = Right(true)
+      val expectedResult = Right(Done)
 
       createOrAmendInterestMockSuccess
 
@@ -125,9 +134,9 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
   ".createOrAmendInterest with specific tax year" should {
 
-    "return a Right(true) " in {
+    "return a Right(Done) " in {
 
-      val expectedResult = Right(true)
+      val expectedResult = Right(Done)
 
       createOrAmendAnnualIncomeSourcePeriodMockSuccess(specificTaxYear)
 
@@ -161,9 +170,9 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
   ".createOrAmendInterest with specific tax year plus one" should {
 
-    "return a Right(true) " in {
+    "return a Right(Done) " in {
 
-      val expectedResult = Right(true)
+      val expectedResult = Right(Done)
 
       createOrAmendAnnualIncomeSourcePeriodMockSuccess(specificTaxYearPlusOne)
 
@@ -242,11 +251,11 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
 
   ".createOrAmendAllInterest" should {
 
-    "return a Right(true) " when {
+    "return a Right(Done) " when {
 
       "both connectors return successful responses" in {
 
-        val expectedResult = Seq(Right(true))
+        val expectedResult = Seq(Right(Done))
 
         createIncomeSourceConnectorMockSuccess
 
@@ -258,7 +267,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
       }
       "the first connector fails twice before success" in {
 
-        val expectedResult = Seq(Right(true))
+        val expectedResult = Seq(Right(Done))
 
         createIncomeSourceConnectorMockFailure(internalServerErrorModel).repeat(2)
 
@@ -272,7 +281,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
       }
       "the second connector fails twice before success" in {
 
-        val expectedResult = Seq(Right(true))
+        val expectedResult = Seq(Right(Done))
 
         createIncomeSourceConnectorMockSuccess
 
@@ -286,7 +295,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
       }
       "both connectors fail twice before success" in {
 
-        val expectedResult = Seq(Right(true))
+        val expectedResult = Seq(Right(Done))
 
         createIncomeSourceConnectorMockFailure(internalServerErrorModel).repeat(2)
 

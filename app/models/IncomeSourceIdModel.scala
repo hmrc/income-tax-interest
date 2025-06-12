@@ -20,6 +20,6 @@ import play.api.libs.json.{Json, OFormat}
 
 case class IncomeSourceIdModel(incomeSourceId: String)
 
-object IncomeSourceIdModel{
+object IncomeSourceIdModel {
   implicit val formats: OFormat[IncomeSourceIdModel] = Json.format[IncomeSourceIdModel]
 }

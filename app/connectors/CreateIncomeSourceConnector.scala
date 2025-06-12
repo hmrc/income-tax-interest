@@ -16,24 +16,43 @@
 
 package connectors
 
-import config.AppConfig
+import com.google.inject.ImplementedBy
 import connectors.httpParsers.CreateIncomeSourcesHttpParser._
-import javax.inject.Inject
 import models.InterestSubmissionModel
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import play.api.libs.json.Json
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+
+import java.util.UUID
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateIncomeSourceConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+@ImplementedBy(classOf[CreateIncomeSourceConnectorImpl])
+trait CreateIncomeSourceConnector {
+  def createIncomeSource(nino: String,
+                         interestSubmissionModel: InterestSubmissionModel
+                        )(implicit hc: HeaderCarrier): Future[CreateIncomeSourcesResponse]
+}
 
-  def createIncomeSource(
-                          nino: String, interestSubmissionModel: InterestSubmissionModel
-                        )(implicit hc: HeaderCarrier): Future[CreateIncomeSourcesResponse] = {
-    val createIncomeSourceUrl: String = appConfig.desBaseUrl + s"/income-tax/income-sources/nino/$nino"
+@Singleton
+class CreateIncomeSourceConnectorImpl @Inject()(httpClient: HttpClientV2,
+                                            config: ServicesConfig
+                                           )(implicit executionContext: ExecutionContext) extends CreateIncomeSourceConnector {
 
-    def desCall(implicit hc: HeaderCarrier): Future[CreateIncomeSourcesResponse] = {
-      http.POST[InterestSubmissionModel, CreateIncomeSourcesResponse](createIncomeSourceUrl, interestSubmissionModel)
-    }
+  private val baseUrl = config.baseUrl("hip")
 
-    desCall(desHeaderCarrier(createIncomeSourceUrl))
+  def createIncomeSource(nino: String,
+                         interestSubmissionModel: InterestSubmissionModel
+                         )(implicit hc: HeaderCarrier): Future[CreateIncomeSourcesResponse] = {
+    val hipHeaders = Seq(
+      "correlationId" -> hc.requestId.fold(UUID.randomUUID().toString)(_.value)
+    )
+
+    httpClient
+      .post(url"$baseUrl/income-sources/$nino")
+      .setHeader(hipHeaders: _*)
+      .withBody(Json.toJson(interestSubmissionModel))
+      .execute[CreateIncomeSourcesResponse]
   }
 }

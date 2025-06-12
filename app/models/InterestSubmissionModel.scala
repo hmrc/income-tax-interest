@@ -20,6 +20,6 @@ import play.api.libs.json.{Json, OFormat}
 
 case class InterestSubmissionModel(incomeSourceType: String = "interest-from-uk-banks", incomeSourceName: String)
 
-object InterestSubmissionModel{
+object InterestSubmissionModel {
   implicit val formats: OFormat[InterestSubmissionModel] = Json.format[InterestSubmissionModel]
 }
