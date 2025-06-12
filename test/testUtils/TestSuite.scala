@@ -27,7 +27,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, DefaultActionBuilder, Result}
-import play.api.test.{FakeRequest, Helpers}
+import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits, Helpers}
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
@@ -40,7 +40,14 @@ import utils.HMRCHeaderNames
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
 
-trait TestSuite extends AnyWordSpec with Matchers with MockFactory with BeforeAndAfterEach with AppConfigStubProvider {
+trait TestSuite
+  extends AnyWordSpec
+    with Matchers
+    with MockFactory
+    with BeforeAndAfterEach
+    with AppConfigStubProvider
+    with FutureAwaits
+    with DefaultAwaitTimeout {
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -49,8 +56,6 @@ trait TestSuite extends AnyWordSpec with Matchers with MockFactory with BeforeAn
 
   implicit val actorSystem: ActorSystem = ActorSystem()
   implicit val materializer: SystemMaterializer = SystemMaterializer(actorSystem)
-
-  def await[T](awaitable: Awaitable[T]): T = Await.result(awaitable, Duration.Inf)
 
   implicit val fakeRequest: FakeRequest[AnyContentAsEmpty.type] =
     FakeRequest().
