@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.httpParsers.SavingsIncomeDataParser.SavingsIncomeDataResponse
-import models.{ErrorBodyModel, ErrorModel, ForeignInterestModel, SavingsIncomeDataModel, SecuritiesModel}
+import models._
 import org.scalamock.handlers.CallHandler3
 import play.api.http.Status._
 import play.api.libs.json.Json

@@ -23,13 +23,13 @@ import play.api.http.Status._
 import play.api.mvc.Results._
 import play.api.mvc.{AnyContent, AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
-import testUtils.{TestSuite}
+import testUtils.TestSuite
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
-import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments, _}
-import uk.gov.hmrc.http.{HeaderCarrier, SessionId}
+import uk.gov.hmrc.auth.core._
+import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 

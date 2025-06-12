@@ -22,16 +22,9 @@ import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInter
 import connectors.{CreateIncomeSourceConnector, CreateOrAmendAnnualIncomeSourcePeriodConnector, CreateOrAmendInterestConnector}
 import models._
 import org.scalamock.handlers.{CallHandler, CallHandler4}
-import org.scalamock.scalatest.MockFactory
-import org.scalatest.BeforeAndAfterEach
-import org.scalatest.matchers.must.Matchers
-import org.scalatest.wordspec.AnyWordSpec
 import play.api.http.Status._
-import play.api.test.{DefaultAwaitTimeout, FutureAwaits}
-import support.providers.AppConfigStubProvider
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.TaxYearUtils
 
 import scala.concurrent.Future

@@ -16,8 +16,8 @@
 
 package services
 
-import connectors.{GetSavingsIncomeDataConnector, GetSavingsIncomeDataTysConnector}
 import connectors.httpParsers.SavingsIncomeDataParser.SavingsIncomeDataResponse
+import connectors.{GetSavingsIncomeDataConnector, GetSavingsIncomeDataTysConnector}
 import models.{ForeignInterestModel, SavingsIncomeDataModel, SecuritiesModel}
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier

@@ -28,17 +28,16 @@ import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, DefaultActionBuilder, Result}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits, Helpers}
+import support.providers.AppConfigStubProvider
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.{HeaderCarrier, SessionKeys}
-import support.providers.AppConfigStubProvider
 import utils.HMRCHeaderNames
 
-import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 
 trait TestSuite
   extends AnyWordSpec

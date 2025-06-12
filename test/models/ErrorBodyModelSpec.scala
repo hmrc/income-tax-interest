@@ -17,7 +17,7 @@
 package models
 
 import play.api.http.Status.SERVICE_UNAVAILABLE
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import testUtils.TestSuite
 
 class ErrorBodyModelSpec extends TestSuite {
