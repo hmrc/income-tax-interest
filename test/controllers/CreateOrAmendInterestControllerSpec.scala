@@ -70,31 +70,33 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
         val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModel)))
 
         status(result) mustBe expectedResult
-
       }
     }
 
+
     "return an error" when {
       "passed a valid model but at least one post fails" in {
-        val expectedResult = NOT_FOUND
-
         mockAuth()
         mockServiceFailCall
         val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModel)))
 
-        status(result) mustBe expectedResult
+        status(result) mustBe NOT_FOUND
       }
 
       "passed a invalid model" in {
-        val expectedResult = BAD_REQUEST
-
         mockAuth()
         val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModelInvalid)))
 
-        status(result) mustBe expectedResult
+        status(result) mustBe BAD_REQUEST
       }
+
+      "passed an empty has body" in {
+        mockAuth()
+        val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest)
+
+        status(result) mustBe BAD_REQUEST
+      }
+
     }
-
   }
-
 }

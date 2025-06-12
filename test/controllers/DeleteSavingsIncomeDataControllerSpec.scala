@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.httpParsers.DeleteSavingsIncomeDataParser.DeleteSavingsIncomeDataResponse
-import models.{ErrorBodyModel, ErrorModel}
+import models.{Done, ErrorBodyModel, ErrorModel}
 import org.scalamock.handlers.CallHandler3
 import play.api.http.Status._
 import services.DeleteSavingsIncomeDataService
@@ -41,16 +41,13 @@ class DeleteSavingsIncomeDataControllerSpec extends TestSuite{
   val nino = "nino"
   val taxYear = 2021
 
-  "DeleteSavingsIncomeData" should {
+  "DeleteSavingsIncomeDataController" should {
 
     "Return a NO CONTENT if deletes savings income data successful" in {
-
-      val serviceResult = Right(true)
-
       def serviceCallMock(): CallHandler3[String, Int, HeaderCarrier, Future[DeleteSavingsIncomeDataResponse] ]=
         (serviceMock.deleteSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
           .expects(nino, taxYear, *)
-          .returning(Future.successful(serviceResult))
+          .returning(Future.successful(Right(Done)))
 
       val result = {
         mockAuth()
@@ -62,7 +59,7 @@ class DeleteSavingsIncomeDataControllerSpec extends TestSuite{
 
     }
 
-    "return a Left response" when {
+    "return a error response status" when {
 
       def mockDeleteSavingIncomeDataWithError(errorModel: ErrorModel): CallHandler3[String, Int, HeaderCarrier, Future[DeleteSavingsIncomeDataResponse]] = {
         (serviceMock.deleteSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
@@ -87,6 +84,7 @@ class DeleteSavingsIncomeDataControllerSpec extends TestSuite{
         }
         status(result) mustBe SERVICE_UNAVAILABLE
       }
+
       "the service returns a BAD_REQUEST" in {
         val result = {
           mockAuth()
@@ -95,6 +93,7 @@ class DeleteSavingsIncomeDataControllerSpec extends TestSuite{
         }
         status(result) mustBe BAD_REQUEST
       }
+
       "the service returns a INTERNAL_SERVER_ERROR" in {
         val result = {
           mockAuth()

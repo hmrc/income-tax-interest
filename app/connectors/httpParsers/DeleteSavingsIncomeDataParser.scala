@@ -16,7 +16,7 @@
 
 package connectors.httpParsers
 
-import models.ErrorModel
+import models.{Done, ErrorModel}
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 import utils.PagerDutyHelper.PagerDutyKeys._
@@ -24,14 +24,14 @@ import utils.PagerDutyHelper.pagerDutyLog
 import play.api.Logging
 
 object DeleteSavingsIncomeDataParser extends APIParser with Logging {
-  type DeleteSavingsIncomeDataResponse = Either[ErrorModel, Boolean]
+  type DeleteSavingsIncomeDataResponse = Either[ErrorModel, Done]
 
   implicit object DeleteSavingsIncomeDataHttpReads extends HttpReads[DeleteSavingsIncomeDataResponse] {
 
     override def read(method: String, url: String, response: HttpResponse): DeleteSavingsIncomeDataResponse = {
       response.status match {
 
-        case NO_CONTENT => Right(true)
+        case NO_CONTENT => Right(Done)
         case NOT_FOUND =>
           logger.info(logMessage(response))
           handleAPIError(response)

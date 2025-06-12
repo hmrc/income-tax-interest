@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
 import helpers.WiremockSpec
-import models.{ErrorBodyModel, ErrorModel}
+import models.{Done, ErrorBodyModel, ErrorModel}
 import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.http.Status._
@@ -60,7 +60,7 @@ class DeleteSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpe
 
         val result = await(connector.deleteSavingsIncomeData(nino, specificTaxYear)(hc))
 
-        result mustBe Right(true)
+        result mustBe Right(Done)
       }
 
       "the host for IF is 'External'" in {
@@ -70,7 +70,7 @@ class DeleteSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpe
 
         val result = await(connector.deleteSavingsIncomeData(nino, specificTaxYear)(hc))
 
-        result mustBe Right(true)
+        result mustBe Right(Done)
       }
     }
 

@@ -18,7 +18,7 @@ package controllers
 
 
 import controllers.predicates.AuthorisedAction
-import models.{CreateOrAmendInterestModel, ErrorBodyModel, ErrorModel}
+import models.CreateOrAmendInterestModel
 import play.api.Logging
 import play.api.libs.json.{JsError, JsSuccess}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
@@ -36,17 +36,11 @@ class CreateOrAmendInterestController @Inject()(createOrAmendInterestService: Cr
   def createOrAmendInterest(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async { implicit user =>
     user.request.body.asJson.map(_.validate[Seq[CreateOrAmendInterestModel]]) match {
       case Some(JsSuccess(model, _)) =>
-        createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model).map(response =>
-          if (response.exists(_.isLeft)) {
-            val error: ErrorModel =
-              response.filter(_.isLeft).map(_.fold(error => error, _ => ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))).headOption
-                .getOrElse(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))
-
-            Status(error.status)(error.toJson)
-          } else {
-            NoContent
-          }
-        )
+        createOrAmendInterestService.createOrAmendAllInterest(nino, taxYear, model).map {
+          _.collectFirst {
+            case Left(error) => Status(error.status)(error.toJson)
+          }.getOrElse(NoContent)
+        }
       case Some(JsError(errors)) =>
         logger.info("Error in parsing request body. Errors: " + errors.mkString("\n"))
         Future.successful(BadRequest)

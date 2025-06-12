@@ -24,14 +24,15 @@ object ErrorBody {
     ErrorBodyModel.formats.widen[ErrorBody] orElse ErrorsBodyModel.formats.widen[ErrorBody]
 }
 
+/** No Error message propagated **/
+object EmptyErrorBody  extends ErrorBody
+
 /** Single Error **/
 case class ErrorBodyModel(code: String, reason: String) extends ErrorBody
 object ErrorBodyModel {
   implicit val formats: OFormat[ErrorBodyModel] = Json.format[ErrorBodyModel]
   val parsingError: ErrorBodyModel = ErrorBodyModel("PARSING_ERROR", "Error parsing response from API")
 }
-
-object EmptyErrorBody  extends ErrorBody
 
 /** Multiple Errors **/
 case class ErrorsBodyModel(failures: Seq[ErrorBodyModel]) extends ErrorBody

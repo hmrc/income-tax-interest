@@ -18,10 +18,10 @@ package connectors
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import models._
-import org.scalatest.{EitherValues, OptionValues}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.{EitherValues, OptionValues}
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -129,7 +129,7 @@ class CreateIncomeSourcesConnectorISpec
     }
 
     "when the response is 500" - {
-      "return an error" in {
+      "return an error when the error message can be parsed" in {
         val requestId = RequestId("request-id-value")
         val hc = HeaderCarrier(requestId = Some(requestId))
 
@@ -140,6 +140,50 @@ class CreateIncomeSourcesConnectorISpec
             .willReturn(
               aResponse()
                 .withStatus(INTERNAL_SERVER_ERROR)
+                .withHeader("correlationId", requestId.value)
+                .withBody(Json.toJson(ErrorBodyModel("100001", "")).toString)
+            )
+        )
+
+        val result = connector.createIncomeSource(nino, model)(hc).futureValue
+
+        result.left.value.status shouldBe 500
+      }
+
+      "return when the error message cannot be parsed" in {
+        val requestId = RequestId("request-id-value")
+        val hc = HeaderCarrier(requestId = Some(requestId))
+
+        stubFor(
+          post(urlEqualTo(url))
+            .withRequestBody(equalToJson(Json.toJson(model).toString))
+            .withHeader("correlationId", equalTo(requestId.value))
+            .willReturn(
+              aResponse()
+                .withStatus(INTERNAL_SERVER_ERROR)
+                .withHeader("correlationId", requestId.value)
+                .withBody(Json.obj("key" -> "value").toString)
+            )
+        )
+
+        val result = connector.createIncomeSource(nino, model)(hc).futureValue
+
+        result.left.value.status shouldBe 500
+      }
+    }
+
+    "when the response status is not an expected value" - {
+      "return an error" in {
+        val requestId = RequestId("request-id-value")
+        val hc = HeaderCarrier(requestId = Some(requestId))
+
+        stubFor(
+          post(urlEqualTo(url))
+            .withRequestBody(equalToJson(Json.toJson(model).toString))
+            .withHeader("correlationId", equalTo(requestId.value))
+            .willReturn(
+              aResponse()
+                .withStatus(IM_A_TEAPOT)
                 .withHeader("correlationId", requestId.value)
                 .withBody(Json.obj("key" -> "value").toString)
             )
