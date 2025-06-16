@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
 import helpers.WiremockSpec
-import models.{CreateOrAmendSavingsModel, ErrorBodyModel, ErrorModel, ForeignInterestModel, SecuritiesModel}
+import models._
 import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.http.Status._

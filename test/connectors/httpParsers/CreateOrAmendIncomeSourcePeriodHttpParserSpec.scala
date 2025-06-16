@@ -17,7 +17,7 @@
 package connectors.httpParsers
 
 import connectors.httpParsers.CreateOrAmendAnnualIncomeSourcePeriodHttpParser.CreateIncomeSourceHttpReads.read
-import models.{ErrorBodyModel, ErrorModel}
+import models.{Done, ErrorBodyModel, ErrorModel}
 import play.api.http.Status._
 import play.api.libs.json.Json
 import testUtils.UnitTest
@@ -43,14 +43,14 @@ class CreateOrAmendIncomeSourcePeriodHttpParserSpec extends UnitTest {
         val validBody = Json.prettyPrint(Json.obj("transactionReference" -> "some-transaction-id"))
         val result = read("POST", "/some-url", httpResponse(OK, validBody))
 
-        result shouldBe Right(true)
+        result shouldBe Right(Done)
       }
 
       "the response contains an OK, but a malformed body" in {
         val invalidBody = Json.prettyPrint(Json.obj("malformed" -> "not-what-im-looking-for"))
         val result = read("POST", "/some-url", httpResponse(OK, invalidBody))
 
-        result shouldBe Right(true)
+        result shouldBe Right(Done)
       }
 
     }

@@ -21,13 +21,13 @@ import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
-object CreateOrAmendInterestHttpParser extends APIParser with Logging{
-  type CreateOrAmendInterestResponse = Either[ErrorModel, Boolean]
+object CreateOrAmendInterestHttpParser extends APIParser with Logging {
+  type CreateOrAmendInterestResponse = Either[ErrorModel, Done]
 
   implicit object CreateOrAmendInterestsHttpReads extends HttpReads[CreateOrAmendInterestResponse] {
     override def read(method: String, url: String, response: HttpResponse): CreateOrAmendInterestResponse = {
       response.status match {
-        case OK => Right(true)
+        case OK => Right(Done)
         case INTERNAL_SERVER_ERROR =>
           logger.error(logMessage(response))
           handleAPIError(response)

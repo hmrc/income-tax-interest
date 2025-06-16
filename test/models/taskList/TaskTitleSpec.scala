@@ -16,7 +16,6 @@
 
 package models.taskList
 
-import models.taskList.TaskTitle
 import models.taskList.TaskTitle._
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers

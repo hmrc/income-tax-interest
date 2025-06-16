@@ -62,18 +62,16 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
 
       "the host for IF is 'Internal'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val expectedResult = true
 
         stubPostWithoutResponseBody(url, OK, requestBody, headersSentToIF)
 
         val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
-        result mustBe Right(expectedResult)
+        result mustBe Right(Done)
       }
 
       "the host for IF is 'External'" in {
         implicit val hc: HeaderCarrier = HeaderCarrier(sessionId = Some(SessionId("sessionIdValue")))
-        val expectedResult = true
 
         val connector = new CreateOrAmendAnnualIncomeSourcePeriodConnector(httpClient, appConfig(externalHost))
 
@@ -81,30 +79,26 @@ class CreateOrAmendAnnualIncomeSourcePeriodConnectorISpec extends PlaySpec with 
 
         val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
-        result mustBe Right(expectedResult)
+        result mustBe Right(Done)
       }
     }
 
     "return a success result" when {
       "IF Returns a 200 for specific tax year" in {
-        val expectedResult = true
-
         stubPostWithoutResponseBody(url, OK, Json.toJson(model).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYear, model)(hc))
 
-        result mustBe Right(expectedResult)
+        result mustBe Right(Done)
       }
       "IF Returns a 200 for specific tax year plus one" in {
-        val expectedResult = true
-
         stubPostWithoutResponseBody(urlTaxYearPlusOne, OK, Json.toJson(model).toString())
 
         implicit val hc: HeaderCarrier = HeaderCarrier()
         val result = await(connector.createOrAmendAnnualIncomeSourcePeriod(nino, specificTaxYearPlusOne, model)(hc))
 
-        result mustBe Right(expectedResult)
+        result mustBe Right(Done)
       }
     }
     "return a InternalServerError parsing error when incorrectly parsed" in {

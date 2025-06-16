@@ -17,6 +17,7 @@
 package controllers
 
 import controllers.predicates.AuthorisedAction
+import models.Done
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import services.DeleteSavingsIncomeDataService
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
@@ -32,9 +33,8 @@ class DeleteSavingsIncomeDataController @Inject()(deleteSavingsIncomeDataService
   def deleteSavingsIncomeData(nino: String, taxYear: Int): Action[AnyContent] = authorisedAction.async {
     implicit user =>
       deleteSavingsIncomeDataService.deleteSavingsIncomeData(nino, taxYear).map {
-        case Right(true) => NoContent
+        case Right(Done) => NoContent
         case Left(errorModel) => Status(errorModel.status)(errorModel.toJson)
-        case _ => InternalServerError
       }
   }
 }

@@ -17,52 +17,60 @@
 package models
 
 import play.api.http.Status.SERVICE_UNAVAILABLE
-import play.api.libs.json.{JsObject, Json}
+import play.api.libs.json.Json
 import testUtils.TestSuite
 
 class ErrorBodyModelSpec extends TestSuite {
 
-  val model: ErrorBodyModel = new ErrorBodyModel(
-    "SERVICE_UNAVAILABLE", "The service is currently unavailable")
-
-  val jsModel: JsObject = Json.obj(
+  private val errorBodyModelAsJson = Json.obj(
     "code" -> "SERVICE_UNAVAILABLE",
     "reason" -> "The service is currently unavailable"
   )
 
-  val errorsJsModel: JsObject = Json.obj(
-    "failures" -> Json.arr(
-      Json.obj("code" -> "SERVICE_UNAVAILABLE",
-      "reason" -> "The service is currently unavailable"),
-      Json.obj("code" -> "INTERNAL_SERVER_ERROR",
-      "reason" -> "The service is currently facing issues.")
-    )
-  )
+  "ErrorBodyModel" should {
+    val model = new ErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable")
 
-  "The ErrorBodyModel" should {
+    "serialize to Json" in {
 
-    "parse to Json" in {
-      Json.toJson(model) mustBe jsModel
+      Json.toJson(model) mustBe errorBodyModelAsJson
     }
 
-    "parse from json" in {
-      jsModel.as[ErrorBodyModel]
+    "deserialize from json without throwing a parse exception" in {
+
+      errorBodyModelAsJson.as[ErrorBodyModel]
     }
   }
 
-  "The ErrorModel" should {
+  "ErrorModel" should {
+    "serialize to Json" when {
+      "there is a single error message" in {
+        val model = ErrorModel(SERVICE_UNAVAILABLE, ErrorBodyModel("SERVICE_UNAVAILABLE","The service is currently unavailable"))
 
-    val model = ErrorModel(SERVICE_UNAVAILABLE, ErrorBodyModel("SERVICE_UNAVAILABLE","The service is currently unavailable"))
-    val errorsModel = ErrorModel(SERVICE_UNAVAILABLE, ErrorsBodyModel(Seq(
-      ErrorBodyModel("SERVICE_UNAVAILABLE","The service is currently unavailable"),
-      ErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")
-    )))
+        model.toJson mustBe errorBodyModelAsJson
+      }
 
-    "parse to Json" in {
-      model.toJson mustBe jsModel
-    }
-    "parse to Json for multiple errors" in {
-      errorsModel.toJson mustBe errorsJsModel
+      "there are multiple error messages" in {
+        val errorsModel = ErrorModel(SERVICE_UNAVAILABLE, ErrorsBodyModel(Seq(
+          ErrorBodyModel("SERVICE_UNAVAILABLE","The service is currently unavailable"),
+          ErrorBodyModel("INTERNAL_SERVER_ERROR","The service is currently facing issues.")
+        )))
+
+
+        errorsModel.toJson mustBe Json.obj(
+          "failures" -> Json.arr(
+            Json.obj("code" -> "SERVICE_UNAVAILABLE",
+              "reason" -> "The service is currently unavailable"),
+            Json.obj("code" -> "INTERNAL_SERVER_ERROR",
+              "reason" -> "The service is currently facing issues.")
+          )
+        )
+      }
+
+      "when there are no error messages" in {
+        val errorModel = ErrorModel(SERVICE_UNAVAILABLE, EmptyErrorBody)
+
+        errorModel.toJson mustBe Json.obj()
+      }
     }
   }
 

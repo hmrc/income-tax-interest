@@ -17,7 +17,7 @@
 package services
 
 import connectors.{DeleteSavingsIncomeDataConnector, DeleteSavingsIncomeDataTysConnector}
-import connectors.httpParsers.DeleteSavingsIncomeDataParser.DeleteSavingsIncomeDataResponse
+import models.Done
 import testUtils.TestSuite
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -31,7 +31,7 @@ class DeleteSavingsIncomeDataServiceSpec extends TestSuite {
   "DeleteSavingsIncomeData" should {
 
     "return the connector response" in {
-      val expectedResult: DeleteSavingsIncomeDataResponse = Right(true)
+      val expectedResult = Right(Done)
 
       (connector.deleteSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
         .expects("12345678", 2023, *)
@@ -42,7 +42,7 @@ class DeleteSavingsIncomeDataServiceSpec extends TestSuite {
     }
 
     "return the TYS connector response" in {
-      val expectedResult: DeleteSavingsIncomeDataResponse = Right(true)
+      val expectedResult = Right(Done)
 
       (tysConnector.deleteSavingsIncomeData(_: String, _: Int)(_: HeaderCarrier))
         .expects("12345678", 2024, *)

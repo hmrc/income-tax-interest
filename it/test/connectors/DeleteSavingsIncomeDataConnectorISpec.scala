@@ -19,7 +19,7 @@ package connectors
 import com.github.tomakehurst.wiremock.http.HttpHeader
 import config.{AppConfig, BackendAppConfig}
 import helpers.WiremockSpec
-import models.{ErrorBodyModel, ErrorModel}
+import models.{Done, ErrorBodyModel, ErrorModel}
 import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.http.Status._
@@ -63,7 +63,7 @@ class DeleteSavingsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
 
         val result = await(connector.deleteSavingsIncomeData(nino, taxYear)(hc))
 
-        result mustBe Right(true)
+        result mustBe Right(Done)
       }
 
       "the host for DES is 'External'" in {
@@ -74,7 +74,7 @@ class DeleteSavingsIncomeDataConnectorISpec extends PlaySpec with WiremockSpec{
 
         val result = await(connector.deleteSavingsIncomeData(nino, taxYear)(hc))
 
-        result mustBe Right(true)
+        result mustBe Right(Done)
       }
     }
 

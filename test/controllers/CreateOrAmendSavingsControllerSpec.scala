@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.httpParsers.CreateOrAmendSavingsHttpParser.CreateOrAmendSavingsResponse
-import models.{CreateOrAmendSavingsModel, ErrorBodyModel, ErrorModel, ForeignInterestModel, SecuritiesModel}
+import models._
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.Json

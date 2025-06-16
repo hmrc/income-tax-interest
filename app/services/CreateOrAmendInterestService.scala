@@ -20,6 +20,7 @@ import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInter
 import connectors.{CreateIncomeSourceConnector, CreateOrAmendAnnualIncomeSourcePeriodConnector, CreateOrAmendInterestConnector}
 import models._
 import play.api.Logging
+import play.api.http.Status
 import play.api.http.Status.isServerError
 import uk.gov.hmrc.http.HeaderCarrier
 import utils.PagerDutyHelper.{getPagerKeyFromInt, pagerDutyLog}
@@ -28,65 +29,77 @@ import utils.TaxYearUtils.specificTaxYear
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
-
 @Singleton
-class CreateOrAmendInterestService @Inject()(
-                                              createOrAmendInterestConnector: CreateOrAmendInterestConnector,
-                                              createOrAmendAnnualIncomeSourcePeriodConnector:CreateOrAmendAnnualIncomeSourcePeriodConnector,
-                                              createIncomeSourceConnector: CreateIncomeSourceConnector)(implicit ec: ExecutionContext) extends Logging {
+class CreateOrAmendInterestService @Inject()(createOrAmendInterestConnector: CreateOrAmendInterestConnector,
+                                             createOrAmendAnnualIncomeSourcePeriodConnector:CreateOrAmendAnnualIncomeSourcePeriodConnector,
+                                             createIncomeSourceConnector: CreateIncomeSourceConnector
+                                            )(implicit ec: ExecutionContext) extends Logging {
 
-
-  def createOrAmendInterest(nino: String, taxYear: Int, submittedInterest: InterestDetailsModel, attempt: Int = 0
-                           )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
+  private[services] def createOrAmendInterest(nino: String,
+                                              taxYear: Int,
+                                              submittedInterest: InterestDetailsModel,
+                                              attempt: Int = 0
+                                             )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
     if (taxYear >= specificTaxYear) {
       taxYearSpecificCreateInterest(nino, taxYear, submittedInterest, attempt)
     }
     else {
       createOrAmendInterestConnector.createOrAmendInterest(nino, taxYear, submittedInterest).flatMap {
-        case Right(true) => Future.successful(Right(true))
+        case Right(Done) => Future.successful(Right(Done))
         case Left(errorResponse) if isServerError(errorResponse.status) && attempt < 2 => createOrAmendInterest(nino, taxYear, submittedInterest, attempt + 1)
-        case Left(errorResponse) => logAndReturn(errorResponse, "[CreateOrAmendInterestService][createOrAmendInterest]")
+        case Left(errorResponse) => Future.successful(logAndReturn(errorResponse, "[CreateOrAmendInterestService][createOrAmendInterest]"))
       }
     }
   }
 
+  private def taxYearSpecificCreateInterest(nino: String,
+                                            taxYear: Int,
+                                            submittedInterest: InterestDetailsModel,
+                                            attempt: Int
+                                           )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
 
-  private def taxYearSpecificCreateInterest(nino: String, taxYear: Int, submittedInterest: InterestDetailsModel, attempt: Int
-                                   )(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
     createOrAmendAnnualIncomeSourcePeriodConnector.createOrAmendAnnualIncomeSourcePeriod(nino, taxYear, submittedInterest).flatMap {
-      case Right(true) => Future.successful(Right(true))
+      case Right(Done) => Future.successful(Right(Done))
       case Left(errorResponse) if isServerError(errorResponse.status) && attempt < 2 => createOrAmendInterest(nino, taxYear, submittedInterest, attempt + 1)
-      case Left(errorResponse) => logAndReturn(errorResponse, "[CreateOrAmendInterestService][createOrAmendInterest]")
+      case Left(errorResponse) => Future.successful(logAndReturn(errorResponse, "[CreateOrAmendInterestService][createOrAmendInterest]"))
     }
   }
 
-  def getIncomeSourceId(nino: String, interestSubmittedModel: CreateOrAmendInterestModel, attempt: Int = 0)
-                       (implicit hc: HeaderCarrier): Future[Either[ErrorModel, InterestDetailsModel]] = {
-    if (interestSubmittedModel.id.isEmpty) {
-      createIncomeSourceConnector.createIncomeSource(nino, InterestSubmissionModel(incomeSourceName = interestSubmittedModel.accountName)).flatMap {
-        case Right(incomeSourceIdModel) =>
+  private[services] def getIncomeSourceId(nino: String,
+                                           interestSubmittedModel: CreateOrAmendInterestModel
+                                         )(implicit hc: HeaderCarrier): Future[Either[ErrorModel, InterestDetailsModel]] = {
+
+    def doLoop(model: InterestSubmissionModel, attempt: Int): Future[Either[ErrorModel, InterestDetailsModel]] =
+      createIncomeSourceConnector.createIncomeSource(nino, model).flatMap {
+        case Right(IncomeSourceIdModel(id)) =>
           Future.successful(Right(
-            InterestDetailsModel(incomeSourceIdModel.incomeSourceId, interestSubmittedModel.taxedUkInterest, interestSubmittedModel.untaxedUkInterest)
+            InterestDetailsModel(id, interestSubmittedModel.taxedUkInterest, interestSubmittedModel.untaxedUkInterest)
           ))
-        case Left(errorResponse) if isServerError(errorResponse.status) && attempt < 2 => getIncomeSourceId(nino, interestSubmittedModel, attempt + 1)
-        case Left(errorResponse) => logAndReturn(errorResponse, "[CreateOrAmendInterestService][getIncomeSourceId]")
+
+        case Left(errorResponse) if Status.isClientError(errorResponse.status) || attempt >= 2 =>
+          Future.successful(logAndReturn(errorResponse, "[CreateOrAmendInterestService][getIncomeSourceId]"))
+
+        case Left(_) =>
+          doLoop(model, attempt + 1)
       }
-    } else {
-      Future.successful(Right(
-        InterestDetailsModel(interestSubmittedModel.id.get, interestSubmittedModel.taxedUkInterest, interestSubmittedModel.untaxedUkInterest)
-      ))
+
+    interestSubmittedModel.id match {
+      case None =>
+        val model = InterestSubmissionModel(incomeSourceName = interestSubmittedModel.accountName)
+        doLoop(model, 0)
+      case Some(id) =>
+        Future.successful(Right(
+          InterestDetailsModel(id, interestSubmittedModel.taxedUkInterest, interestSubmittedModel.untaxedUkInterest)
+        ))
     }
   }
 
   def createOrAmendAllInterest(nino: String, taxYear: Int, submittedModel: Seq[CreateOrAmendInterestModel]
                               )(implicit hc: HeaderCarrier): Future[Seq[CreateOrAmendInterestResponse]] = {
-
     Future.sequence(submittedModel.map { model =>
       getIncomeSourceId(nino, model).flatMap {
-        case Right(value) =>
-          createOrAmendInterest(nino, taxYear, value)
-        case Left(errorResponse) =>
-          Future.successful(Left(errorResponse))
+        case Right(value) => createOrAmendInterest(nino, taxYear, value)
+        case Left(errorResponse) => Future.successful(Left(errorResponse))
       }
     })
   }
@@ -96,7 +109,7 @@ class CreateOrAmendInterestService @Inject()(
       getPagerKeyFromInt(errorResponse.status),
       s"$logKey Received ${errorResponse.status} from DES. Body:${errorResponse.body}"
     )
-    Future.successful(Left(errorResponse))
+    Left(errorResponse)
   }
 
 }

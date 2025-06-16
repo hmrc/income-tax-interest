@@ -18,8 +18,8 @@ package connectors
 
 import config.AppConfig
 import testUtils.TestSuite
-import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionId}
 import uk.gov.hmrc.http.HeaderNames.{authorisation, xRequestChain, xSessionId}
+import uk.gov.hmrc.http.{Authorization, HeaderCarrier, SessionId}
 
 class DesConnectorSpec extends TestSuite{
 

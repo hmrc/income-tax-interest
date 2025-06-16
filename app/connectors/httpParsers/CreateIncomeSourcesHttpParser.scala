@@ -17,33 +17,51 @@
 package connectors.httpParsers
 
 import models._
+import org.slf4j.MDC
 import play.api.Logging
 import play.api.http.Status._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
+import utils.PagerDutyHelper.PagerDutyKeys.{FIVEXX_RESPONSE_FROM_API, FOURXX_RESPONSE_FROM_API, UNEXPECTED_RESPONSE_FROM_API}
 
 object CreateIncomeSourcesHttpParser extends APIParser with Logging {
   type CreateIncomeSourcesResponse = Either[ErrorModel, IncomeSourceIdModel]
 
-
   implicit object CreateIncomeSourcesHttpReads extends HttpReads[CreateIncomeSourcesResponse] {
     override def read(method: String, url: String, response: HttpResponse): CreateIncomeSourcesResponse = {
+      response.header("CorrelationId").foreach(MDC.put("CorrelationId", _))
+
       response.status match {
-        case OK => response.json.validate[IncomeSourceIdModel].fold[CreateIncomeSourcesResponse](
-          jsonErrors => badSuccessJsonFromAPI,
-          parsedModel => Right(parsedModel)
-        )
-        case INTERNAL_SERVER_ERROR =>
-          logger.error(logMessage(response))
-          handleAPIError(response)
-        case SERVICE_UNAVAILABLE =>
-          logger.error(logMessage(response))
-          handleAPIError(response)
-        case BAD_REQUEST | FORBIDDEN | CONFLICT =>
-          logger.error(logMessage(response))
-          handleAPIError(response)
+        case OK =>
+          response.json.validate[IncomeSourceIdModel].fold(
+            _ => {
+              logger.error(s"$UNEXPECTED_RESPONSE_FROM_API  Unexpected Json response.")
+              Left(ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel.parsingError))
+            },
+            Right(_)
+          )
+        case BAD_REQUEST | UNAUTHORIZED | UNPROCESSABLE_ENTITY =>
+          response.json.asOpt[ErrorBody] match {
+            case Some(apiError) =>
+              logger.error(s"$FOURXX_RESPONSE_FROM_API Received ${response.status} status code. Body:${response.body}")
+              Left(ErrorModel(500, apiError))
+            case None =>
+              logger.error(s"$FOURXX_RESPONSE_FROM_API $UNEXPECTED_RESPONSE_FROM_API Unexpected Json response.")
+              Left(ErrorModel(500, ErrorBodyModel.parsingError))
+          }
+
+        case INTERNAL_SERVER_ERROR | BAD_GATEWAY | SERVICE_UNAVAILABLE =>
+          response.json.asOpt[ErrorBody] match {
+            case Some(apiError) =>
+              logger.error(s"$FIVEXX_RESPONSE_FROM_API Received ${response.status} status code. Body:${response.body}")
+              Left(ErrorModel(500, apiError))
+            case None =>
+              logger.error(s"$FIVEXX_RESPONSE_FROM_API Unexpected Json response.")
+              Left(ErrorModel(500, ErrorBodyModel.parsingError))
+          }
+
         case _ =>
-          logger.error(logMessage(response))
-          handleAPIError(response, Some(INTERNAL_SERVER_ERROR))
+          logger.warn(s"$UNEXPECTED_RESPONSE_FROM_API Received ${response.status} status code. Body:${response.body}")
+          Left(ErrorModel(500, EmptyErrorBody))
       }
     }
   }

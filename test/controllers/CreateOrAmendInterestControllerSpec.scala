@@ -17,7 +17,7 @@
 package controllers
 
 import connectors.httpParsers.CreateOrAmendInterestHttpParser.CreateOrAmendInterestResponse
-import models.{CreateOrAmendInterestModel, ErrorBodyModel, ErrorModel}
+import models.{CreateOrAmendInterestModel, Done, ErrorBodyModel, ErrorModel}
 import org.scalamock.handlers.CallHandler4
 import play.api.http.Status._
 import play.api.libs.json.Json
@@ -44,10 +44,10 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
   val interestSubmittedModelInvalid: CreateOrAmendInterestModel = CreateOrAmendInterestModel(Some(incomeSourceId), incomeSourceName, None, Some(100.00))
 
   val interestSuccessResponse: Future[Seq[CreateOrAmendInterestResponse]] =
-    Future.successful(Seq(Right(true), Right(true), Right(true)))
+    Future.successful(Seq(Right(Done), Right(Done), Right(Done)))
 
   val interestFailResponse: Future[Seq[CreateOrAmendInterestResponse]] =
-    Future.successful(Seq(Right(true), Left(notFoundModel), Right(true)))
+    Future.successful(Seq(Right(Done), Left(notFoundModel), Right(Done)))
 
   def mockServiceSuccessCall: CallHandler4[String, Int, Seq[CreateOrAmendInterestModel], HeaderCarrier, Future[Seq[CreateOrAmendInterestResponse]]] =
     (serviceMock.createOrAmendAllInterest(_: String, _: Int, _: Seq[CreateOrAmendInterestModel])(_: HeaderCarrier))
@@ -61,40 +61,42 @@ class CreateOrAmendInterestControllerSpec extends TestSuite {
 
   ".createOrAmendInterest" should {
     "return a no content" when {
-    "passed a validModel and there are no failures from the connector" in {
+      "passed a validModel and there are no failures from the connector" in {
 
-      val expectedResult = NO_CONTENT
-
-      mockAuth()
-      mockServiceSuccessCall
-      val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModel)))
-
-      status(result) mustBe expectedResult
-
-    }
-  }
-    "return an error" when {
-      "passed a valid model but at least one post fails" in {
-        val expectedResult = NOT_FOUND
+        val expectedResult = NO_CONTENT
 
         mockAuth()
-        mockServiceFailCall
+        mockServiceSuccessCall
         val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModel)))
 
         status(result) mustBe expectedResult
       }
+    }
+
+
+    "return an error" when {
+      "passed a valid model but at least one post fails" in {
+        mockAuth()
+        mockServiceFailCall
+        val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModel)))
+
+        status(result) mustBe NOT_FOUND
+      }
 
       "passed a invalid model" in {
-        val expectedResult = BAD_REQUEST
-
         mockAuth()
         val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest.withJsonBody(Json.toJson(interestSubmittedModelInvalid)))
 
-        status(result) mustBe expectedResult
+        status(result) mustBe BAD_REQUEST
       }
+
+      "passed an empty has body" in {
+        mockAuth()
+        val result = controller.createOrAmendInterest(nino, taxYear)(fakeRequest)
+
+        status(result) mustBe BAD_REQUEST
+      }
+
     }
-
   }
-
-
 }

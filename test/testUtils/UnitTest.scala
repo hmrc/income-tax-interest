@@ -16,12 +16,12 @@
 
 package testUtils
 
-import org.apache.pekko.actor.ActorSystem
-import org.apache.pekko.stream.{ActorMaterializer, Materializer}
 import com.codahale.metrics.SharedMetricRegistries
 import common.{EnrolmentIdentifiers, EnrolmentKeys}
 import config.AppConfig
 import controllers.predicates.AuthorisedAction
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.{ActorMaterializer, Materializer}
 import org.scalamock.handlers.CallHandler4
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
@@ -31,13 +31,13 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AnyContentAsEmpty, ControllerComponents, DefaultActionBuilder, Result}
 import play.api.test.{FakeRequest, Helpers}
 import services.AuthService
+import support.providers.AppConfigStubProvider
 import uk.gov.hmrc.auth.core._
 import uk.gov.hmrc.auth.core.authorise.Predicate
 import uk.gov.hmrc.auth.core.retrieve.Retrieval
 import uk.gov.hmrc.auth.core.retrieve.v2.Retrievals
 import uk.gov.hmrc.auth.core.syntax.retrieved.authSyntaxForRetrieved
 import uk.gov.hmrc.http.HeaderCarrier
-import support.providers.AppConfigStubProvider
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, Awaitable, ExecutionContext, Future}

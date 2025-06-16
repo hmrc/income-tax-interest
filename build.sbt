@@ -32,7 +32,7 @@ lazy val coverageSettings: Seq[Setting[?]] = {
 }
 
 ThisBuild / majorVersion := 0
-ThisBuild / scalaVersion := "2.13.12"
+ThisBuild / scalaVersion := "2.13.16"
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
@@ -42,7 +42,6 @@ lazy val microservice = Project(appName, file("."))
   )
   .settings(PlayKeys.playDefaultPort := 9309)
   .settings(RoutesKeys.routesImport ++= Seq("models.TaxYearPathBindable._", "models.TaxYearPathBindable.TaxYear"))
-  .settings(resolvers += Resolver.jcenterRepo)
   .settings(coverageSettings *)
   .disablePlugins(sbt.plugins.JUnitXmlReportPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
