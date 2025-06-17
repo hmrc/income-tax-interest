@@ -43,7 +43,7 @@ class CreateIncomeSourceConnectorImpl @Inject()(httpClient: HttpClientV2,
                          interestSubmissionModel: InterestSubmissionModel
                         )(implicit hc: HeaderCarrier): Future[CreateIncomeSourcesResponse] = {
     httpClient
-      .post(url"$hipBaseUrl/income-sources/$nino")
+      .post(url"$hipBaseUrl/itsd/income-sources/$nino")
       .setHeader(hipHeaders: _*)
       .withBody(Json.toJson(interestSubmissionModel))
       .execute[CreateIncomeSourcesResponse]
