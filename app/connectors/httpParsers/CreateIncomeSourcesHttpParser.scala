@@ -30,6 +30,10 @@ object CreateIncomeSourcesHttpParser extends APIParser with Logging {
     override def read(method: String, url: String, response: HttpResponse): CreateIncomeSourcesResponse = {
       response.header("CorrelationId").foreach(MDC.put("CorrelationId", _))
 
+      //TODO: TEMPORARY REMOVE AFTER DEBUGGING
+      logger.error(s"[CreateIncomeSourcesHttpReads] Response body: ${response.body}")
+      //TODO: TEMPORARY REMOVE AFTER DEBUGGING
+
       response.status match {
         case OK =>
           response.json.validate[IncomeSourceIdModel].fold(
