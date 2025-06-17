@@ -52,7 +52,7 @@ class CreateIncomeSourcesConnectorISpec
   val connector = new CreateIncomeSourceConnectorImpl(httpClientV2, servicesConfig)
 
   val nino = "nino"
-  val url = s"/income-sources/$nino"
+  val url = s"/itsd/income-sources/$nino"
 
   val incomeSourceName = "testName"
   val model: InterestSubmissionModel = InterestSubmissionModel(incomeSourceName = incomeSourceName)
