@@ -16,11 +16,20 @@
 
 package models
 
-import play.api.libs.json.{Json, OFormat}
+import play.api.libs.json.{JsString, Reads, Writes, __}
 
-case class InterestSubmissionModel(incomeSourceType: IncomeSourceType,
-                                   incomeSourceName: String)
+sealed class IncomeSourceType(val code: String)
+object UKBankAccount extends IncomeSourceType("09")
 
-object InterestSubmissionModel {
-  implicit val formats: OFormat[InterestSubmissionModel] = Json.format[InterestSubmissionModel]
+object IncomeSourceType {
+
+  val values: Seq[IncomeSourceType] = Seq(UKBankAccount)
+
+  def apply(code: String): IncomeSourceType = code match {
+    case "09" => UKBankAccount
+    case _    => throw new IllegalArgumentException(s"Invalid income source type code: $code")
+  }
+
+  implicit val writes: Writes[IncomeSourceType] = (o: IncomeSourceType) => JsString(o.code)
+  implicit val reads: Reads[IncomeSourceType] = __.read[String] map apply
 }

@@ -22,7 +22,11 @@ import play.api.libs.json.{JsObject, Json}
 
 class InterestSubmissionModelSpec extends AnyWordSpec with Matchers {
 
-  val model: InterestSubmissionModel = InterestSubmissionModel(incomeSourceName = "HSBC Savings")
+  val model: InterestSubmissionModel = InterestSubmissionModel(
+    incomeSourceType = UKBankAccount,
+    incomeSourceName = "HSBC Savings"
+  )
+
   val json: JsObject = Json.obj(
     "incomeSourceType" -> "09",
     "incomeSourceName" -> "HSBC Savings"

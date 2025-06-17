@@ -85,7 +85,10 @@ class CreateOrAmendInterestService @Inject()(createOrAmendInterestConnector: Cre
 
     interestSubmittedModel.id match {
       case None =>
-        val model = InterestSubmissionModel(incomeSourceName = interestSubmittedModel.accountName)
+        val model = InterestSubmissionModel(
+          incomeSourceType = UKBankAccount,
+          incomeSourceName = interestSubmittedModel.accountName
+        )
         doLoop(model, 0)
       case Some(id) =>
         Future.successful(Right(

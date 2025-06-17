@@ -52,7 +52,7 @@ class CreateOrAmendInterestServiceSpec extends TestSuite {
   val internalServerErrorModel: ErrorModel = ErrorModel(INTERNAL_SERVER_ERROR, ErrorBodyModel("InternalServerError", "Internal Server Error"))
 
   val interestDetailsModel: InterestDetailsModel = InterestDetailsModel(incomeSourceId, Some(100.00), Some(100.00))
-  val submissionModel: InterestSubmissionModel = InterestSubmissionModel(incomeSourceName = incomeSourceName)
+  val submissionModel: InterestSubmissionModel = InterestSubmissionModel(incomeSourceType = UKBankAccount, incomeSourceName = incomeSourceName)
   val connectorResult: IncomeSourceIdModel = IncomeSourceIdModel(incomeSourceId)
   val submittedModelWithId: CreateOrAmendInterestModel = CreateOrAmendInterestModel(Some(incomeSourceId), incomeSourceName, Some(100.00), Some(100.00))
   val submittedModelWithoutId: CreateOrAmendInterestModel = CreateOrAmendInterestModel(None, incomeSourceName, Some(100.00), Some(100.00))
