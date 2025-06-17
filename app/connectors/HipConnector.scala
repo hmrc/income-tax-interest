@@ -25,8 +25,8 @@ trait HipConnector {
 
   val config: ServicesConfig
 
-  lazy val hipBaseUrl: String = config.baseUrl("hip")
-  lazy val hipAuthToken: String = config.getString("microservice.services.hip.authorisation-token")
+  val hipBaseUrl: String = config.baseUrl("hip")
+  val hipAuthToken: String = config.getString("microservice.services.hip.authorisation-token")
 
   def hipHeaders(implicit hc: HeaderCarrier): Seq[(String, String)] = Seq(
     "correlationId" -> hc.requestId.fold(UUID.randomUUID().toString)(_.value),

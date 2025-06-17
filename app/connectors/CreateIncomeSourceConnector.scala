@@ -28,7 +28,7 @@ import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @ImplementedBy(classOf[CreateIncomeSourceConnectorImpl])
-trait CreateIncomeSourceConnector extends HipConnector {
+trait CreateIncomeSourceConnector {
   def createIncomeSource(nino: String,
                          interestSubmissionModel: InterestSubmissionModel
                         )(implicit hc: HeaderCarrier): Future[CreateIncomeSourcesResponse]
@@ -37,7 +37,7 @@ trait CreateIncomeSourceConnector extends HipConnector {
 @Singleton
 class CreateIncomeSourceConnectorImpl @Inject()(httpClient: HttpClientV2,
                                                 val config: ServicesConfig
-                                               )(implicit executionContext: ExecutionContext) extends CreateIncomeSourceConnector {
+                                               )(implicit executionContext: ExecutionContext) extends CreateIncomeSourceConnector with HipConnector {
 
   def createIncomeSource(nino: String,
                          interestSubmissionModel: InterestSubmissionModel
