@@ -40,7 +40,7 @@ class CreateIncomeSourcesConnectorISpec
     with HttpClientV2Support
     with EitherValues {
 
-  private val hipAuthToken = "Bearer test-token"
+  private val hipAuthToken = "Basic test-token"
 
   private val servicesConfig = new ServicesConfig(Configuration.from(Map(
     "microservice.services.hip.protocol" -> "http",

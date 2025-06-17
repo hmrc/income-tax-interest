@@ -30,7 +30,7 @@ trait HipConnector {
 
   def hipHeaders(implicit hc: HeaderCarrier): Seq[(String, String)] = Seq(
     "correlationId" -> hc.requestId.fold(UUID.randomUUID().toString)(_.value),
-    HeaderNames.authorisation -> s"Bearer $hipAuthToken"
+    HeaderNames.authorisation -> s"Basic $hipAuthToken"
   )
 
 }
