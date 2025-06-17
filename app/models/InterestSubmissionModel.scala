@@ -18,7 +18,8 @@ package models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class InterestSubmissionModel(incomeSourceType: String = "interest-from-uk-banks", incomeSourceName: String)
+case class InterestSubmissionModel(incomeSourceType: String = "09", //Interest from UK Banks, Building Societies and Securities etc.
+                                   incomeSourceName: String)
 
 object InterestSubmissionModel {
   implicit val formats: OFormat[InterestSubmissionModel] = Json.format[InterestSubmissionModel]
