@@ -55,7 +55,10 @@ class CreateIncomeSourcesConnectorISpec
   val url = s"/itsd/income-sources/$nino"
 
   val incomeSourceName = "testName"
-  val model: InterestSubmissionModel = InterestSubmissionModel(incomeSourceName = incomeSourceName)
+  val model: InterestSubmissionModel = InterestSubmissionModel(
+    incomeSourceType = UKBankAccount,
+    incomeSourceName = incomeSourceName
+  )
 
   "CreateIncomeSourcesConnector" - {
     "when the response is 200" - {
