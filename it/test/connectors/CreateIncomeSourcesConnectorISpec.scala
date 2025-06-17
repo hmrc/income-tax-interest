@@ -26,7 +26,7 @@ import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
-import uk.gov.hmrc.http.{HeaderCarrier, RequestId}
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, RequestId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,10 +40,13 @@ class CreateIncomeSourcesConnectorISpec
     with HttpClientV2Support
     with EitherValues {
 
+  private val hipAuthToken = "Bearer test-token"
+
   private val servicesConfig = new ServicesConfig(Configuration.from(Map(
     "microservice.services.hip.protocol" -> "http",
     "microservice.services.hip.host" -> wireMockHost,
     "microservice.services.hip.port" -> wireMockPort,
+    "microservice.services.hip.authorisation-token" -> "test-token"
   )))
 
   val connector = new CreateIncomeSourceConnectorImpl(httpClientV2, servicesConfig)
@@ -67,6 +70,7 @@ class CreateIncomeSourcesConnectorISpec
             post(urlEqualTo(url))
               .withRequestBody(equalToJson(Json.toJson(model).toString))
               .withHeader("correlationId", equalTo(requestId.value))
+              .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
               .willReturn(
                 aResponse()
                   .withStatus(OK)
@@ -90,6 +94,7 @@ class CreateIncomeSourcesConnectorISpec
             post(urlEqualTo(url))
               .withRequestBody(equalToJson(Json.toJson(model).toString))
               .withHeader("correlationId", equalTo(requestId.value))
+              .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
               .willReturn(
                 aResponse()
                   .withStatus(OK)
@@ -114,6 +119,7 @@ class CreateIncomeSourcesConnectorISpec
           post(urlEqualTo(url))
             .withRequestBody(equalToJson(Json.toJson(model).toString))
             .withHeader("correlationId", equalTo(requestId.value))
+            .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
             .willReturn(
               aResponse()
                 .withStatus(BAD_REQUEST)
@@ -137,6 +143,7 @@ class CreateIncomeSourcesConnectorISpec
           post(urlEqualTo(url))
             .withRequestBody(equalToJson(Json.toJson(model).toString))
             .withHeader("correlationId", equalTo(requestId.value))
+            .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
             .willReturn(
               aResponse()
                 .withStatus(INTERNAL_SERVER_ERROR)
@@ -158,6 +165,7 @@ class CreateIncomeSourcesConnectorISpec
           post(urlEqualTo(url))
             .withRequestBody(equalToJson(Json.toJson(model).toString))
             .withHeader("correlationId", equalTo(requestId.value))
+            .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
             .willReturn(
               aResponse()
                 .withStatus(INTERNAL_SERVER_ERROR)
@@ -181,6 +189,7 @@ class CreateIncomeSourcesConnectorISpec
           post(urlEqualTo(url))
             .withRequestBody(equalToJson(Json.toJson(model).toString))
             .withHeader("correlationId", equalTo(requestId.value))
+            .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
             .willReturn(
               aResponse()
                 .withStatus(IM_A_TEAPOT)

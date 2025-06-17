@@ -24,7 +24,6 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-import java.util.UUID
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -37,20 +36,14 @@ trait CreateIncomeSourceConnector {
 
 @Singleton
 class CreateIncomeSourceConnectorImpl @Inject()(httpClient: HttpClientV2,
-                                            config: ServicesConfig
-                                           )(implicit executionContext: ExecutionContext) extends CreateIncomeSourceConnector {
-
-  private val baseUrl = config.baseUrl("hip")
+                                                val config: ServicesConfig
+                                               )(implicit executionContext: ExecutionContext) extends CreateIncomeSourceConnector with HipConnector {
 
   def createIncomeSource(nino: String,
                          interestSubmissionModel: InterestSubmissionModel
-                         )(implicit hc: HeaderCarrier): Future[CreateIncomeSourcesResponse] = {
-    val hipHeaders = Seq(
-      "correlationId" -> hc.requestId.fold(UUID.randomUUID().toString)(_.value)
-    )
-
+                        )(implicit hc: HeaderCarrier): Future[CreateIncomeSourcesResponse] = {
     httpClient
-      .post(url"$baseUrl/income-sources/$nino")
+      .post(url"$hipBaseUrl/income-sources/$nino")
       .setHeader(hipHeaders: _*)
       .withBody(Json.toJson(interestSubmissionModel))
       .execute[CreateIncomeSourcesResponse]
