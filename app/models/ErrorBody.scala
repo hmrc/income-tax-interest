@@ -16,12 +16,12 @@
 
 package models
 
-import play.api.libs.json.{JsValue, Json, OFormat, Reads}
+import play.api.libs.json.{JsValue, Json, OFormat, Reads, Writes}
 
 sealed trait ErrorBody
 object ErrorBody {
   implicit val reads: Reads[ErrorBody] =
-    ErrorBodyModel.formats.widen[ErrorBody] orElse ErrorsBodyModel.formats.widen[ErrorBody]
+    ErrorBodyModel.reads.widen[ErrorBody] orElse ErrorsBodyModel.formats.widen[ErrorBody]
 }
 
 /** No Error message propagated **/
@@ -30,7 +30,15 @@ object EmptyErrorBody  extends ErrorBody
 /** Single Error **/
 case class ErrorBodyModel(code: String, reason: String) extends ErrorBody
 object ErrorBodyModel {
-  implicit val formats: OFormat[ErrorBodyModel] = Json.format[ErrorBodyModel]
+
+  implicit val reads: Reads[ErrorBodyModel] = Reads { json =>
+    for {
+      code <- (json \ "code").validate[String] orElse (json \ "type").validate[String]
+      reason <- (json \ "reason").validate[String]
+    } yield ErrorBodyModel(code, reason)
+  }
+
+  implicit val writes: Writes[ErrorBodyModel] = Json.writes[ErrorBodyModel]
   val parsingError: ErrorBodyModel = ErrorBodyModel("PARSING_ERROR", "Error parsing response from API")
 }
 
