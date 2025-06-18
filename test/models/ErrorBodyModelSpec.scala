@@ -27,17 +27,30 @@ class ErrorBodyModelSpec extends TestSuite {
     "reason" -> "The service is currently unavailable"
   )
 
+  private val hipErrorBodyModelAsJson = Json.obj(
+    "type" -> "SERVICE_UNAVAILABLE",
+    "reason" -> "The service is currently unavailable"
+  )
+
   "ErrorBodyModel" should {
     val model = new ErrorBodyModel("SERVICE_UNAVAILABLE", "The service is currently unavailable")
 
     "serialize to Json" in {
-
       Json.toJson(model) mustBe errorBodyModelAsJson
     }
 
-    "deserialize from json without throwing a parse exception" in {
+    "for a DES/IF response" should {
 
-      errorBodyModelAsJson.as[ErrorBodyModel]
+      "deserialize from json without throwing a parse exception" in {
+        errorBodyModelAsJson.as[ErrorBodyModel]
+      }
+    }
+
+    "for a HIP response" should {
+
+      "deserialize from json without throwing a parse exception" in {
+        hipErrorBodyModelAsJson.as[ErrorBodyModel]
+      }
     }
   }
 
