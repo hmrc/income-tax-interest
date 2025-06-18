@@ -26,7 +26,7 @@ import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.test.{HttpClientV2Support, WireMockSupport}
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, RequestId}
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -40,17 +40,20 @@ class CreateIncomeSourcesConnectorISpec
     with HttpClientV2Support
     with EitherValues {
 
-  private val hipAuthToken = "Bearer test-token"
+  private val hipAuthToken = "Basic test-token"
+  val correlationIdRegex = "^[0-9a-fA-F]{8}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{4}[-][0-9a-fA-F]{12}$"
 
   private val servicesConfig = new ServicesConfig(Configuration.from(Map(
     "microservice.services.hip.protocol" -> "http",
     "microservice.services.hip.host" -> wireMockHost,
     "microservice.services.hip.port" -> wireMockPort,
-    "microservice.services.hip.authorisation-token" -> "test-token"
+    "microservice.services.hip.authorisation-token" -> "test-token",
+    "microservice.services.hip.authType" -> "Basic"
   )))
 
   val connector = new CreateIncomeSourceConnectorImpl(httpClientV2, servicesConfig)
 
+  implicit val hc: HeaderCarrier = HeaderCarrier()
   val nino = "nino"
   val url = s"/itsd/income-sources/$nino"
 
@@ -64,25 +67,22 @@ class CreateIncomeSourcesConnectorISpec
     "when the response is 200" - {
       "when the response body can be parsed" - {
         "return the incomeSourceId include internal headers" in {
-          val requestId = RequestId("request-id-value")
-          val hc = HeaderCarrier(requestId = Some(requestId))
 
           val expectedResponse = IncomeSourceIdModel("income-source-id-value")
 
           stubFor(
             post(urlEqualTo(url))
               .withRequestBody(equalToJson(Json.toJson(model).toString))
-              .withHeader("correlationId", equalTo(requestId.value))
+              .withHeader("correlationId", matching(correlationIdRegex))
               .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
               .willReturn(
                 aResponse()
                   .withStatus(OK)
-                  .withHeader("correlationId", requestId.value)
                   .withBody(Json.toJson(expectedResponse).toString)
               )
           )
 
-          val result = connector.createIncomeSource(nino, model)(hc).futureValue
+          val result = connector.createIncomeSource(nino, model).futureValue
 
           result.value shouldEqual expectedResponse
         }
@@ -90,23 +90,20 @@ class CreateIncomeSourcesConnectorISpec
 
       "when the response body cannot be parsed" - {
         "return an error" in {
-          val requestId = RequestId("request-id-value")
-          val hc = HeaderCarrier(requestId = Some(requestId))
 
           stubFor(
             post(urlEqualTo(url))
               .withRequestBody(equalToJson(Json.toJson(model).toString))
-              .withHeader("correlationId", equalTo(requestId.value))
+              .withHeader("correlationId", matching(correlationIdRegex))
               .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
               .willReturn(
                 aResponse()
                   .withStatus(OK)
-                  .withHeader("correlationId", requestId.value)
                   .withBody(Json.obj("key" -> "value").toString)
               )
           )
 
-          val result = connector.createIncomeSource(nino, model)(hc).futureValue
+          val result = connector.createIncomeSource(nino, model).futureValue
 
           result.left.value.status shouldBe 500
         }
@@ -115,23 +112,20 @@ class CreateIncomeSourcesConnectorISpec
 
     "when the response is 400" - {
       "return an error" in {
-        val requestId = RequestId("request-id-value")
-        val hc = HeaderCarrier(requestId = Some(requestId))
 
         stubFor(
           post(urlEqualTo(url))
             .withRequestBody(equalToJson(Json.toJson(model).toString))
-            .withHeader("correlationId", equalTo(requestId.value))
+            .withHeader("correlationId", matching(correlationIdRegex))
             .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
             .willReturn(
               aResponse()
                 .withStatus(BAD_REQUEST)
-                .withHeader("correlationId", requestId.value)
                 .withBody(Json.obj("key" -> "value").toString)
             )
         )
 
-        val result = connector.createIncomeSource(nino, model)(hc).futureValue
+        val result = connector.createIncomeSource(nino, model).futureValue
 
         result.left.value.status shouldBe 500
       }
@@ -139,45 +133,39 @@ class CreateIncomeSourcesConnectorISpec
 
     "when the response is 500" - {
       "return an error when the error message can be parsed" in {
-        val requestId = RequestId("request-id-value")
-        val hc = HeaderCarrier(requestId = Some(requestId))
 
         stubFor(
           post(urlEqualTo(url))
             .withRequestBody(equalToJson(Json.toJson(model).toString))
-            .withHeader("correlationId", equalTo(requestId.value))
+            .withHeader("correlationId", matching(correlationIdRegex))
             .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
             .willReturn(
               aResponse()
                 .withStatus(INTERNAL_SERVER_ERROR)
-                .withHeader("correlationId", requestId.value)
                 .withBody(Json.toJson(ErrorBodyModel("100001", "")).toString)
             )
         )
 
-        val result = connector.createIncomeSource(nino, model)(hc).futureValue
+        val result = connector.createIncomeSource(nino, model).futureValue
 
         result.left.value.status shouldBe 500
       }
 
       "return when the error message cannot be parsed" in {
-        val requestId = RequestId("request-id-value")
-        val hc = HeaderCarrier(requestId = Some(requestId))
 
         stubFor(
           post(urlEqualTo(url))
             .withRequestBody(equalToJson(Json.toJson(model).toString))
-            .withHeader("correlationId", equalTo(requestId.value))
+            .withHeader("correlationId", matching(correlationIdRegex))
             .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
             .willReturn(
               aResponse()
                 .withStatus(INTERNAL_SERVER_ERROR)
-                .withHeader("correlationId", requestId.value)
                 .withBody(Json.obj("key" -> "value").toString)
             )
         )
 
-        val result = connector.createIncomeSource(nino, model)(hc).futureValue
+        val result = connector.createIncomeSource(nino, model).futureValue
 
         result.left.value.status shouldBe 500
       }
@@ -185,23 +173,20 @@ class CreateIncomeSourcesConnectorISpec
 
     "when the response status is not an expected value" - {
       "return an error" in {
-        val requestId = RequestId("request-id-value")
-        val hc = HeaderCarrier(requestId = Some(requestId))
 
         stubFor(
           post(urlEqualTo(url))
             .withRequestBody(equalToJson(Json.toJson(model).toString))
-            .withHeader("correlationId", equalTo(requestId.value))
+            .withHeader("correlationId", matching(correlationIdRegex))
             .withHeader(HeaderNames.authorisation, equalTo(hipAuthToken))
             .willReturn(
               aResponse()
                 .withStatus(IM_A_TEAPOT)
-                .withHeader("correlationId", requestId.value)
                 .withBody(Json.obj("key" -> "value").toString)
             )
         )
 
-        val result = connector.createIncomeSource(nino, model)(hc).futureValue
+        val result = connector.createIncomeSource(nino, model).futureValue
 
         result.left.value.status shouldBe 500
       }

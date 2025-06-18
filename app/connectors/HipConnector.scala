@@ -16,7 +16,7 @@
 
 package connectors
 
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames}
+import uk.gov.hmrc.http.HeaderNames
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import java.util.UUID
@@ -24,13 +24,14 @@ import java.util.UUID
 trait HipConnector {
 
   val config: ServicesConfig
-
   val hipBaseUrl: String = config.baseUrl("hip")
-  val hipAuthToken: String = config.getString("microservice.services.hip.authorisation-token")
 
-  def hipHeaders(implicit hc: HeaderCarrier): Seq[(String, String)] = Seq(
-    "correlationId" -> hc.requestId.fold(UUID.randomUUID().toString)(_.value),
-    HeaderNames.authorisation -> s"Bearer $hipAuthToken"
+  private val hipAuthToken: String = config.getString("microservice.services.hip.authorisation-token")
+  private val hipAuthType: String = config.getString("microservice.services.hip.authType")
+
+  def hipHeaders: Seq[(String, String)] = Seq(
+    "correlationId" -> UUID.randomUUID().toString,
+    HeaderNames.authorisation -> s"$hipAuthType $hipAuthToken"
   )
 
 }
