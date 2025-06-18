@@ -18,7 +18,7 @@ import sbt._
 
 object AppDependencies {
 
-  private val bootstrapVersion = "8.6.0"
+  private val bootstrapVersion = "9.13.0"
   private val hmrcMongoPlay30Version = "2.6.0"
 
   private val jacksonAndPlayExclusions: Seq[InclusionRule] = Seq(
@@ -30,20 +30,20 @@ object AppDependencies {
   )
 
   val compile: Seq[ModuleID] = Seq(
-    "uk.gov.hmrc" %% "bootstrap-backend-play-30" % bootstrapVersion,
-    "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.17.0",
+    "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"  % bootstrapVersion,
     "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % hmrcMongoPlay30Version,
-    "com.beachape" %% "enumeratum" % "1.7.3",
-    "uk.gov.hmrc"  %% "crypto-json-play-30" % "7.6.0",
-    "org.typelevel" %% "cats-core" % "2.12.0",
-    "com.beachape" %% "enumeratum-play-json" % "1.7.3" excludeAll (jacksonAndPlayExclusions *)
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala"       % "2.19.1",
+    "uk.gov.hmrc"                   %% "crypto-json-play-30"        % "8.2.0",
+    "org.typelevel"                 %% "cats-core"                  % "2.13.0",
+    "com.beachape"                  %% "enumeratum"                 % "1.9.0",
+    "com.beachape"                  %% "enumeratum-play-json"       % "1.9.0" excludeAll (jacksonAndPlayExclusions *)
   )
 
   val test: Seq[ModuleID] = Seq(
-    "uk.gov.hmrc"             %% "bootstrap-test-play-30"     % bootstrapVersion              % "test",
-    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-30"    % hmrcMongoPlay30Version        % "test",
-    "org.scalatest"           %% "scalatest"                  % "3.2.15"                      % "test",
-    "org.scalamock"           %% "scalamock"                  % "5.1.0"                       % "test",
-    "org.mockito"             %% "mockito-scala"              % "1.17.37"                     % "test"
-  )
+    "uk.gov.hmrc"             %% "bootstrap-test-play-30"     % bootstrapVersion,
+    "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-30"    % hmrcMongoPlay30Version,
+    "org.scalatest"           %% "scalatest"                  % "3.2.19",
+    "org.scalamock"           %% "scalamock"                  % "7.3.2",
+    "org.mockito"             %% "mockito-scala"              % "2.0.0"
+  ).map(_ % "test")
 }

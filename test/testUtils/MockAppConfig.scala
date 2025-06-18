@@ -17,9 +17,8 @@
 package testUtils
 
 import config.AppConfig
-import org.scalamock.scalatest.MockFactory
 
-class MockAppConfig extends AppConfig with MockFactory {
+class MockAppConfig extends AppConfig {
 
   override val authBaseUrl: String = "/auth"
 

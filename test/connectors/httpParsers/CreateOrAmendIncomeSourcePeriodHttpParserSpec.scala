@@ -29,7 +29,7 @@ class CreateOrAmendIncomeSourcePeriodHttpParserSpec extends UnitTest {
     class SomeResponse(override val status: Int,
                        override val body: String
                       ) extends HttpResponse {
-      override def allHeaders: Map[String, Seq[String]] = Map()
+      override def headers: Map[String, Seq[String]] = Map()
     }
 
     new SomeResponse(_status, _body)

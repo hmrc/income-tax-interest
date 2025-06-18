@@ -19,12 +19,13 @@ package support.mocks
 import models.{ErrorModel, NamedInterestDetailsModel}
 import org.scalamock.handlers.CallHandler4
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import services.GetInterestsService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.{ExecutionContext, Future}
 
-trait MockGetInterestsService extends MockFactory {
+trait MockGetInterestsService extends MockFactory { _: TestSuite =>
   protected val mockGetInterestsService: GetInterestsService = mock[GetInterestsService]
 
   type ReturnType = Either[ErrorModel, List[NamedInterestDetailsModel]]

@@ -20,11 +20,12 @@ import models.Done
 import models.mongo.JourneyAnswers
 import org.scalamock.handlers.{CallHandler1, CallHandler3}
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import repositories.JourneyAnswersRepository
 
 import scala.concurrent.Future
 
-trait MockJourneyAnswersRepository extends MockFactory {
+trait MockJourneyAnswersRepository extends MockFactory { _: TestSuite =>
   protected val mockJourneyAnswersRepo: JourneyAnswersRepository = mock[JourneyAnswersRepository]
 
   def mockKeepAliveJourneyAnswers(mtdItId: String,
