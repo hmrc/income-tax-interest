@@ -19,12 +19,13 @@ package support.mocks
 import connectors.httpParsers.SavingsIncomeDataParser.SavingsIncomeDataResponse
 import org.scalamock.handlers.CallHandler3
 import org.scalamock.scalatest.MockFactory
+import org.scalatest.TestSuite
 import services.GetSavingsIncomeDataService
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.Future
 
-trait MockGetSavingsIncomeDataService extends MockFactory {
+trait MockGetSavingsIncomeDataService extends MockFactory { _: TestSuite =>
   protected val mockGetSavingsService: GetSavingsIncomeDataService = mock[GetSavingsIncomeDataService]
 
   private type MockType = CallHandler3[String, Int, HeaderCarrier, Future[SavingsIncomeDataResponse]]
