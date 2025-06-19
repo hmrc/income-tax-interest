@@ -31,9 +31,10 @@ To test the branch you're working on locally. You will need to run `sm2 --stop I
   which runs `sbt clean coverage test it/test coverageReport`
 
 ### Feature Switches
-| Feature                | Environments Enabled In        |
+| Feature                | Description       |
 |------------------------|--------------------------------|
-| sectionCompletedQuestionEnabled                  | Local, QA, Staging, Production |
+| sectionCompletedQuestionEnabled                  | Redirects user to Have you completed this section from CYA page
+|
 
 ### Interest endpoints:
 
