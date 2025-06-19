@@ -30,6 +30,11 @@ To test the branch you're working on locally. You will need to run `sm2 --stop I
 - Run Unit and Integration Tests with coverage report and dependency updates: `./check.sh`<br/>
   which runs `sbt clean coverage test it/test coverageReport`
 
+### Feature Switches
+| Feature                | Environments Enabled In        |
+|------------------------|--------------------------------|
+| sectionCompletedQuestionEnabled                  | Local, QA, Staging, Production |
+
 ### Interest endpoints:
 
 **GET     /income-tax/income-sources/nino/:nino?incomeSourceType=interest-from-uk-banks** (Retrieves a list of data relating to the interest income source type)
