@@ -10,7 +10,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
-            <pattern>%date{ISO8601} level=[%level] logger=[%logger] thread=[%thread] rid=[%X{X-Request-ID}] user=[%X{Authorization}] message=[%message] %replace(exception=[%xException]){'^exception=\[\]$',''}%n</pattern>
+            <pattern>[%highlight(%.-4level)][%logger] %date{ISO8601} %message %replace(exception=[%xException]){'^exception=\[\]$',''} %n</pattern>
         </encoder>
     </appender>
 
@@ -21,15 +21,15 @@
         </encoder>
     </appender>
 
-    <logger name="com.google.inject" level="INFO"/>
-
-    <logger name="uk.gov" level="INFO"/>
-
-    <logger name="application" level="DEBUG"/>
-
-    <logger name="connector" level="TRACE">
-        <appender-ref ref="STDOUT"/>
-    </logger>
+    <logger name="com.google.inject" level="WARN"/>
+    <logger name="uk.gov" level="WARN"/>
+    <logger name="org.apache" level="WARN"/>
+    <logger name="play" level="WARN"/>
+    <logger name="org.eclipse.jetty" level="WARN"/>
+    <logger name="org.mongodb" level="WARN"/>
+    <logger name="connector" level="WARN"/>
+    <logger name="uk.gov.hmrc.play.audit.DefaultAuditConnector" level="OFF"/>
+    <logger name="uk.gov.hmrc.play.bootstrap.audit.DisabledDatastreamMetricsProvider" level="OFF"/>
 
     <root level="INFO">
         <appender-ref ref="FILE"/>
