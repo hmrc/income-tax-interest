@@ -24,7 +24,8 @@ import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.TaxYearUtils.{convertSpecificTaxYear, specificTaxYear}
 
@@ -36,7 +37,7 @@ class GetSavingsIncomeDataTysConnectorISpec extends PlaySpec with WiremockSpec {
 
   private val url = s"/income-tax/income/savings/${convertSpecificTaxYear(specificTaxYear)}/$nino"
 
-  private lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+  private lazy val httpClient: HttpClientV2 = app.injector.instanceOf[HttpClientV2]
 
   private def appConfig(ifHost: String): AppConfig = new BackendAppConfig(app.injector.instanceOf[Configuration], app.injector.instanceOf[ServicesConfig]) {
     override val desBaseUrl: String = s"http://$ifHost:$wireMockPort"

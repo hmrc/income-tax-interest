@@ -24,7 +24,8 @@ import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.Json
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
@@ -35,7 +36,7 @@ class CreateOrAmendInterestConnectorISpec extends PlaySpec with WiremockSpec{
   val taxYear = 2021
   val url = s"/income-tax/nino/$nino/income-source/savings/annual/$taxYear"
 
-  lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+  lazy val httpClient: HttpClientV2 = app.injector.instanceOf[HttpClientV2]
 
   val model: InterestDetailsModel = InterestDetailsModel("incomeSourceId", Some(100.00), Some(100.00))
 
