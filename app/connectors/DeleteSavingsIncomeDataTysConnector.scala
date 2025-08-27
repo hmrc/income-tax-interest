@@ -18,13 +18,14 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.DeleteSavingsIncomeDataParser.{DeleteSavingsIncomeDataHttpReads, DeleteSavingsIncomeDataResponse}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import utils.TaxYearUtils.convertSpecificTaxYear
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class DeleteSavingsIncomeDataTysConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+class DeleteSavingsIncomeDataTysConnector @Inject()(http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
   private val apiNumber = "1905"
   def deleteSavingsIncomeData(nino: String, taxYear: Int)(implicit hc: HeaderCarrier): Future[DeleteSavingsIncomeDataResponse] = {
@@ -32,6 +33,6 @@ class DeleteSavingsIncomeDataTysConnector @Inject()(http: HttpClient, val appCon
     val savingsIncomeDataUrl: String =
       appConfig.ifBaseUrl + s"/income-tax/income/savings/${convertSpecificTaxYear(taxYear)}/$nino"
 
-    http.DELETE[DeleteSavingsIncomeDataResponse](savingsIncomeDataUrl)(DeleteSavingsIncomeDataHttpReads, ifHeaderCarrier(savingsIncomeDataUrl, apiNumber), ec)
+    http.delete(url"$savingsIncomeDataUrl")(ifHeaderCarrier(savingsIncomeDataUrl, apiNumber)).execute[DeleteSavingsIncomeDataResponse](DeleteSavingsIncomeDataHttpReads, ec)
   }
 }
