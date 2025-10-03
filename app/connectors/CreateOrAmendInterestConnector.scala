@@ -18,13 +18,16 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.CreateOrAmendInterestHttpParser._
-import javax.inject.Inject
 import models.InterestDetailsModel
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import play.api.libs.json.Format.GenericFormat
+import play.api.libs.json.Json
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateOrAmendInterestConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+class CreateOrAmendInterestConnector @Inject()(http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
 
   def createOrAmendInterest(
                              nino: String, taxYear: Int, interestModel: InterestDetailsModel
@@ -33,7 +36,7 @@ class CreateOrAmendInterestConnector @Inject()(http: HttpClient, val appConfig: 
       s"annual/$taxYear"
 
     def desCall(implicit hc: HeaderCarrier): Future[CreateOrAmendInterestResponse] = {
-      http.POST[InterestDetailsModel, CreateOrAmendInterestResponse](createOrAmendInterestUrl, interestModel)
+      http.post(url"$createOrAmendInterestUrl").withBody(Json.toJson(interestModel)).execute[CreateOrAmendInterestResponse]
     }
 
     desCall(desHeaderCarrier(createOrAmendInterestUrl))

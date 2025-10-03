@@ -18,14 +18,15 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.CreateOrAmendSavingsHttpParser._
+import models.CreateOrAmendSavingsModel
+import play.api.libs.json.Json
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 
 import javax.inject.Inject
-import models.CreateOrAmendSavingsModel
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-
 import scala.concurrent.{ExecutionContext, Future}
 
-class CreateOrAmendSavingsConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
+class CreateOrAmendSavingsConnector @Inject()(http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends IFConnector {
 
   private val apiNumber = "1605"
   def createOrAmendSavings(nino: String, taxYear: Int, savingsModel: CreateOrAmendSavingsModel
@@ -34,7 +35,7 @@ class CreateOrAmendSavingsConnector @Inject()(http: HttpClient, val appConfig: A
     val createOrAmendSavingsUrl: String = appConfig.ifBaseUrl + s"/income-tax/income/savings/$nino/$taxYearParameter"
 
     def iFCall(implicit hc: HeaderCarrier): Future[CreateOrAmendSavingsResponse] = {
-      http.PUT[CreateOrAmendSavingsModel, CreateOrAmendSavingsResponse](createOrAmendSavingsUrl, savingsModel)
+      http.put(url"$createOrAmendSavingsUrl").withBody(Json.toJson[CreateOrAmendSavingsModel](savingsModel)).execute[CreateOrAmendSavingsResponse]
     }
 
     iFCall(ifHeaderCarrier(createOrAmendSavingsUrl, apiNumber))

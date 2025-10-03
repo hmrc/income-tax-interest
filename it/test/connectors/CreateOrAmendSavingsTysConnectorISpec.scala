@@ -24,7 +24,8 @@ import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import play.api.http.Status._
 import play.api.libs.json.{JsObject, Json}
-import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, HttpClient, SessionId}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, HeaderNames, SessionId}
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import utils.TaxYearUtils.{convertSpecificTaxYear, specificTaxYear}
 
@@ -37,7 +38,7 @@ class CreateOrAmendSavingsTysConnectorISpec extends PlaySpec with WiremockSpec {
 
   implicit val hc: HeaderCarrier = HeaderCarrier()
   lazy val connector: CreateOrAmendSavingsTysConnector = app.injector.instanceOf[CreateOrAmendSavingsTysConnector]
-  lazy val httpClient: HttpClient = app.injector.instanceOf[HttpClient]
+  lazy val httpClient: HttpClientV2 = app.injector.instanceOf[HttpClientV2]
 
   val nino = "nino"
   val url = s"/income-tax/income/savings/${convertSpecificTaxYear(specificTaxYear)}/$nino"

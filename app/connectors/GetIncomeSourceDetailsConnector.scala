@@ -18,19 +18,20 @@ package connectors
 
 import config.AppConfig
 import connectors.httpParsers.IncomeSourcesDetailsParser._
-import javax.inject.Inject
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
 
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-class GetIncomeSourceDetailsConnector @Inject()(http: HttpClient, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
+class GetIncomeSourceDetailsConnector @Inject()(http: HttpClientV2, val appConfig: AppConfig)(implicit ec: ExecutionContext) extends DesConnector {
 
   def getIncomeSourceDetails(nino: String, taxYear: String, incomeSourceId: String)(implicit hc: HeaderCarrier): Future[IncomeSourcesDetailsResponse] = {
     val incomeSourceDetailsUrl = appConfig.desBaseUrl +
       s"/income-tax/nino/$nino/income-source/savings/annual/$taxYear?incomeSourceId=$incomeSourceId"
 
     def desCall(implicit hc: HeaderCarrier): Future[IncomeSourcesDetailsResponse] = {
-      http.GET[IncomeSourcesDetailsResponse](incomeSourceDetailsUrl)
+      http.get(url"$incomeSourceDetailsUrl").execute[IncomeSourcesDetailsResponse]
     }
 
     desCall(desHeaderCarrier(incomeSourceDetailsUrl))
