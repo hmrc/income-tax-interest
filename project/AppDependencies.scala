@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import sbt._
+import sbt.*
 
 object AppDependencies {
 
-  private val bootstrapVersion = "10.2.0"
-  private val hmrcMongoPlay30Version = "2.9.0"
+  private val bootstrapVersion = "10.4.0"
+  private val hmrcMongoPlay30Version = "2.11.0"
 
   private val jacksonAndPlayExclusions: Seq[InclusionRule] = Seq(
     ExclusionRule(organization = "com.fasterxml.jackson.core"),
@@ -32,7 +32,7 @@ object AppDependencies {
   val compile: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"                   %% "bootstrap-backend-play-30"  % bootstrapVersion,
     "uk.gov.hmrc.mongo"             %% "hmrc-mongo-play-30"         % hmrcMongoPlay30Version,
-    "com.fasterxml.jackson.module"  %% "jackson-module-scala"       % "2.20.0",
+    "com.fasterxml.jackson.module"  %% "jackson-module-scala"       % "2.20.1",
     "uk.gov.hmrc"                   %% "crypto-json-play-30"        % "8.4.0",
     "org.typelevel"                 %% "cats-core"                  % "2.13.0",
     "com.beachape"                  %% "enumeratum"                 % "1.9.0",
@@ -43,7 +43,7 @@ object AppDependencies {
     "uk.gov.hmrc"             %% "bootstrap-test-play-30"     % bootstrapVersion,
     "uk.gov.hmrc.mongo"       %% "hmrc-mongo-test-play-30"    % hmrcMongoPlay30Version,
     "org.scalatest"           %% "scalatest"                  % "3.2.19",
-    "org.scalamock"           %% "scalamock"                  % "7.5.0",
+    "org.scalamock"           %% "scalamock"                  % "7.5.2",
     "org.mockito"             %% "mockito-scala"              % "2.0.0"
   ).map(_ % "test")
 }
